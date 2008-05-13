@@ -1,3 +1,5 @@
+# * Add support for fetching tracking numbers to Shipwire
+# * Move email to the options hash. Refactor Shipwire commit method.
 # * Package for initial upload to Google Code
 # * Fix remote Webgistix test
 # * Add support for Fulfillment by Amazon Basic Fulfillment

@@ -7,7 +7,8 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     @service = WebgistixService.new( fixtures(:webgistix) )
     
     @options = { 
-      :shipping_method => 'Ground'
+      :shipping_method => 'Ground',
+      :email    => 'buyer@jadedpallet.com'
     }
     
     @address = { :name => 'Fred Brooks',
@@ -15,8 +16,7 @@ class RemoteWebgistixTest < Test::Unit::TestCase
                  :city => 'Jonsetown',
                  :state => 'NC',
                  :country => 'US',
-                 :zip => '23456',
-                 :email    => 'buyer@jadedpallet.com'
+                 :zip => '23456'
                }
     
     @line_items = [

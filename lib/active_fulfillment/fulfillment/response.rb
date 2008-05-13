@@ -22,9 +22,11 @@ module ActiveMerchant
         @test = options[:test] || false        
       end
       
+      private
       def method_missing(method, *args)
         @params[method.to_s] || super
       end
     end
+    
   end
 end

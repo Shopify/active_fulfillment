@@ -113,7 +113,7 @@ module ActiveMerchant
           xml.tag! 'Approve', 1
           xml.tag! 'OrderComments', options[:comment] unless options[:comment].blank?
     
-          add_address(xml, shipping_address)
+          add_address(xml, shipping_address, options)
 
           Array(line_items).each_with_index do |line_item, index|
             add_item(xml, line_item, index)
@@ -121,7 +121,7 @@ module ActiveMerchant
         end
       end
       
-      def add_address(xml, address)
+      def add_address(xml, address, options)
         xml.tag! 'Name', address[:name]
         xml.tag! 'Address1', address[:address1]
         xml.tag! 'Address2', address[:address2] unless address[:address2].blank?
@@ -137,7 +137,7 @@ module ActiveMerchant
         end
         
         xml.tag! 'Phone', address[:phone]
-        xml.tag! 'Email', address[:email] unless address[:email].blank?
+        xml.tag! 'Email', options[:email] unless options[:email].blank?
       end
 
       def add_item(xml, item, index)

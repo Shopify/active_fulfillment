@@ -47,7 +47,11 @@ module ActiveMerchant
       def fetch_stock_levels(options = {})
         commit :inventory, build_inventory_request(options)
       end
-
+      
+      def fetch_tracking_numbers(options = {})
+        commit :tracking, build_tracking_request(options)
+      end
+      
       def test_mode?
         true
       end
@@ -59,7 +63,7 @@ module ActiveMerchant
         xml.declare! :DOCTYPE, :OrderList, :SYSTEM, SCHEMA_URLS[:fulfillment]
         xml.tag! 'OrderList' do
           add_credentials(xml)
-          xml.tag! 'Referer', 'SHOPIFY'
+          xml.tag! 'Referer', 'Active Fulfillment'
           add_order(xml, order_id, shipping_address, line_items, options) 
         end
         xml.target!
@@ -76,6 +80,17 @@ module ActiveMerchant
         end
       end
       
+      def build_tracking_request(options)
+        xml = Builder::XmlMarkup.new
+        xml.instruct!
+        xml.declare! :DOCTYPE, :InventoryStatus, :SYSTEM, SCHEMA_URLS[:inventory]
+        xml.tag! 'TrackingUpdate' do
+          add_credentials(xml)
+          xml.tag! 'Server', test? ? 'Test' : 'Production'
+          xml.tag! 'Bookmark', '3'
+        end
+      end
+
       def add_credentials(xml)
         xml.tag! 'EmailAddress', @options[:login]
         xml.tag! 'Password', @options[:password]
@@ -86,7 +101,7 @@ module ActiveMerchant
         xml.tag! 'Order', :id => order_id do
           xml.tag! 'Warehouse', options[:warehouse] || '00'
 
-          add_address(xml, shipping_address)
+          add_address(xml, shipping_address, options)
           xml.tag! 'Shipping', options[:shipping_method] unless options[:shipping_method].blank?
 
           Array(line_items).each_with_index do |line_item, index|
@@ -95,7 +110,7 @@ module ActiveMerchant
         end
       end
 
-      def add_address(xml, address)
+      def add_address(xml, address, options)
         xml.tag! 'AddressInfo', :type => 'Ship' do
           xml.tag! 'Name' do
             xml.tag! 'Full', address[:name]
@@ -116,7 +131,7 @@ module ActiveMerchant
           
           xml.tag! 'Zip', address[:zip] unless address[:zip].blank?
           xml.tag! 'Phone', address[:phone] unless address[:phone].blank?
-          xml.tag! 'Email', address[:email] unless address[:email].blank?
+          xml.tag! 'Email', options[:email] unless options[:email].blank?
         end
       end
 
@@ -140,27 +155,21 @@ module ActiveMerchant
          'Content-Type' => 'application/x-www-form-urlencoded'
         )
         
+        response = parse_response(action, data)
+        Response.new(response[:success], response[:message], response, :test => test?)
+      end
+      
+      def parse_response(action, data)
         case action
         when :fulfillment
-        
-          @response = parse_fulfillment_response(data)
-          success = @response[:status] == '0'
-          message = success ? "Successfully submitted the order" : message_from(@response[:error_message])
-      
-          
+          parse_fulfillment_response(data)        
         when :inventory
-          @response = parse_inventory_response(data)
-          if test?
-            success = @response[:status] == 'Test'
-          else
-            success = @response[:status] == '0'
-          end
-          message = success ? "Successfully received the stock levels" : message_from(@response[:error_message])
+          parse_inventory_response(data)
+        when :tracking
+          parse_tracking_response(data)
+        else
+          raise ArgumentError, "Unknown action #{action}"
         end
-        
-        Response.new(success, message, @response, 
-          :test => test?
-        )
       end
       
       def parse_fulfillment_response(xml)
@@ -170,6 +179,9 @@ module ActiveMerchant
         document.root.elements.each do |node|
           response[node.name.underscore.to_sym] = node.text
         end
+        
+        response[:success] = response[:status] == '0'
+        response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])        
         response
       end
       
@@ -185,6 +197,29 @@ module ActiveMerchant
             response[node.name.underscore.to_sym] = node.text
           end
         end
+        
+        response[:success] = test? ? response[:status] == 'Test' : response[:status] == '0'
+        response[:message] = response[:success] ? "Successfully received the stock levels" : message_from(response[:error_message])
+        
+        response
+      end
+      
+      def parse_tracking_response(xml)
+        response = {}
+        response[:tracking_numbers] = {}
+        
+        document = REXML::Document.new(xml)
+        
+        document.root.elements.each do |node|
+          if node.name == 'Order'
+            response[:tracking_numbers][node.attributes['id']] = node.attributes['trackingNumber'] if node.attributes["shipped"] == "YES"
+          else
+            response[node.name.underscore.to_sym] = node.text
+          end
+        end
+        
+        response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
+        response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
         response
       end
       

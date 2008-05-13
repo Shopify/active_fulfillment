@@ -8,7 +8,8 @@ class RemoteShipwireTest < Test::Unit::TestCase
     
     @options = { 
       :warehouse => '01',
-      :shipping_method => 'UPS Ground'
+      :shipping_method => 'UPS Ground',
+      :email => 'cody@example.com'
     }
     
     @address = { :name => 'Fred Brooks',
@@ -21,7 +22,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
                }
     
     @line_items = [
-      { :sku => '9999',
+      { :sku => 'AF0001',
         :quantity => 25,
         :description => 'Libtech Snowboard',
         :length => 3,
@@ -58,7 +59,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
   
   def test_order_multiple_line_items
     @line_items.push(
-      { :sku => '9998',
+      { :sku => 'AF0002',
         :quantity => 25,
         :description => 'Libtech Snowboard',
         :length => 3,
@@ -120,5 +121,12 @@ class RemoteShipwireTest < Test::Unit::TestCase
     assert_equal 14, response.stock_levels["GD802-024"]
     assert_equal 32, response.stock_levels["GD201-500"]
     assert_equal "2", response.params["total_products"]
+  end
+  
+  def test_fetch_tracking_numbers
+    response = @shipwire.fetch_tracking_numbers
+    assert response.success?    
+    assert response.test?
+    assert_equal Hash.new, response.tracking_numbers
   end
 end
