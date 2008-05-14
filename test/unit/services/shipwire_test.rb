@@ -97,7 +97,17 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal "2", response.params["total_shipped_orders"]
     
     assert_equal expected, response.tracking_numbers
+  end
+  
+  def test_successful_tracking_with_live_data
+    @shipwire.expects(:ssl_post).returns(successful_live_tracking_response)
+    response = @shipwire.fetch_tracking_numbers
+    assert response.success?
+    assert_equal "15", response.params["total_orders"]
+    assert_equal "0", response.params["status"]
+    assert_equal "13", response.params["total_shipped_orders"]
     
+    assert_equal 13, response.tracking_numbers.size
   end
   
   private
@@ -117,6 +127,35 @@ class ShipwireTest < Test::Unit::TestCase
   <TotalShippedOrders>2</TotalShippedOrders>
   <Bookmark>2006-04-28 20:35:45</Bookmark>
 </TrackingUpdateResponse>
+    XML
+  end
+  
+  def successful_live_tracking_response
+    <<-XML
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<TrackingUpdateResponse>
+  <Status>0</Status>
+  <Order id="21" shipped="YES" trackingNumber="1Z6296VW0398500001" shipper="5" handling="0.00" shipping="6.58" total="6.58"/>
+  <Order id="22" shipped="YES" trackingNumber="1Z6296VW0390790002" shipper="5" handling="0.00" shipping="8.13" total="8.13"/>
+  <Order id="23" shipped="YES" trackingNumber="1Z6296VW0396490003" shipper="5" handling="0.00" shipping="7.63" total="7.63"/>
+  <Order id="24" shipped="YES" trackingNumber="1Z6296VW0390200004" shipper="5" handling="0.00" shipping="8.97" total="8.97"/>
+  <Order id="25" shipped="YES" trackingNumber="1Z6296VW0393240005" shipper="5" handling="0.00" shipping="8.42" total="8.42"/>
+  <Order id="26" shipped="YES" trackingNumber="1Z6296VW0396400006" shipper="5" handling="0.00" shipping="8.42" total="8.42"/>
+  <Order id="2581" shipped="YES" trackingNumber="1Z6296VW0391160007" shipper="5" handling="0.00" shipping="8.21" total="8.21"/>
+  <Order id="2576" shipped="YES" trackingNumber="CJ3026000018US" shipper="43" handling="0.00" shipping="18.60" total="18.60"/>
+  <Order id="2593" shipped="YES" trackingNumber="1Z6296VW0398660008" shipper="5" handling="0.00" shipping="7.63" total="7.63"/>
+  <Order id="2598" shipped="YES" trackingNumber="1Z6296VW0391610009" shipper="5" handling="0.00" shipping="9.84" total="9.84"/>
+  <Order id="2610" shipped="YES" trackingNumber="1Z6296VW0395650010" shipper="5" handling="0.00" shipping="7.63" total="7.63"/>
+  <Order id="2611" shipped="YES" trackingNumber="1Z6296VW0397050011" shipper="5" handling="0.00" shipping="7.13" total="7.13"/>
+  <Order id="2613" shipped="YES" trackingNumber="1Z6296VW0398970012" shipper="5" handling="0.00" shipping="8.97" total="8.97"/>
+  <Order id="2616" shipped="NO" trackingNumber="" shipper="5" handling="0.00" shipping="9.84" total="9.84"/>
+  <Order id="2631" shipped="NO" trackingNumber="" shipper="" handling="" shipping="" total=""/>
+  <TotalOrders>15</TotalOrders>
+  <TotalShippedOrders>13</TotalShippedOrders>
+  <TotalProducts/>
+  <Bookmark/>
+</TrackingUpdateResponse>
+
     XML
   end
 end
