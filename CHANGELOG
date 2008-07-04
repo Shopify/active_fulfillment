@@ -1,3 +1,4 @@
+# * Sync posts_data.rb with ActiveMerchant
 # * Add support for fetching tracking numbers to Shipwire
 # * Move email to the options hash. Refactor Shipwire commit method.
 # * Package for initial upload to Google Code
