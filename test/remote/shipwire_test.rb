@@ -14,6 +14,8 @@ class RemoteShipwireTest < Test::Unit::TestCase
     
     @address = { :name => 'Fred Brooks',
                  :address1 => '1234 Penny Lane',
+                 :address2 => 'Apartment 1',
+                 :company => 'Fine furs',
                  :city => 'Jonsetown',
                  :state => 'NC',
                  :country => 'US',
