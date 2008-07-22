@@ -115,11 +115,11 @@ module ActiveMerchant
           xml.tag! 'Name' do
             xml.tag! 'Full', address[:name]
           end
-          xml.tag! 'Address1', address[:company] unless address[:company].blank?
-          xml.tag! 'Address2', address[:address1] unless address[:address1].blank?
-          xml.tag! 'Address3', address[:address2] unless address[:address2].blank?
-          xml.tag! 'City', address[:city] unless address[:city].blank?
-          xml.tag! 'State', address[:state] unless address[:state].blank?
+          xml.tag! 'Address1', address[:company]
+          xml.tag! 'Address2', address[:address1]
+          xml.tag! 'Address3', address[:address2]
+          xml.tag! 'City', address[:city]
+          xml.tag! 'State', address[:state]
           
           unless address[:country].blank?
             country = Country.find(address[:country])

@@ -1,3 +1,4 @@
+# * Always send address to Shipwire
 # * Map company to address1 with Shipwire
 # * Sync posts_data.rb with ActiveMerchant
 # * Add support for fetching tracking numbers to Shipwire
