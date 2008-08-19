@@ -1,8 +1,9 @@
-# * Always send address to Shipwire
-# * Map company to address1 with Shipwire
-# * Sync posts_data.rb with ActiveMerchant
-# * Add support for fetching tracking numbers to Shipwire
-# * Move email to the options hash. Refactor Shipwire commit method.
-# * Package for initial upload to Google Code
-# * Fix remote Webgistix test
-# * Add support for Fulfillment by Amazon Basic Fulfillment
+* Shipwire: Send the company in address1 if present. Otherwise send address1 in address1.
+* Always send address to Shipwire
+* Map company to address1 with Shipwire
+* Sync posts_data.rb with ActiveMerchant
+* Add support for fetching tracking numbers to Shipwire
+* Move email to the options hash. Refactor Shipwire commit method.
+* Package for initial upload to Google Code
+* Fix remote Webgistix test
+* Add support for Fulfillment by Amazon Basic Fulfillment

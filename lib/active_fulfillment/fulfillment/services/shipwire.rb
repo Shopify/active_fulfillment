@@ -115,9 +115,16 @@ module ActiveMerchant
           xml.tag! 'Name' do
             xml.tag! 'Full', address[:name]
           end
-          xml.tag! 'Address1', address[:company]
-          xml.tag! 'Address2', address[:address1]
-          xml.tag! 'Address3', address[:address2]
+          
+          if address[:company].blank?
+            xml.tag! 'Address1', address[:address1]
+            xml.tag! 'Address2', address[:address2]
+          else
+            xml.tag! 'Address1', address[:company]
+            xml.tag! 'Address2', address[:address1]
+            xml.tag! 'Address3', address[:address2]
+          end
+          
           xml.tag! 'City', address[:city]
           xml.tag! 'State', address[:state]
           
