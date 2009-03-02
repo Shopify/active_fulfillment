@@ -1,3 +1,4 @@
+* Update Shipwire warehouses and don't send unneeded Content-Type header
 * Add configurable timeouts from Active Merchant
 * Shipwire: Send the company in address1 if present. Otherwise send address1 in address1.
 * Always send address to Shipwire

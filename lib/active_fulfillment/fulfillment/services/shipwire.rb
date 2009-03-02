@@ -17,9 +17,13 @@ module ActiveMerchant
                     :inventory   => 'InventoryUpdateXML',
                     :tracking    => 'TrackingUpdateXML'
                   }
-                  
-      WAREHOUSES = { '01' => '01 - Shipwire Chicago',
-                     '02' => '02 - Shipwire Los Angeles'
+  
+      WAREHOUSES = { 'CHI' => 'Chicago',
+                     'LAX' => 'Los Angeles',
+                     'REN' => 'Reno',
+                     'VAN' => 'Vancouver',
+                     'TOR' => 'Toronto',
+                     'UK'  => 'United Kingdom'
                    }
                    
       # The first is the label, and the last is the code
@@ -158,10 +162,7 @@ module ActiveMerchant
       end
 
       def commit(action, request)
-        data = ssl_post(SERVICE_URLS[action],
-         "#{POST_VARS[action]}=#{CGI.escape(request)}",
-         'Content-Type' => 'application/x-www-form-urlencoded'
-        )
+        data = ssl_post(SERVICE_URLS[action], "#{POST_VARS[action]}=#{CGI.escape(request)}")
         
         response = parse_response(action, data)
         Response.new(response[:success], response[:message], response, :test => test?)

@@ -7,7 +7,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
     @shipwire = ShipwireService.new( fixtures(:shipwire) )
     
     @options = { 
-      :warehouse => '01',
+      :warehouse => 'LAX',
       :shipping_method => 'UPS Ground',
       :email => 'cody@example.com'
     }
