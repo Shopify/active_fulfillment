@@ -12,16 +12,26 @@ class RemoteShipwireTest < Test::Unit::TestCase
       :email => 'cody@example.com'
     }
     
-    @address = { :name => 'Fred Brooks',
-                 :address1 => '1234 Penny Lane',
-                 :address2 => 'Apartment 1',
-                 :company => 'Fine furs',
-                 :city => 'Jonsetown',
-                 :state => 'NC',
-                 :country => 'US',
-                 :zip => '23456',
-                 :email    => 'buyer@jadedpallet.com'
-               }
+    @us_address = { 
+      :name     => 'Steve Jobs',
+      :company  => 'Apple Computer Inc.',
+      :address1 => '1 Infinite Loop',
+      :city     => 'Cupertino',
+      :state    => 'CA',
+      :country  => 'US',
+      :zip      => '95014',
+      :email    => 'steve@apple.com'
+    }
+    
+    @uk_address = { 
+      :name     => 'Bob Diamond',
+      :company  => 'Barclays Bank PLC',
+      :address1 => '1 Churchill Place',
+      :city     => 'London',
+      :country  => 'GB',
+      :zip      => 'E14 5HP',
+      :email    => 'bob@barclays.co.uk'
+    }
     
     @line_items = [
       { :sku => 'AF0001',
@@ -41,15 +51,26 @@ class RemoteShipwireTest < Test::Unit::TestCase
       :login => 'your@email.com',
       :password => 'password')
       
-    response = shipwire.fulfill('123456', @address, @line_items, @options)
+    response = shipwire.fulfill('123456', @us_address, @line_items, @options)
     assert !response.success?
     assert response.test?
     assert_equal 'Error', response.params['status']
     assert_equal "Could not verify e-mail/password combination", response.message
   end
   
-  def test_successful_order_submission
-    response = @shipwire.fulfill('123456', @address, @line_items, @options)
+  def test_successful_order_submission_to_us
+    response = @shipwire.fulfill('123456', @us_address, @line_items, @options)
+    assert response.success?
+    assert response.test?
+    assert response.params['transaction_id']
+    assert_equal '1', response.params['total_orders']
+    assert_equal '1', response.params['total_items']
+    assert_equal '0', response.params['status']
+    assert_equal 'Successfully submitted the order', response.message
+  end
+  
+  def test_successful_order_submission_to_uk
+    response = @shipwire.fulfill('123456', @uk_address, @line_items, @options)
     assert response.success?
     assert response.test?
     assert response.params['transaction_id']
@@ -72,7 +93,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
        }
     )
     
-    response = @shipwire.fulfill('123456', @address, @line_items, @options)
+    response = @shipwire.fulfill('123456', @us_address, @line_items, @options)
     assert response.success?
     assert response.test?
     assert response.params['transaction_id']
@@ -93,7 +114,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
       }
     ]
     
-    response = @shipwire.fulfill('123456', @address, line_items, options)
+    response = @shipwire.fulfill('123456', @us_address, line_items, options)
     
     assert response.success?
     assert response.test?
