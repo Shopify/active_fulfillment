@@ -66,17 +66,9 @@ class ShipwireTest < Test::Unit::TestCase
   def test_country_format
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     country_node = REXML::XPath.first(xml, "//Country")
-    assert_equal 'US United States', country_node.text
+    assert_equal 'US', country_node.text
   end
-  
-  def test_england_country_format
-    @address[:country] = 'GB'
     
-    xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
-    country_node = REXML::XPath.first(xml, "//Country")
-    assert_equal 'UK United Kingdom', country_node.text
-  end
-  
   def test_no_tracking_numbers_available
     @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
     response = @shipwire.fetch_tracking_numbers

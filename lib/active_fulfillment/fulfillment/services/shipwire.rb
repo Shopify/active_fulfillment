@@ -130,18 +130,10 @@ module ActiveMerchant
           end
           
           xml.tag! 'City', address[:city]
-          xml.tag! 'State', address[:state]
+          xml.tag! 'State', address[:state] unless address[:state].blank?
+          xml.tag! 'Country', address[:country]
           
-          unless address[:country].blank?
-            country = Country.find(address[:country])
-            
-            # Special handling for the United Kingdom, as they use the top level domain for the code
-            country_code = country.code(:alpha2).to_s == 'GB' ? 'UK' : country.code(:alpha2)
-            
-            xml.tag! 'Country', "#{country_code} #{country.name}"
-          end
-          
-          xml.tag! 'Zip', address[:zip] unless address[:zip].blank?
+          xml.tag! 'Zip', address[:zip]
           xml.tag! 'Phone', address[:phone] unless address[:phone].blank?
           xml.tag! 'Email', options[:email] unless options[:email].blank?
         end

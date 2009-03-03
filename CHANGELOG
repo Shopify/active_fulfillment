@@ -1,3 +1,4 @@
+* Pass Shipwire the ISO country code instead of the previous name and country combo. Always add the country element to the document
 * Update Shipwire warehouses and don't send unneeded Content-Type header
 * Add configurable timeouts from Active Merchant
 * Shipwire: Send the company in address1 if present. Otherwise send address1 in address1.
