@@ -5,8 +5,8 @@ class ShipwireTest < Test::Unit::TestCase
     Base.mode = :test
     
     @shipwire = ShipwireService.new(
-                 :login => 'cody@example.com',
-                 :password => 'test'
+                  :login => 'cody@example.com',
+                  :password => 'test'
                 )
     
     @options = { 
@@ -14,26 +14,17 @@ class ShipwireTest < Test::Unit::TestCase
       :shipping_method => 'UPS Ground'
     }
     
-    @address = { :name => 'Fred Brooks',
-                 :address1 => '1234 Penny Lane',
-                 :city => 'Jonsetown',
-                 :state => 'NC',
-                 :country => 'US',
-                 :zip => '23456',
-                 :email    => 'buyer@jadedpallet.com'
-               }
+    @address = { 
+      :name => 'Fred Brooks',
+      :address1 => '1234 Penny Lane',
+      :city => 'Jonsetown',
+      :state => 'NC',
+      :country => 'US',
+      :zip => '23456',
+      :email    => 'buyer@jadedpallet.com'
+    }
     
-    @line_items = [
-      { :sku => '9999',
-        :quantity => 25,
-        :description => 'Libtech Snowboard',
-        :length => 3,
-        :width => 2,
-        :height => 1,
-        :weight => 2,
-        :declared_value => 1.25
-      }
-    ]
+    @line_items = [ { :sku => '9999', :quantity => 25 } ]
   end 
   
   def test_missing_login

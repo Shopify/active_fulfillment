@@ -32,7 +32,8 @@ module ActiveMerchant
           [ ['1 Day Service',   '1D'],
             ['2 Day Service',   '2D'],
             ['Ground Service',  'GD'],
-            ['Freight Service', 'FT'] ]
+            ['Freight Service', 'FT'],
+            ['International', 'INTL'] ]
         )
       end
                   
@@ -139,17 +140,11 @@ module ActiveMerchant
         end
       end
 
+      # Code is limited to 12 characters
       def add_item(xml, item, index)
         xml.tag! 'Item', :num => index do
-          # Code is limited to 12 character
-          xml.tag! 'Code', item[:sku] unless item[:sku].blank?
-          xml.tag! 'Quantity', item[:quantity] unless item[:quantity].blank?
-          xml.tag! 'Description', item[:description] unless item[:description].blank?
-          xml.tag! 'Length', item[:length] unless item[:length].blank?
-          xml.tag! 'Width', item[:width] unless item[:width].blank?
-          xml.tag! 'Height', item[:height] unless item[:height].blank?
-          xml.tag! 'Weight', item[:weight] unless item[:weight].blank?
-          xml.tag! 'DeclaredValue', item[:declared_value] unless item[:declared_value].blank?
+          xml.tag! 'Code', item[:sku]
+          xml.tag! 'Quantity', item[:quantity]
         end
       end
 

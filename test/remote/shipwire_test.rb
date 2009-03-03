@@ -33,17 +33,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
       :email    => 'bob@barclays.co.uk'
     }
     
-    @line_items = [
-      { :sku => 'AF0001',
-        :quantity => 25,
-        :description => 'Libtech Snowboard',
-        :length => 3,
-        :width => 2,
-        :height => 1,
-        :weight => 2,
-        :declared_value => 1.25
-      }
-    ]
+    @line_items = [ { :sku => 'AF0001', :quantity => 25 } ]
   end
   
   def test_invalid_credentials_during_fulfillment
@@ -81,17 +71,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
   
   def test_order_multiple_line_items
-    @line_items.push(
-      { :sku => 'AF0002',
-        :quantity => 25,
-        :description => 'Libtech Snowboard',
-        :length => 3,
-        :width => 2,
-        :height => 1,
-        :weight => 2,
-        :value => 1.25
-       }
-    )
+    @line_items.push({ :sku => 'AF0002', :quantity => 25 })
     
     response = @shipwire.fulfill('123456', @us_address, @line_items, @options)
     assert response.success?
@@ -108,11 +88,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
         :shipping_method => 'UPS Ground'
       }
     
-    line_items = [
-      { :quantity => 1,
-        :description => 'Libtech Snowboard'
-      }
-    ]
+    line_items = [ { :quantity => 1, :description => 'Libtech Snowboard' } ]
     
     response = @shipwire.fulfill('123456', @us_address, line_items, options)
     
