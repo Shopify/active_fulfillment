@@ -20,10 +20,11 @@ class RemoteWebgistixTest < Test::Unit::TestCase
                }
     
     @line_items = [
-      { :sku => 'testitem',
+      { :sku => 'WX-01-4001',
         :quantity => 2
       }
     ]
+    
   end
 
   def test_successful_order_submission
@@ -35,8 +36,8 @@ class RemoteWebgistixTest < Test::Unit::TestCase
   
   def test_order_multiple_line_items
     @line_items.push(
-      { :sku => '9998',
-        :quantity => 25
+      { :sku => 'WX-01-1020',
+        :quantity => 3
        }
     )
     
@@ -44,6 +45,14 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     assert response.success?
     assert response.test?
     assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+  end
+  
+  def test_invalid_sku_during_fulfillment
+    line_items = [ { :sku => 'invalid', :quantity => 1 } ]
+    response = @service.fulfill('123456', @address, line_items, @options)
+    assert !response.success?
+    assert response.test?
+    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
   end
   
   def test_invalid_credentials_during_fulfillment
