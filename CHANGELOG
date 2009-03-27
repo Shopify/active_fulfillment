@@ -1,3 +1,4 @@
+* Use :words_connector instead of connector in RequiresParameters [cody]
 * Provide Webgistix with a valid test sku to keep remote tests passing
 * Update PostsData to support get requests
 * Update Shipwire to latest version of dtd.

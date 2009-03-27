@@ -6,12 +6,12 @@ require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
 
-PKG_VERSION = "0.0.1"
-PKG_NAME = "activeshipping"
+PKG_VERSION = "0.9.0"
+PKG_NAME = "activefulfillment"
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 PKG_FILES = FileList[
-    "lib/**/*", "examples/**/*", "[A-Z]*", "rakefile"
+    "lib/**/*", "examples/**/*", "[A-Z]*", "Rakefile"
 ].exclude(/\.svn$/)
 
 
