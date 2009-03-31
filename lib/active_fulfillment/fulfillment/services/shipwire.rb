@@ -28,13 +28,12 @@ module ActiveMerchant
                    
       # The first is the label, and the last is the code
       def self.shipping_methods
-        ActiveSupport::OrderedHash.new(
-          [ ['1 Day Service',   '1D'],
-            ['2 Day Service',   '2D'],
-            ['Ground Service',  'GD'],
-            ['Freight Service', 'FT'],
-            ['International', 'INTL'] ]
-        )
+        [ ['1 Day Service',   '1D'],
+          ['2 Day Service',   '2D'],
+          ['Ground Service',  'GD'],
+          ['Freight Service', 'FT'],
+          ['International', 'INTL']
+        ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
       end
                   
       # Pass in the login and password for the shipwire account.

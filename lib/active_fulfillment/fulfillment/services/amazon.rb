@@ -17,11 +17,11 @@ module ActiveMerchant
       # Expedited: 2 business days
       # Priority:  1 business day
       def self.shipping_methods
-        ActiveSupport::OrderedHash.new(
-          [ [ 'Standard Shipping', 'Standard' ],
-            [ 'Expedited Shipping', 'Expedited' ],
-            [ 'Priority Shipping', 'Priority' ] ]
-        )
+        [ 
+          [ 'Standard Shipping', 'Standard' ],
+          [ 'Expedited Shipping', 'Expedited' ],
+          [ 'Priority Shipping', 'Priority' ]
+        ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
       end
       
       def initialize(options = {})
