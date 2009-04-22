@@ -1,3 +1,4 @@
+* Add support for Guernsey to country.rb [cody]
 * Use a Rails 2.3 compatible OrderedHash [cody]
 * Use :words_connector instead of connector in RequiresParameters [cody]
 * Provide Webgistix with a valid test sku to keep remote tests passing
