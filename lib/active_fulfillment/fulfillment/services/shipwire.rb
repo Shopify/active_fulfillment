@@ -3,9 +3,9 @@ require 'cgi'
 module ActiveMerchant
   module Fulfillment
     class ShipwireService < Service
-      SERVICE_URLS = { :fulfillment => 'https://www.shipwire.com/exec/FulfillmentServices.php',
-                       :inventory   => 'https://www.shipwire.com/exec/InventoryServices.php',
-                       :tracking    => 'https://www.shipwire.com/exec/TrackingServices.php'
+      SERVICE_URLS = { :fulfillment => 'https://api.shipwire.com/exec/FulfillmentServices.php',
+                       :inventory   => 'https://api.shipwire.com/exec/InventoryServices.php',
+                       :tracking    => 'https://api.shipwire.com/exec/TrackingServices.php'
                      }
                      
       SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
