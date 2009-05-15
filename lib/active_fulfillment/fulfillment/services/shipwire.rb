@@ -26,6 +26,8 @@ module ActiveMerchant
                      'UK'  => 'United Kingdom'
                    }
                    
+      INVALID_LOGIN = /Error with EmailAddress, valid email is required/
+                   
       # The first is the label, and the last is the code
       def self.shipping_methods
         [ ['1 Day Service',   '1D'],
@@ -54,6 +56,11 @@ module ActiveMerchant
       
       def fetch_tracking_numbers(options = {})
         commit :tracking, build_tracking_request(options)
+      end
+      
+      def valid_credentials?
+        response = fetch_tracking_numbers
+        response.message !~ INVALID_LOGIN
       end
       
       def test_mode?

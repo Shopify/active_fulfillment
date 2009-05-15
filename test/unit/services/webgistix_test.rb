@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test_helper'
 
 class WebgistixTest < Test::Unit::TestCase
    def setup
@@ -112,6 +112,16 @@ class WebgistixTest < Test::Unit::TestCase
     assert_nil response.params['order_id']
   end
   
+  def test_valid_credentials
+    @service.expects(:ssl_post).returns(failure_response)
+    assert @service.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    @service.expects(:ssl_post).returns(invalid_login_response)
+    assert !@service.valid_credentials?
+  end
+    
   private
   def minimal_successful_response
     '<Completed><Success>True</Success></Completed>'

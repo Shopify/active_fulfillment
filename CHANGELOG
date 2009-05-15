@@ -1,3 +1,4 @@
+* Add #valid_credentials? support to all fulfillment services [cody]
 * Return 'Access Denied' message when Webgistix credenentials are invalid [cody]
 * Update Shipwire endpoint hostname [cody]
 * Add missing ISO countries [Edward Ocampo-Gooding]

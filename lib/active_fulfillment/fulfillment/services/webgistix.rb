@@ -7,6 +7,7 @@ module ActiveMerchant
       SUCCESS, FAILURE = 'True', 'False'
       SUCCESS_MESSAGE = 'Successfully submitted the order'
       FAILURE_MESSAGE = 'Failed to submit the order'
+      INVALID_LOGIN = 'Access Denied'
       
       # The first is the label, and the last is the code
       def self.shipping_methods
@@ -58,6 +59,11 @@ module ActiveMerchant
       def fulfill(order_id, shipping_address, line_items, options = {})  
         requires!(options, :shipping_method) 
         commit build_fulfillment_request(order_id, shipping_address, line_items, options)
+      end
+      
+      def valid_credentials?
+        response = fulfill('', {}, [], :shipping_method => '')
+        response.message != INVALID_LOGIN
       end
    
       def test_mode?
@@ -165,8 +171,8 @@ module ActiveMerchant
       def message_from(response)
         return SUCCESS_MESSAGE if success?(response)
 
-        if response[:error_0] == 'Access Denied'
-          response[:error_0]
+        if response[:error_0] == INVALID_LOGIN
+          INVALID_LOGIN
         else
           FAILURE_MESSAGE
         end

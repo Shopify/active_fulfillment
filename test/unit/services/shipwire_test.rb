@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test_helper'
 
 class ShipwireTest < Test::Unit::TestCase
   def setup
@@ -93,6 +93,16 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal 13, response.tracking_numbers.size
   end
   
+  def test_valid_credentials
+    @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
+    assert @shipwire.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    @shipwire.expects(:ssl_post).returns(invalid_login_response)
+    assert !@shipwire.valid_credentials?
+  end
+
   private
   def successful_empty_tracking_response
     "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<TrackingUpdateResponse><Status>Test</Status><TotalOrders></TotalOrders><TotalShippedOrders></TotalShippedOrders><TotalProducts></TotalProducts><Bookmark></Bookmark></TrackingUpdateResponse>"
@@ -139,6 +149,16 @@ class ShipwireTest < Test::Unit::TestCase
   <Bookmark/>
 </TrackingUpdateResponse>
 
+    XML
+  end
+  
+  def invalid_login_response
+    <<-XML
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<TrackingUpdateResponse><Status>Error</Status><ErrorMessage>
+Error with EmailAddress, valid email is required.
+    There is an error in XML document.
+</ErrorMessage></TrackingUpdateResponse>    
     XML
   end
 end

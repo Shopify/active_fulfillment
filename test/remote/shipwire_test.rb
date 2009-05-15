@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 
 class RemoteShipwireTest < Test::Unit::TestCase
   def setup
@@ -103,10 +103,12 @@ class RemoteShipwireTest < Test::Unit::TestCase
   
   def test_invalid_credentials_during_inventory
     shipwire = ShipwireService.new(
-      :login => 'your@email.com',
-      :password => 'password')
+                 :login => 'your@email.com',
+                 :password => 'password'
+               )
       
     response = shipwire.fetch_stock_levels
+    
     assert !response.success?
     assert response.test?
     assert_equal 'Error', response.params['status']
@@ -127,5 +129,17 @@ class RemoteShipwireTest < Test::Unit::TestCase
     assert response.success?    
     assert response.test?
     assert_equal Hash.new, response.tracking_numbers
+  end
+  
+  def test_valid_credentials
+    assert @shipwire.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    service = ShipwireService.new(
+                :login => 'your@email.com',
+                :password => 'password'
+              )
+    assert !service.valid_credentials?
   end
 end

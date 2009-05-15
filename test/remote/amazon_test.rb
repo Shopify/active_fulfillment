@@ -1,6 +1,7 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 
 class RemoteAmazonTest < Test::Unit::TestCase
+  AmazonService.ssl_strict = false
   
   # In order for these tests to work you must have a live account with Amazon.
   # You can sign up at http://amazonservices.com/fulfillment/
@@ -59,4 +60,17 @@ class RemoteAmazonTest < Test::Unit::TestCase
     assert !response.success?
     assert_equal "AWS was not able to validate the provided access credentials.", response.message
   end
+  
+  def test_valid_credentials
+    assert @service.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    service = AmazonService.new(
+      :login => 'your@email.com',
+      :password => 'password')
+    
+    assert !service.valid_credentials?
+  end
+  
 end

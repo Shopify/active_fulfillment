@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test_helper'
 
 class RemoteWebgistixTest < Test::Unit::TestCase
   def setup
@@ -64,5 +64,17 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     assert !response.success?
     assert response.test?
     assert_equal "Access Denied", response.message
+  end
+  
+  def test_valid_credentials
+    assert @service.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    service = WebgistixService.new(
+      :login => 'your@email.com',
+      :password => 'password')
+    
+    assert !service.valid_credentials?
   end
 end

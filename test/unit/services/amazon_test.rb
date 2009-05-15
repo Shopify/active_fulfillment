@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test_helper'
 
 class AmazonTest < Test::Unit::TestCase
    def setup
@@ -72,6 +72,16 @@ class AmazonTest < Test::Unit::TestCase
     assert_equal 'aws:Server.InternalError', response.params['faultcode']
     assert_equal 'We encountered an internal error. Please try again.', response.params['faultstring']
     assert_equal 'We encountered an internal error. Please try again.', response.message
+  end
+  
+  def test_valid_credentials
+    @service.expects(:ssl_post).returns(internal_error_response)
+    assert @service.valid_credentials?
+  end
+  
+  def test_invalid_credentials
+    @service.expects(:ssl_post).returns(failed_login_response)
+    assert !@service.valid_credentials?
   end
   
   private

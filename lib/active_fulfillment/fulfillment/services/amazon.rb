@@ -12,6 +12,8 @@ module ActiveMerchant
       
       XMLNS = "http://fulfillment.amazonaws.com/doc/FulfillmentService/2006-12-12"
       
+      INVALID_LOGIN = "aws:Client.InvalidAccessKeyId"
+      
       # The first is the label, and the last is the code
       # Standard:  3-5 business days
       # Expedited: 2 business days
@@ -38,6 +40,15 @@ module ActiveMerchant
       
       def fetch_current_orders
         commit build_get_current_fulfillment_orders_request
+      end
+      
+      def valid_credentials?
+        response = fulfill('', {}, [],
+                     :order_date => Time.now,
+                     :comment => '',
+                     :shipping_method => ''
+                   )
+        response.params["faultcode"] != INVALID_LOGIN
       end
    
       def test_mode?
