@@ -96,7 +96,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
-    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
+    assert_equal 'Access Denied', response.message
     assert_nil response.params['order_id']
     
     assert_equal 'Access Denied', response.params['error_0']

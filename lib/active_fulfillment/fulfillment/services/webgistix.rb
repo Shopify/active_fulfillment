@@ -163,7 +163,13 @@ module ActiveMerchant
       end
       
       def message_from(response)
-        success?(response) ? SUCCESS_MESSAGE : FAILURE_MESSAGE
+        return SUCCESS_MESSAGE if success?(response)
+
+        if response[:error_0] == 'Access Denied'
+          response[:error_0]
+        else
+          FAILURE_MESSAGE
+        end
       end
       
       def parse(xml)

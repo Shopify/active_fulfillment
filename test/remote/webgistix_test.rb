@@ -63,6 +63,6 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     response = service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
-    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
+    assert_equal "Access Denied", response.message
   end
 end
