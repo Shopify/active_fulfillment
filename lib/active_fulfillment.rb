@@ -41,6 +41,7 @@ require 'cgi'
 require 'net/https'
 require 'active_fulfillment/lib/error'
 require 'active_fulfillment/lib/requires_parameters'
+require 'active_fulfillment/lib/connection'
 require 'active_fulfillment/lib/posts_data'
 require 'active_fulfillment/lib/country'
 
