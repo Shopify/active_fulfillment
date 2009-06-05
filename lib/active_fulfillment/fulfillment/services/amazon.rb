@@ -27,6 +27,12 @@ module ActiveMerchant
       }
 
       @@digest = OpenSSL::Digest::Digest.new("sha1")
+      
+      OPERATIONS = {
+        :status => 'GetServiceStatus',
+        :create => 'CreateFulfillmentOrder',
+        :list   => 'ListAllFulfillmentOrders'
+      }
                    
       # The first is the label, and the last is the code
       # Standard:  3-5 business days
@@ -44,19 +50,20 @@ module ActiveMerchant
         Base64.encode64(OpenSSL::HMAC.digest(@@digest, aws_secret_access_key, auth_string)).strip
       end
 
-      # def status
-      #         login = @options[:login]
-      #         timestamp = "#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S")}Z"
-      #         signature = self.class.sign(@options[:password], "GetServiceStatus#{timestamp}")
-      #         
-      #         url = "#{OUTBOUND_URL}?Action=GetServiceStatus&Version=#{VERSION}&AWSAccessKeyId=#{login}&Timestamp=#{timestamp}&Signature=#{signature}"
-      #         
-      #         response = ssl_get(url)
-      #       end
-      
       def status
-        commit build_status_request
+        commit :status, build_status_request
       end
+      
+      # def status
+      #   login = @options[:login]
+      #   timestamp = "#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S")}Z"
+      #   signature = self.class.sign(@options[:password], "GetServiceStatus#{timestamp}")
+      #   
+      #   url = "#{OUTBOUND_URL}?Action=GetServiceStatus&Version=#{VERSION}&AWSAccessKeyId=#{login}&Timestamp=#{timestamp}&Signature=#{signature}"
+      #   
+      #   response = ssl_get(url)
+      # end
+
       
       def initialize(options = {})
         requires!(options, :login, :password)
@@ -65,11 +72,11 @@ module ActiveMerchant
 
       def fulfill(order_id, shipping_address, line_items, options = {})   
         requires!(options, :order_date, :comment, :shipping_method)
-        commit build_fulfillment_request(order_id, shipping_address, line_items, options)
+        commit :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
       
       def fetch_current_orders
-        commit build_get_current_fulfillment_orders_request
+        commit :list, build_get_current_fulfillment_orders_request
       end
       
       def valid_credentials?
@@ -88,54 +95,6 @@ module ActiveMerchant
       private
       
       
-      
-
-    #     <env:Body>
-    #         <CreateFulfillmentOrder 
-    #             xmlns="http://fba-outbound.amazonaws.com/doc/2007-08-02/"> 
-    #             <MerchantFulfillmentOrderId>create-2items-20080124165703154</ 
-    # MerchantFulfillmentOrderId> 
-    #             <DisplayableOrderId>create-2items-20080124165703154</ 
-    # DisplayableOrderId> 
-    #             <DisplayableOrderDateTime>2008-01-24T08:00:00Z</ 
-    # DisplayableOrderDateTime> 
-    #             <DisplayableOrderComment>Thank you for your order!</ 
-    # DisplayableOrderComment> 
-    #             <ShippingSpeedCategory>Standard</ShippingSpeedCategory> 
-    #             <DestinationAddress> 
-    #                 <Name>Joey Jo Jo Shabadoo Jr</Name> 
-    #                 <Line1>605 5th Ave N</Line1> 
-    #                 <Line2>C/O Amazon.com</Line2> 
-    #                 <City>Seattle</City> 
-    #                 <StateOrProvinceCode>WA</StateOrProvinceCode> 
-    #                 <CountryCode>US</CountryCode> 
-    #                 <PostalCode>98104</PostalCode> 
-    #                 <PhoneNumber>206-266-1000</PhoneNumber> 
-    #             </DestinationAddress> 
-    #             <Item> 
-    #                 <MerchantSKU>Digital_Camera_Extraordinaire</MerchantSKU> 
-    #            
-    #  <MerchantFulfillmentOrderItemId>create-2items-20080124165703154-1</ 
-    # MerchantFulfillmentOrderItemId> 
-    #                 <Quantity>1</Quantity> 
-    #                 <GiftMessage>Testing gift message #1</GiftMessage> 
-    #                 <DisplayableComment>Testing item comment 
-    #                     #1</DisplayableComment> 
-    #             </Item> 
-    #             <Item> 
-    #                 <MerchantSKU>Digital_Camera_Extraordinaire</MerchantSKU> 
-    #            
-    #  <MerchantFulfillmentOrderItemId>create-2items-20080124165703154-2</ 
-    # MerchantFulfillmentOrderItemId> 
-    #                 <Quantity>2</Quantity> 
-    #                 <GiftMessage>Testing gift message #2</GiftMessage> 
-    #                 <DisplayableComment>Testing item comment 
-    #                     #2</DisplayableComment> 
-    #             </Item> 
-    #         </CreateFulfillmentOrder> 
-    #     </env:Body> 
-    # </env:Envelope>
-      
       # generic request format 
       def soap_request(request)
         xml = Builder::XmlMarkup.new :indent => 2
@@ -151,63 +110,35 @@ module ActiveMerchant
         xml.target!
       end
       
-      # <?xml version="1.0" encoding="UTF-8"?> 
-      # <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" 
-      #     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-      #     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
-      #     <env:Header> 
-      #         <aws:AWSAccessKeyId env:actor="http://schemas.xmlsoap.org/soap/ 
-      # actor/next" 
-      #             env:mustUnderstand="0" xmlns:aws="http:// 
-      # security.amazonaws.com/doc/2007-01-01/" 
-      #             >0QY05JR56ZA8E56XPG82</aws:AWSAccessKeyId> 
-      #         <aws:Signature env:actor="http://schemas.xmlsoap.org/soap/actor/ 
-      # next" 
-      #             env:mustUnderstand="0" xmlns:aws="http:// 
-      # security.amazonaws.com/doc/2007-01-01/" 
-      #             >zs1XVLJIZMA583oInQdWghEdPBg=</aws:Signature> 
-      #         <aws:Timestamp env:actor="http://schemas.xmlsoap.org/soap/actor/ 
-      # next" 
-      #             env:mustUnderstand="0" xmlns:aws="http:// 
-      # security.amazonaws.com/doc/2007-01-01/" 
-      #             >2008-01-25T00:56:58Z</aws:Timestamp> 
-      #     </env:Header> 
-      #     <env:Body> 
-      #         <GetServiceStatus xmlns="http://fba-outbound.amazonaws.com/ 
-      # doc/2007-08-02/"/> 
-      #     </env:Body> 
-      # </env:Envelope>      
-      
-      
+      # STATUS request
       def build_status_request
-        request = 'GetServiceStatus'
+        request = OPERATIONS[:status]
         soap_request(request) do |xml|
           xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS }
         end
       end
       
+      # LIST ORDERS request
       def build_get_current_fulfillment_orders_request
-        request = "GetCurrentFulfillmentOrders"
-        xml = Builder::XmlMarkup.new
-          
-        xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
-          xml.tag! 'Request' do
-            xml.tag! "MaxResultsRequested", 5
-            xml.tag! "QueryStartDateTime", Time.now.yesterday.strftime("%Y-%m-%d %H:%M:%S")
+        request = OPERATIONS[:list]
+        soap_request(request) do |xml|
+          xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
+            xml.tag! "NumberOfResultsRequested", 5
+            xml.tag! "QueryStartDateTime", Time.now.yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
         end
-        xml.target!
       end
 
+      # POST FULFILLMENT request
       def build_fulfillment_request(order_id, shipping_address, line_items, options)
-        request = 'CreateFulfillmentOrder'
+        request = OPERATIONS[:create]
         soap_request(request) do |xml|
-          xml.tag! 'Request' do
+          xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
              xml.tag! "MerchantFulfillmentOrderId", order_id
              xml.tag! "DisplayableOrderId", order_id
-             xml.tag! "DisplayableOrderDate", options[:order_date].strftime("%Y-%m-%dT%H:%M:%SZ")
+             xml.tag! "DisplayableOrderDateTime", options[:order_date].strftime("%Y-%m-%dT%H:%M:%SZ")
              xml.tag! "DisplayableOrderComment", options[:comment]
-             xml.tag! "DeliverySLA", options[:shipping_method]
+             xml.tag! "ShippingSpeedCategory", options[:shipping_method]
    
              add_address(xml, shipping_address)
              add_items(xml, line_items)
@@ -224,12 +155,10 @@ module ActiveMerchant
         xml.tag! 'aws:Signature', signature, AWS_SECURITY_ATTRIBUTES
         xml.tag! 'aws:Timestamp', timestamp, AWS_SECURITY_ATTRIBUTES
       end
-
-
         
       def add_items(xml, line_items) 
         Array(line_items).each_with_index do |item, index|
-          xml.tag! 'Items' do
+          xml.tag! 'Item' do
             xml.tag! 'MerchantSKU', item[:sku]
             xml.tag! "MerchantFulfillmentOrderItemId", index
             xml.tag! "Quantity",  item[:quantity]
@@ -246,34 +175,16 @@ module ActiveMerchant
           xml.tag! 'Line2', address[:address2] unless address[:address2].blank?
           xml.tag! 'Line3', address[:address3] unless address[:address3].blank?
           xml.tag! 'City', address[:city]
-          xml.tag! 'StateOrRegion', address[:state]
+          xml.tag! 'StateOrProvinceCode', address[:state]
           xml.tag! 'CountryCode', address[:country]
           xml.tag! 'PostalCode', address[:zip]
           xml.tag! 'PhoneNumber', address[:phone]  unless address[:phone].blank?
         end
       end
       
-      def build_request(body)
-        request = ""
-        xml = Builder::XmlMarkup.new
-     
-        xml.instruct!
-        xml.tag! 'env:Envelope', { 'xmlns:env' => 'http://schemas.xmlsoap.org/soap/envelope/' } do
-          xml.tag! 'env:Header' do
-            add_credentials(xml, request)
-          end
-          xml.tag! 'env:Body' do
-            xml << body
-          end
-        end
-        xml.target!
-      end
-      
-      def commit(body)         
+      def commit(op, body)
         data = ssl_post(OUTBOUND_URL, body, 'Content-Type' => 'application/soap+xml; charset=utf-8')
-
-        @response = parse(data)
-                
+        @response = parse(op, data)                
         Response.new(success?(@response), message_from(@response), @response, 
           :test => false
         )
@@ -287,29 +198,224 @@ module ActiveMerchant
         success?(response) ? MESSAGES[:success] : response[:response_comment] || response[:faultstring]
       end
       
-      def parse(xml)
+      def parse(op, xml)
         response = {}
         
+        action = OPERATIONS[op]
+                
         document = REXML::Document.new(xml)
-        
-        node = REXML::XPath.first(document, '//ns1:Response') || REXML::XPath.first(document, '//env:Fault')
+        node = REXML::XPath.first(document, "//ns1:#{action}Response")
         if node
-          parse_elements(response, node)
+          find_response_code(response, node)
         else
           response[:response_status] = FAILURE
           response[:response_comment] = MESSAGES[:failure]
         end
-        
         response
       end
       
-      def parse_elements(response, node)
-        node.elements.each do |e|
-          response[e.name.underscore.to_sym] = e.text.to_s.gsub("\n", " ").strip
+      def find_response_code(response, node)
+        # debug
+        node.each_recursive do |sib|
+          puts "sib is #{sib.name} #{sib.text}"
+        end
+        
+        # check if unsuccessful first (always has a env:Fault)
+        # check if successful - look for ResponseMetadata???
+        success_node = node.find_first_recursive {|sib| sib.name == 'ResponseMetadata' }
+        failed_node  = node.find_first_recursive {|sib| sib.name == "Fault" }
+        
+        if success_node
+          response[:response_status] = SUCCESS
+        else
+          response[:response_status] = FAILURE
+          response[:response_comment] = MESSAGES[:failure]
         end
       end
     end
   end
 end
 
+
+     
+# valid CREATE response
+# ---------------------
+# <?xml version="1.0"?>
+# <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+#   <env:Body>
+#     <ns1:CreateFulfillmentOrderResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+#       <ns1:ResponseMetadata>
+#         <ns1:RequestId>ccd0116d-a476-48ac-810e-778eebe5e5e2</ns1:RequestId>
+#       </ns1:ResponseMetadata>
+#     </ns1:CreateFulfillmentOrderResponse>
+#   </env:Body>
+# </env:Envelope>
+#
+# invalid CREATE response
+# -----------------------
+# <?xml version="1.0"?>
+# <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">
+#   <env:Body>
+#     <env:Fault>
+#       <faultcode>aws:Client.MissingParameter</faultcode>
+#       <faultstring>The request must contain the parameter Item.</faultstring>
+#       <detail>
+#         <aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">edc852d3-937f-40f5-9d72-97b7da897b38</aws:RequestId>
+#       </detail>
+#     </env:Fault>
+#   </env:Body>
+# </env:Envelope>
+
+# valid STATUS response
+# ---------------------
+# <?xml version="1.0"?>
+# <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+#   <env:Body>
+#     <ns1:GetServiceStatusResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+#       <ns1:GetServiceStatusResult>
+#         <ns1:Status>2009-06-05T18:36:19Z service available [Version: 2007-08-02]</ns1:Status>
+#       </ns1:GetServiceStatusResult>
+#       <ns1:ResponseMetadata>
+#         <ns1:RequestId>1e04fabc-fbaa-4ae5-836a-f0c60f1d301a</ns1:RequestId>
+#       </ns1:ResponseMetadata>
+#     </ns1:GetServiceStatusResponse>
+#   </env:Body>
+# </env:Envelope>
+#
+# invalid STATUS response
+# -----------------------
+# <?xml version="1.0"?>
+# <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">
+#   <env:Body>
+#     <env:Fault>
+#       <faultcode>aws:Client.InvalidClientTokenId</faultcode>
+#       <faultstring>The AWS Access Key Id you provided does not exist in our records.</faultstring>
+#       <detail>
+#         <aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">51de28ce-c380-46c4-bf95-62bbf8cc4682</aws:RequestId>
+#       </detail>
+#     </env:Fault>
+#   </env:Body>
+# </env:Envelope>  
+
+# valid LIST response
+# -------------------
+# <?xml version="1.0"?>
+# <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+#   <env:Body>
+#     <ns1:ListAllFulfillmentOrdersResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+#       <ns1:ListAllFulfillmentOrdersResult>
+#         <ns1:NextToken>H4sIAAAAAAAAALMpVMi0VTJTUsizVTJVUsi1VUpLzClOVVJItVUyMjCw1DUw0zUwDTG0sDKxtDK21LM0NdY1MLcyMFBSKEZSYRJiaAJRAZW1s0mzC3L19Q9z9LHRTwPxnP39gkN9XYPAXP1COwCEc53ZegAAAA==</ns1:NextToken>
+#         <ns1:HasNext>false</ns1:HasNext>
+#         <ns1:FulfillmentOrder>
+#           <ns1:MerchantFulfillmentOrderId>c7f7921c29e966f2f50272a532deca9c</ns1:MerchantFulfillmentOrderId>
+#           <ns1:DisplayableOrderId>c7f7921c29e966f2f50272a532deca9c</ns1:DisplayableOrderId>
+#           <ns1:DisplayableOrderDateTime>2009-06-04T18:30:19Z</ns1:DisplayableOrderDateTime>
+#           <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
+#           <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+#           <ns1:DestinationAddress>
+#             <ns1:Name>Johnny Chase</ns1:Name>
+#             <ns1:Line1>100 Information Super Highway</ns1:Line1>
+#             <ns1:Line2>Suite 66</ns1:Line2>
+#             <ns1:City>Beverly Hills</ns1:City>
+#             <ns1:StateOrProvinceCode>CA</ns1:StateOrProvinceCode>
+#             <ns1:CountryCode>US</ns1:CountryCode>
+#             <ns1:PostalCode>90210</ns1:PostalCode>
+#           </ns1:DestinationAddress>
+#           <ns1:FulfillmentPolicy>FillOrKill</ns1:FulfillmentPolicy>
+#           <ns1:FulfillmentMethod>Consumer</ns1:FulfillmentMethod>
+#           <ns1:ReceivedDateTime>2009-06-05T18:30:19Z</ns1:ReceivedDateTime>
+#           <ns1:FulfillmentOrderStatus>Invalid</ns1:FulfillmentOrderStatus>
+#           <ns1:StatusUpdatedDateTime>2009-06-05T18:30:46Z</ns1:StatusUpdatedDateTime>
+#         </ns1:FulfillmentOrder>
+#         <ns1:FulfillmentOrder>
+#           <ns1:MerchantFulfillmentOrderId>168b078302d18db7f39415431a860e6b</ns1:MerchantFulfillmentOrderId>
+#           <ns1:DisplayableOrderId>168b078302d18db7f39415431a860e6b</ns1:DisplayableOrderId>
+#           <ns1:DisplayableOrderDateTime>2009-06-04T18:40:08Z</ns1:DisplayableOrderDateTime>
+#           <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
+#           <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+#           <ns1:DestinationAddress>
+#             <ns1:Name>Johnny Chase</ns1:Name>
+#             <ns1:Line1>100 Information Super Highway</ns1:Line1>
+#             <ns1:Line2>Suite 66</ns1:Line2>
+#             <ns1:City>Beverly Hills</ns1:City>
+#             <ns1:StateOrProvinceCode>CA</ns1:StateOrProvinceCode>
+#             <ns1:CountryCode>US</ns1:CountryCode>
+#             <ns1:PostalCode>90210</ns1:PostalCode>
+#           </ns1:DestinationAddress>
+#           <ns1:FulfillmentPolicy>FillOrKill</ns1:FulfillmentPolicy>
+#           <ns1:FulfillmentMethod>Consumer</ns1:FulfillmentMethod>
+#           <ns1:ReceivedDateTime>2009-06-05T18:40:08Z</ns1:ReceivedDateTime>
+#           <ns1:FulfillmentOrderStatus>Invalid</ns1:FulfillmentOrderStatus>
+#           <ns1:StatusUpdatedDateTime>2009-06-05T18:40:16Z</ns1:StatusUpdatedDateTime>
+#         </ns1:FulfillmentOrder>
+#         <ns1:FulfillmentOrder>
+#           <ns1:MerchantFulfillmentOrderId>d9ade2d2ceab0b57457949169cd5ad7e</ns1:MerchantFulfillmentOrderId>
+#           <ns1:DisplayableOrderId>d9ade2d2ceab0b57457949169cd5ad7e</ns1:DisplayableOrderId>
+#           <ns1:DisplayableOrderDateTime>2009-06-04T18:40:35Z</ns1:DisplayableOrderDateTime>
+#           <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
+#           <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+#           <ns1:DestinationAddress>
+#             <ns1:Name>Johnny Chase</ns1:Name>
+#             <ns1:Line1>100 Information Super Highway</ns1:Line1>
+#             <ns1:Line2>Suite 66</ns1:Line2>
+#             <ns1:City>Beverly Hills</ns1:City>
+#             <ns1:StateOrProvinceCode>CA</ns1:StateOrProvinceCode>
+#             <ns1:CountryCode>US</ns1:CountryCode>
+#             <ns1:PostalCode>90210</ns1:PostalCode>
+#           </ns1:DestinationAddress>
+#           <ns1:FulfillmentPolicy>FillOrKill</ns1:FulfillmentPolicy>
+#           <ns1:FulfillmentMethod>Consumer</ns1:FulfillmentMethod>
+#           <ns1:ReceivedDateTime>2009-06-05T18:40:36Z</ns1:ReceivedDateTime>
+#           <ns1:FulfillmentOrderStatus>Invalid</ns1:FulfillmentOrderStatus>
+#           <ns1:StatusUpdatedDateTime>2009-06-05T18:40:41Z</ns1:StatusUpdatedDateTime>
+#         </ns1:FulfillmentOrder>
+#         <ns1:FulfillmentOrder>
+#           <ns1:MerchantFulfillmentOrderId>9fc3f2e379fe36d56ffa00e2e052ba94</ns1:MerchantFulfillmentOrderId>
+#           <ns1:DisplayableOrderId>9fc3f2e379fe36d56ffa00e2e052ba94</ns1:DisplayableOrderId>
+#           <ns1:DisplayableOrderDateTime>2009-06-04T18:40:52Z</ns1:DisplayableOrderDateTime>
+#           <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
+#           <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+#           <ns1:DestinationAddress>
+#             <ns1:Name>Johnny Chase</ns1:Name>
+#             <ns1:Line1>100 Information Super Highway</ns1:Line1>
+#             <ns1:Line2>Suite 66</ns1:Line2>
+#             <ns1:City>Beverly Hills</ns1:City>
+#             <ns1:StateOrProvinceCode>CA</ns1:StateOrProvinceCode>
+#             <ns1:CountryCode>US</ns1:CountryCode>
+#             <ns1:PostalCode>90210</ns1:PostalCode>
+#           </ns1:DestinationAddress>
+#           <ns1:FulfillmentPolicy>FillOrKill</ns1:FulfillmentPolicy>
+#           <ns1:FulfillmentMethod>Consumer</ns1:FulfillmentMethod>
+#           <ns1:ReceivedDateTime>2009-06-05T18:40:52Z</ns1:ReceivedDateTime>
+#           <ns1:FulfillmentOrderStatus>Invalid</ns1:FulfillmentOrderStatus>
+#           <ns1:StatusUpdatedDateTime>2009-06-05T18:41:16Z</ns1:StatusUpdatedDateTime>
+#         </ns1:FulfillmentOrder>
+#         <ns1:FulfillmentOrder>
+#           <ns1:MerchantFulfillmentOrderId>bd97c45f78d83b654c1948ad6a476ade</ns1:MerchantFulfillmentOrderId>
+#           <ns1:DisplayableOrderId>bd97c45f78d83b654c1948ad6a476ade</ns1:DisplayableOrderId>
+#           <ns1:DisplayableOrderDateTime>2009-06-04T18:46:48Z</ns1:DisplayableOrderDateTime>
+#           <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
+#           <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+#           <ns1:DestinationAddress>
+#             <ns1:Name>Johnny Chase</ns1:Name>
+#             <ns1:Line1>100 Information Super Highway</ns1:Line1>
+#             <ns1:Line2>Suite 66</ns1:Line2>
+#             <ns1:City>Beverly Hills</ns1:City>
+#             <ns1:StateOrProvinceCode>CA</ns1:StateOrProvinceCode>
+#             <ns1:CountryCode>US</ns1:CountryCode>
+#             <ns1:PostalCode>90210</ns1:PostalCode>
+#           </ns1:DestinationAddress>
+#           <ns1:FulfillmentPolicy>FillOrKill</ns1:FulfillmentPolicy>
+#           <ns1:FulfillmentMethod>Consumer</ns1:FulfillmentMethod>
+#           <ns1:ReceivedDateTime>2009-06-05T18:46:48Z</ns1:ReceivedDateTime>
+#           <ns1:FulfillmentOrderStatus>Invalid</ns1:FulfillmentOrderStatus>
+#           <ns1:StatusUpdatedDateTime>2009-06-05T18:47:22Z</ns1:StatusUpdatedDateTime>
+#         </ns1:FulfillmentOrder>
+#       </ns1:ListAllFulfillmentOrdersResult>
+#       <ns1:ResponseMetadata>
+#         <ns1:RequestId>1c9038ff-da88-4152-9fb0-8ab8fabccea4</ns1:RequestId>
+#       </ns1:ResponseMetadata>
+#     </ns1:ListAllFulfillmentOrdersResponse>
+#   </env:Body>
+# </env:Envelope>
 
