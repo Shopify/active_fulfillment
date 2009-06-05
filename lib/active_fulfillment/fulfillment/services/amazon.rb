@@ -10,9 +10,22 @@ module ActiveMerchant
     
       SUCCESS, FAILURE, ERROR = 'Accepted', 'Failure', 'Error'    
       MESSAGES = {
-        :success => 'Successfully submitted the order',
-        :failure => 'Failed to submit the order',
-        :error   => 'An error occurred while submitting the order'
+        :status => {
+          'Accepted' => 'Success',
+          'Failure'  => 'Failed',
+          'Error'    => 'An error occurred'          
+        },
+        :create => {
+          'Accepted' => 'Successfully submitted the order',
+          'Failure'  => 'Failed to submit the order',
+          'Error'    => 'An error occurred while submitting the order'
+        },
+        :list   => {
+          'Accepted' => 'Successfully submitted request',
+          'Failure'  => 'Failed to submit request',
+          'Error'    => 'An error occurred while submitting request'
+          
+        }
       }
       
       INVALID_LOGIN  = "aws:Client.InvalidAccessKeyId"    
@@ -80,12 +93,7 @@ module ActiveMerchant
       end
       
       def valid_credentials?
-        response = fulfill('', {}, [],
-                     :order_date => Time.now,
-                     :comment => '',
-                     :shipping_method => ''
-                   )
-        response.params["faultcode"] != INVALID_LOGIN
+        status.success?
       end
    
       def test_mode?
@@ -93,8 +101,6 @@ module ActiveMerchant
       end
 
       private
-      
-      
       # generic request format 
       def soap_request(request)
         xml = Builder::XmlMarkup.new :indent => 2
@@ -124,7 +130,7 @@ module ActiveMerchant
         soap_request(request) do |xml|
           xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
             xml.tag! "NumberOfResultsRequested", 5
-            xml.tag! "QueryStartDateTime", Time.now.yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
+            xml.tag! "QueryStartDateTime", Time.now.utc.yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
         end
       end
@@ -184,10 +190,11 @@ module ActiveMerchant
       
       def commit(op, body)
         data = ssl_post(OUTBOUND_URL, body, 'Content-Type' => 'application/soap+xml; charset=utf-8')
-        @response = parse(op, data)                
-        Response.new(success?(@response), message_from(@response), @response, 
-          :test => false
-        )
+        @response = parse(op, data)   
+        Response.new(success?(@response), message_from(@response), @response, :test => false)
+      rescue ActiveMerchant::ResponseError => e        
+        @response = parse_error(op, e.response.body)
+        Response.new(false, message_from(@response), @response, :test => false)
       end
       
       def success?(response)
@@ -195,43 +202,36 @@ module ActiveMerchant
       end
       
       def message_from(response)
-        success?(response) ? MESSAGES[:success] : response[:response_comment] || response[:faultstring]
+        response[:response_comment]
       end
       
       def parse(op, xml)
         response = {}
-        
-        action = OPERATIONS[op]
-                
+        action   = OPERATIONS[op]                
         document = REXML::Document.new(xml)
-        node = REXML::XPath.first(document, "//ns1:#{action}Response")
-        if node
-          find_response_code(response, node)
-        else
-          response[:response_status] = FAILURE
-          response[:response_comment] = MESSAGES[:failure]
-        end
+        node     = REXML::XPath.first(document, "//ns1:#{action}Response")
+        
+        response[:response_status]  = SUCCESS
+        response[:response_comment] = MESSAGES[op][SUCCESS]
         response
       end
       
-      def find_response_code(response, node)
-        # debug
-        node.each_recursive do |sib|
-          puts "sib is #{sib.name} #{sib.text}"
-        end
-        
-        # check if unsuccessful first (always has a env:Fault)
-        # check if successful - look for ResponseMetadata???
-        success_node = node.find_first_recursive {|sib| sib.name == 'ResponseMetadata' }
-        failed_node  = node.find_first_recursive {|sib| sib.name == "Fault" }
-        
-        if success_node
-          response[:response_status] = SUCCESS
-        else
-          response[:response_status] = FAILURE
-          response[:response_comment] = MESSAGES[:failure]
-        end
+      # extra the error message
+      def parse_error(op, xml)
+        response = {}
+        action   = OPERATIONS[op]                
+        document = REXML::Document.new(xml)
+        node     = REXML::XPath.first(document, "//env:Fault")
+
+        failed_node = node.find_first_recursive {|sib| sib.name == "Fault" }
+        faultcode_node = node.find_first_recursive {|sib| sib.name == "faultcode" }
+        faultstring_node = node.find_first_recursive {|sib| sib.name == "faultstring" }
+          
+        response[:response_status]  = FAILURE
+        response[:response_comment] = "#{faultcode_node ? faultcode_node.text : nil} #{faultstring_node ? faultstring_node.text : nil}"
+        response
       end
+      
     end
   end
 end

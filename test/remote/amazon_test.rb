@@ -1,8 +1,8 @@
 require 'test_helper'
 
 class RemoteAmazonTest < Test::Unit::TestCase
-  AmazonService.logger = Logger.new(STDOUT)
-  AmazonService.wiredump_device = STDOUT
+  # AmazonService.logger = Logger.new(STDOUT)
+  # AmazonService.wiredump_device = STDOUT
   
   AmazonService.ssl_strict = false
   
@@ -72,12 +72,11 @@ class RemoteAmazonTest < Test::Unit::TestCase
     
     response = service.fulfill(generate_order_id, @address, @line_items, @options)
     assert !response.success?
-    assert_equal "AWS was not able to validate the provided access credentials.", response.message
+    assert_equal "aws:Client.InvalidClientTokenId The AWS Access Key Id you provided does not exist in our records.", response.message
   end
   
   def test_list_orders
     response = @service.fetch_current_orders
-    p response
     assert response.success?
   end
   
@@ -113,8 +112,8 @@ class RemoteAmazonTest < Test::Unit::TestCase
       :login => 'your@email.com',
       :password => 'password')
     response = service.status
-    p response
     assert !response.success?
+    assert_equal "aws:Client.InvalidClientTokenId The AWS Access Key Id you provided does not exist in our records.", response.message
   end
   
   # <?xml version="1.0"?>
