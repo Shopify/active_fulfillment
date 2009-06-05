@@ -84,6 +84,13 @@ class AmazonTest < Test::Unit::TestCase
     assert !@service.valid_credentials?
   end
   
+  def test_successful_service_status
+    @service.expects(:ssl_request).returns(successful_status_response)
+    
+    response = @service.status
+    assert response.success?
+  end
+  
   private
   def response_for_empty_request
     '<ns:GetErrorResponse xmlns:ns="http://xino.amazonaws.com/doc/"><ns:Error><ns:Code>MissingDateHeader</ns:Code><ns:Message>Authorized request must have a "date" or "x-amz-date" header.</ns:Message></ns:Error><ns:RequestID>79ceaffe-e5a3-46a5-b36a-9ce958d68939</ns:RequestID></ns:GetErrorResponse>'
@@ -198,6 +205,20 @@ The Displayable Order Comment value cannot be blank[null].
     </ns1:CreateFulfillmentOrderResponse>
   </env:Body>
 </env:Envelope>
+    XML
+  end
+  
+  def successful_status_response
+    <<-XML
+<?xml version="1.0"?>
+<ns1:GetServiceStatusResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+  <ns1:GetServiceStatusResult>
+    <ns1:Status>2009-06-04T20:12:38Z service available [Version: 2007-08-02]</ns1:Status>
+  </ns1:GetServiceStatusResult>
+  <ns1:ResponseMetadata>
+    <ns1:RequestId>28c35b26-389f-494e-862f-1bebadf8007f</ns1:RequestId>
+  </ns1:ResponseMetadata>
+</ns1:GetServiceStatusResponse>
     XML
   end
 end

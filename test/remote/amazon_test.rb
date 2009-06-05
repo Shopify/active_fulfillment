@@ -1,6 +1,9 @@
 require 'test_helper'
 
 class RemoteAmazonTest < Test::Unit::TestCase
+  AmazonService.logger = Logger.new(STDOUT)
+  #AmazonService.wiredump_device = STDOUT
+  
   AmazonService.ssl_strict = false
   
   # In order for these tests to work you must have a live account with Amazon.
@@ -71,6 +74,12 @@ class RemoteAmazonTest < Test::Unit::TestCase
       :password => 'password')
     
     assert !service.valid_credentials?
+  end
+  
+  def test_get_status
+    service = AmazonService.new(fixtures(:amazon))
+    response = service.status
+    p response
   end
   
 end
