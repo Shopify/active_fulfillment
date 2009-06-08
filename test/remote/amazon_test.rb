@@ -2,9 +2,8 @@ require 'test_helper'
 
 class RemoteAmazonTest < Test::Unit::TestCase
   # AmazonService.logger = Logger.new(STDOUT)
-  # AmazonService.wiredump_device = STDOUT
+  #AmazonService.wiredump_device = STDOUT
   
-  AmazonService.ssl_strict = false
   
   # In order for these tests to work you must have a live account with Amazon.
   # You can sign up at http://amazonservices.com/fulfillment/

@@ -36,11 +36,12 @@ class AmazonTest < Test::Unit::TestCase
     assert response.success?
   end
   
-  def test_invalid_arguments
-    @service.expects(:ssl_post).returns(invalid_arguments_response)
+  def test_invalid_arguments    
+    http_response = build_mock_response(invalid_create_response, "", "500")
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
-    assert_equal '1 error: The Displayable Order Comment value cannot be blank[null].', response.params['response_comment']
+    assert_equal "aws:Client.MissingParameter The request must contain the parameter Item.", response.params['response_comment']
   end
   
   def test_missing_order_comment
@@ -59,28 +60,36 @@ class AmazonTest < Test::Unit::TestCase
   end
   
   def test_404_error
-    @service.expects(:ssl_post).returns(response_from_404)
+    http_response = build_mock_response(response_from_404, "Not Found", "404")
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
-    assert_equal AmazonService::MESSAGES[:error], response.message
+    assert_equal "404: Not Found", response.message
+    assert_equal "404", response.params["http_code"]
+    assert_equal "Not Found", response.params["http_message"]
+    assert_equal response_from_404, response.params["http_body"]
   end
   
   def test_soap_fault
-    @service.expects(:ssl_post).returns(internal_error_response)
+    http_response = build_mock_response(invalid_create_response, "500", "")
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
-    assert_equal 'aws:Server.InternalError', response.params['faultcode']
-    assert_equal 'We encountered an internal error. Please try again.', response.params['faultstring']
-    assert_equal 'We encountered an internal error. Please try again.', response.message
+    assert_equal 'aws:Client.MissingParameter', response.params['faultcode']
+    assert_equal 'The request must contain the parameter Item.', response.params['faultstring']
+    assert_equal 'aws:Client.MissingParameter The request must contain the parameter Item.', response.message
   end
   
   def test_valid_credentials
-    @service.expects(:ssl_post).returns(internal_error_response)
+    @service.expects(:ssl_post).returns(successful_status_response)
     assert @service.valid_credentials?
   end
   
   def test_invalid_credentials
-    @service.expects(:ssl_post).returns(failed_login_response)
+    http_response = build_mock_response(invalid_login_response, "500", "")
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
     assert !@service.valid_credentials?
   end
   
@@ -92,21 +101,49 @@ class AmazonTest < Test::Unit::TestCase
   end
   
   private
+  
+  def build_mock_response(response, message, code = "200")
+    http_response = mock(:code => code, :message => message)
+    http_response.stubs(:body).returns(response)
+    http_response
+  end
+  
   def response_for_empty_request
     '<ns:GetErrorResponse xmlns:ns="http://xino.amazonaws.com/doc/"><ns:Error><ns:Code>MissingDateHeader</ns:Code><ns:Message>Authorized request must have a "date" or "x-amz-date" header.</ns:Message></ns:Error><ns:RequestID>79ceaffe-e5a3-46a5-b36a-9ce958d68939</ns:RequestID></ns:GetErrorResponse>'
   end
+
   
-  def failed_login_response
+  def invalid_login_response
     <<-XML
-<?xml version="1.0"?>
-<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09"><env:Body><env:Fault><faultcode>aws:Client.InvalidAccessKeyId</faultcode><faultstring>AWS was not able to validate the provided access credentials.</faultstring><detail><aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">9f4d8239-c274-4248-9b9f-48faef163627</aws:RequestId></detail></env:Fault></env:Body></env:Envelope>
+    <?xml version="1.0"?>
+    <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">
+      <env:Body>
+        <env:Fault>
+          <faultcode>aws:Client.InvalidClientTokenId</faultcode>
+          <faultstring>The AWS Access Key Id you provided does not exist in our records.</faultstring>
+          <detail>
+            <aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">51de28ce-c380-46c4-bf95-62bbf8cc4682</aws:RequestId>
+          </detail>
+        </env:Fault>
+      </env:Body>
+    </env:Envelope>      
     XML
   end
   
-  def internal_error_response
+  def invalid_create_response
     <<-XML
 <?xml version="1.0"?>
-<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09"><env:Body><env:Fault><faultcode>aws:Server.InternalError</faultcode><faultstring>We encountered an internal error. Please try again.</faultstring><detail><aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">bd9ff2d1-2ad6-4991-8eea-01267385c704</aws:RequestId></detail></env:Fault></env:Body></env:Envelope>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">
+  <env:Body>
+    <env:Fault>
+      <faultcode>aws:Client.MissingParameter</faultcode>
+      <faultstring>The request must contain the parameter Item.</faultstring>
+      <detail>
+        <aws:RequestId xmlns:aws="http://webservices.amazon.com/AWSFault/2005-15-09">edc852d3-937f-40f5-9d72-97b7da897b38</aws:RequestId>
+      </detail>
+    </env:Fault>
+  </env:Body>
+</env:Envelope>
     XML
   end
   
@@ -119,106 +156,32 @@ class AmazonTest < Test::Unit::TestCase
 <?xml version="1.0"?>
 <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
   <env:Body>
-    <ns1:CreateFulfillmentOrderResponse xmlns:ns1="http://fulfillment.amazonaws.com/doc/FulfillmentService/2006-12-12">
-      <ns1:CreateFulfillmentOrderResult>
-        <ns1:Response>
-          <ns1:ResponseStatus>Accepted</ns1:ResponseStatus>
-        </ns1:Response>
-        <ns1:Request>
-          <ns1:CreateFulfillmentOrderRequest>
-            <ns1:Credentials>
-              <ns1:Email>merchant@example.com</ns1:Email>
-              <ns1:Password>password</ns1:Password>
-            </ns1:Credentials>
-            <ns1:MerchantFulfillmentOrderId>123456</ns1:MerchantFulfillmentOrderId>
-            <ns1:DisplayableOrderId>123456</ns1:DisplayableOrderId>
-            <ns1:DisplayableOrderDate>2007-10-21T20:15:28Z</ns1:DisplayableOrderDate>
-            <ns1:DisplayableOrderComment>Delayed due to tornados</ns1:DisplayableOrderComment>
-            <ns1:DeliverySLA>Standard</ns1:DeliverySLA>
-            <ns1:DestinationAddress>
-              <ns1:Name>Jaded Pixel Technologies</ns1:Name>
-              <ns1:Line1>5 Elm St.</ns1:Line1>
-              <ns1:Line2>#500</ns1:Line2>
-              <ns1:City>Beverly Hills</ns1:City>
-              <ns1:StateOrRegion>CA</ns1:StateOrRegion>
-              <ns1:CountryCode>US</ns1:CountryCode>
-              <ns1:PostalCode>90210</ns1:PostalCode>
-            </ns1:DestinationAddress>
-            <ns1:Items>
-              <ns1:MerchantSKU>SETTLERS</ns1:MerchantSKU>
-              <ns1:MerchantFulfillmentOrderItemId>0</ns1:MerchantFulfillmentOrderItemId>
-              <ns1:Quantity>1</ns1:Quantity>
-              <ns1:DisplayableComment>Awesome</ns1:DisplayableComment>
-            </ns1:Items>
-          </ns1:CreateFulfillmentOrderRequest>
-          <ns1:IsValid>True</ns1:IsValid>
-        </ns1:Request>
-      </ns1:CreateFulfillmentOrderResult>
+    <ns1:CreateFulfillmentOrderResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+      <ns1:ResponseMetadata>
+        <ns1:RequestId>ccd0116d-a476-48ac-810e-778eebe5e5e2</ns1:RequestId>
+      </ns1:ResponseMetadata>
     </ns1:CreateFulfillmentOrderResponse>
   </env:Body>
 </env:Envelope>
     XML
   end
   
-  def invalid_arguments_response
-    <<-XML
-<?xml version="1.0"?>
-<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
-  <env:Body>
-    <ns1:CreateFulfillmentOrderResponse xmlns:ns1="http://fulfillment.amazonaws.com/doc/FulfillmentService/2006-12-12">
-      <ns1:CreateFulfillmentOrderResult>
-        <ns1:Response>
-          <ns1:ResponseStatus>InvalidArguments</ns1:ResponseStatus>
-          <ns1:ResponseComment>1 error:
-The Displayable Order Comment value cannot be blank[null].
-</ns1:ResponseComment>
-        </ns1:Response>
-        <ns1:Request>
-          <ns1:CreateFulfillmentOrderRequest>
-            <ns1:Credentials>
-              <ns1:Email>merchant@example.com</ns1:Email>
-              <ns1:Password>password</ns1:Password>
-            </ns1:Credentials>
-            <ns1:MerchantFulfillmentOrderId>12345678</ns1:MerchantFulfillmentOrderId>
-            <ns1:DisplayableOrderId>12345678</ns1:DisplayableOrderId>
-            <ns1:DisplayableOrderDate>2007-10-21T21:10:48Z</ns1:DisplayableOrderDate>
-            <ns1:DeliverySLA>Standard</ns1:DeliverySLA>
-            <ns1:DestinationAddress>
-              <ns1:Name>Jaded Pixel Technologies</ns1:Name>
-              <ns1:Line1>5 Elm St.</ns1:Line1>
-              <ns1:Line2>#500</ns1:Line2>
-              <ns1:City>Beverly Hills</ns1:City>
-              <ns1:StateOrRegion>CA</ns1:StateOrRegion>
-              <ns1:CountryCode>US</ns1:CountryCode>
-              <ns1:PostalCode>90210</ns1:PostalCode>
-            </ns1:DestinationAddress>
-            <ns1:Items>
-              <ns1:MerchantSKU>SETTLERS1</ns1:MerchantSKU>
-              <ns1:MerchantFulfillmentOrderItemId>0</ns1:MerchantFulfillmentOrderItemId>
-              <ns1:Quantity>1</ns1:Quantity>
-              <ns1:DisplayableComment>Awesome</ns1:DisplayableComment>
-            </ns1:Items>
-          </ns1:CreateFulfillmentOrderRequest>
-          <ns1:IsValid>True</ns1:IsValid>
-        </ns1:Request>
-      </ns1:CreateFulfillmentOrderResult>
-    </ns1:CreateFulfillmentOrderResponse>
-  </env:Body>
-</env:Envelope>
-    XML
-  end
   
   def successful_status_response
     <<-XML
 <?xml version="1.0"?>
-<ns1:GetServiceStatusResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
-  <ns1:GetServiceStatusResult>
-    <ns1:Status>2009-06-04T20:12:38Z service available [Version: 2007-08-02]</ns1:Status>
-  </ns1:GetServiceStatusResult>
-  <ns1:ResponseMetadata>
-    <ns1:RequestId>28c35b26-389f-494e-862f-1bebadf8007f</ns1:RequestId>
-  </ns1:ResponseMetadata>
-</ns1:GetServiceStatusResponse>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <ns1:GetServiceStatusResponse xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+      <ns1:GetServiceStatusResult>
+        <ns1:Status>2009-06-05T18:36:19Z service available [Version: 2007-08-02]</ns1:Status>
+      </ns1:GetServiceStatusResult>
+      <ns1:ResponseMetadata>
+        <ns1:RequestId>1e04fabc-fbaa-4ae5-836a-f0c60f1d301a</ns1:RequestId>
+      </ns1:ResponseMetadata>
+    </ns1:GetServiceStatusResponse>
+  </env:Body>
+</env:Envelope>    
     XML
   end
 end

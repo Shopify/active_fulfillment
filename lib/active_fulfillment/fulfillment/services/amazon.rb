@@ -190,11 +190,11 @@ module ActiveMerchant
       
       def commit(op, body)
         data = ssl_post(OUTBOUND_URL, body, 'Content-Type' => 'application/soap+xml; charset=utf-8')
-        @response = parse(op, data)   
-        Response.new(success?(@response), message_from(@response), @response, :test => false)
+        response = parse(op, data)   
+        Response.new(success?(response), message_from(response), response)
       rescue ActiveMerchant::ResponseError => e        
-        @response = parse_error(op, e.response.body)
-        Response.new(false, message_from(@response), @response, :test => false)
+        response = parse_error(e.response)
+        Response.new(false, message_from(response), response)
       end
       
       def success?(response)
@@ -217,10 +217,13 @@ module ActiveMerchant
       end
       
       # extra the error message
-      def parse_error(op, xml)
+      def parse_error(http_response)
         response = {}
-        action   = OPERATIONS[op]                
-        document = REXML::Document.new(xml)
+        response[:http_code] = http_response.code
+        response[:http_message] = http_response.message
+
+        document = REXML::Document.new(http_response.body)
+
         node     = REXML::XPath.first(document, "//env:Fault")
 
         failed_node = node.find_first_recursive {|sib| sib.name == "Fault" }
@@ -228,11 +231,17 @@ module ActiveMerchant
         faultstring_node = node.find_first_recursive {|sib| sib.name == "faultstring" }
           
         response[:response_status]  = FAILURE
-        response[:response_comment] = "#{faultcode_node ? faultcode_node.text : nil} #{faultstring_node ? faultstring_node.text : nil}"
+        response[:faultcode]        = faultcode_node ? faultcode_node.text : ""
+        response[:faultstring]      = faultstring_node ? faultstring_node.text : ""
+        response[:response_comment] = "#{response[:faultcode]} #{response[:faultstring]}"
+        response
+      rescue REXML::ParseException => e
+        response[:http_body]        = http_response.body
+        response[:response_status]  = FAILURE
+        response[:response_comment] = "#{response[:http_code]}: #{response[:http_message]}"
         response
       end
-      
-    end
+    end 
   end
 end
 
