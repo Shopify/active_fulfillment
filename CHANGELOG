@@ -1,3 +1,4 @@
+* Remove DHL from Webgistix shipping methods [Dennis Thiesen]
 * Update Amazon FBA to use AWS credentials [John Tajima]
 * Use new connection code from ActiveMerchant [cody]
 * Add #valid_credentials? support to all fulfillment services [cody]

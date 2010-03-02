@@ -33,18 +33,15 @@ module ActiveMerchant
           ["FedEx International First", "FedEx International First"],
           ["FedEx Ground", "FedEx Ground"],
           ["USPS Priority Mail & Global Priority Mail", "Priority"],
+          ["USPS Priority Mail & Global Priority Mail (flat rate)", "Flat Rate Priority"],
           ["USPS First Class Mail", "First Class"],
           ["USPS Express Mail & Global Express Mail", "Express"],
+          ["USPS Flat Rate Global Express Mail", "Global Express Mail Flat Rate"],
           ["USPS Parcel Post", "Parcel"],
-          ["USPS Air Letter Post", "Air Letter Post"],
+          ["USPS First Class International", "First Class International"],
           ["USPS Media Mail", "Media Mail"],
           ["USPS Economy Parcel Post", "Economy Parcel"],
           ["USPS Economy Air Letter Post", "Economy Letter"],
-          ["DHL Express", "DHL Express"],
-          ["DHL Next Afternoon", "DHL Next Afternoon"],
-          ["DHL Second Day Service", "DHL Second Day Service"],
-          ["DHL Ground", "DHL Ground"],
-          ["DHL International Express", "DHL International Express"]
         ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
       end
       
