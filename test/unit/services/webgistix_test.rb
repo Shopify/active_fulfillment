@@ -142,6 +142,22 @@ class WebgistixTest < Test::Unit::TestCase
     assert !@service.valid_credentials?
   end
     
+  def test_duplicate_response_is_treated_as_success
+    response = stub(:code => 200, :body => duplicate_response, :message => '')
+    Net::HTTP.any_instance.stubs(:post).raises(ActiveMerchant::ConnectionError).returns(response)
+
+    response = @service.fulfill('123456', @address, @line_items, @options)
+    assert response.success?
+    assert response.test?
+    assert_equal WebgistixService::DUPLICATE_MESSAGE, response.message
+    assert response.params['duplicate']
+    assert_nil response.params['order_id']
+  end
+
+  def test_ensure_gateway_uses_safe_retry
+    assert @service.retry_safe
+  end
+    
   private
   def minimal_successful_response
     '<Completed><Success>True</Success></Completed>'
@@ -168,5 +184,9 @@ class WebgistixTest < Test::Unit::TestCase
       '<Item><ItemID>GN-00-01A</ItemID><ItemQty>202</ItemQty></Item>' +
       '<Item><ItemID>GN-00-02A</ItemID><ItemQty>199</ItemQty></Item>' +
       '</InventoryXML>'
+  end
+  
+  def duplicate_response
+    '<Completed><Success>Duplicate</Success></Completed>'
   end
 end

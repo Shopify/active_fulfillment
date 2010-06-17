@@ -9,12 +9,20 @@ module ActiveMerchant
       TEST_URLS = SERVICE_URLS.merge({
         :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
       })
+      
+      SUCCESS, DUPLICATE, FAILURE = 'True', 'Duplicate', 'False'
 
-      SUCCESS, FAILURE = 'True', 'False'
       SUCCESS_MESSAGE = 'Successfully submitted the order'
       FAILURE_MESSAGE = 'Failed to submit the order'
+      DUPLICATE_MESSAGE = 'This order has already been successfully submitted'
+      
       INVALID_LOGIN = 'Invalid Credentials'
       NOT_SHIPPED = 'Not Shipped'
+
+      # If a request is detected as a duplicate only the original data will be 
+      # used by Webgistix, and the subsequent responses will have a
+      # :duplicate parameter set in the params hash.
+      self.retry_safe = true
       
       # The first is the label, and the last is the code
       def self.shipping_methods
@@ -215,13 +223,15 @@ module ActiveMerchant
       end
       
       def success?(response)
-        response[:success] == SUCCESS
+        response[:success] == SUCCESS || response[:success] == DUPLICATE
       end
       
       def message_from(response)
-        return SUCCESS_MESSAGE if success?(response)
-
-        if response[:error_0] == INVALID_LOGIN
+        if response[:duplicate]
+          DUPLICATE_MESSAGE
+        elsif success?(response)
+          SUCCESS_MESSAGE
+        elsif response[:error_0] == INVALID_LOGIN
           INVALID_LOGIN
         else
           FAILURE_MESSAGE
@@ -258,6 +268,8 @@ module ActiveMerchant
         else
           response[:success] = FAILURE
         end
+        
+        response[:duplicate] = response[:success] == DUPLICATE
         
         response
       end

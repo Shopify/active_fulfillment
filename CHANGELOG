@@ -1,5 +1,8 @@
 = ActiveFulfillment CHANGELOG
 
+* Updated Webgistix USPS shipping methods (4 added, 1 removed) [Dennis Theisen]
+* Changed Webgistix to treat a duplicate response as success instead of failure and to retry failed connection errors. [Dennis Theisen]
+
 == Version 1.0.0 (July 12, 2010)
 
 * Add inventory support to Amazon and Webgistix [Adrian Irving-Beer]
