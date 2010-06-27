@@ -37,13 +37,11 @@ rescue LoadError
   require_gem 'builder'
 end
 
+
 require 'cgi'
 require 'net/https'
-require 'active_fulfillment/lib/error'
-require 'active_fulfillment/lib/requires_parameters'
-require 'active_fulfillment/lib/connection'
-require 'active_fulfillment/lib/posts_data'
-require 'active_fulfillment/lib/country'
+require 'rexml/document'
+require 'active_merchant/common'
 
 require 'active_fulfillment/fulfillment/base'
 require 'active_fulfillment/fulfillment/response'
