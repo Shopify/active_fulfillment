@@ -42,7 +42,7 @@ end
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = 'activefulfillment'
+    gemspec.name = 'active_fulfillment'
     gemspec.summary = "Framework and tools for dealing with shipping, tracking and order fulfillment services."
     gemspec.email = "cody@shopify.com"
     gemspec.homepage = "http://github.com/shopify/active_fulfillment"
