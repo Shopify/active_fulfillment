@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{active_fulfillment}
-  s.version = "0.9.0"
+  s.version = "0.10.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cody Fauser", "James MacAulay"]
-  s.date = %q{2010-06-27}
+  s.date = %q{2010-07-06}
   s.email = %q{cody@shopify.com}
   s.files = [
     "CHANGELOG",
