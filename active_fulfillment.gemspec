@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{active_fulfillment}
-  s.version = "0.10.0"
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cody Fauser", "James MacAulay"]
-  s.date = %q{2010-07-06}
+  s.date = %q{2010-07-12}
   s.email = %q{cody@shopify.com}
   s.files = [
     "CHANGELOG",
@@ -60,6 +60,9 @@ Gem::Specification.new do |s|
      "test/unit/services/shipwire_test.rb",
      "test/unit/services/webgistix_test.rb"
   ]
+  
+  s.add_dependency('activesupport', '~> 2.3.2')
+  s.add_dependency('builder', '>= 2.0.0')
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

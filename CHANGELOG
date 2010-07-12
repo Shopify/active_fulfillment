@@ -1,3 +1,11 @@
+= ActiveFulfillment CHANGELOG
+
+== Version 1.0.0 (July 12, 2010)
+
+* Add inventory support to Amazon and Webgistix [Adrian Irving-Beer]
+
+== Version 0.10.0 (July 6, 2010)
+
 * Remove DHL from Webgistix shipping methods [Dennis Thiesen]
 * Update Amazon FBA to use AWS credentials [John Tajima]
 * Use new connection code from ActiveMerchant [cody]
