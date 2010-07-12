@@ -58,6 +58,37 @@ class AmazonTest < Test::Unit::TestCase
     @options.delete(:shipping_method)
     assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
+
+  def test_get_inventory
+    @service.expects(:ssl_post).returns(xml_fixture('amazon/inventory_get_response'))
+
+    response = @service.fetch_stock_levels(:sku => '2R-JAXZ-P0IB')
+    assert response.success?
+    assert_equal 142, response.stock_levels['2R-JAXZ-P0IB']
+  end
+
+  def test_list_inventory
+    @service.expects(:ssl_post).returns(xml_fixture('amazon/inventory_list_response'))
+    
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal 202, response.stock_levels['GN-00-01A']
+    assert_equal 199, response.stock_levels['GN-00-02A']
+  end
+
+  def test_list_inventory_multipage
+    @service.expects(:ssl_post).twice.returns(
+      xml_fixture('amazon/inventory_list_response_with_next_1'),
+      xml_fixture('amazon/inventory_list_response_with_next_2')
+    )
+
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal  42, response.stock_levels['GN-01-01A']
+    assert_equal  80, response.stock_levels['GN-01-02A']
+    assert_equal 123, response.stock_levels['GN-02-01A']
+    assert_equal 555, response.stock_levels['GN-02-02A']
+  end
   
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")

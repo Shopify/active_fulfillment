@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+  <ns1:GetInventorySupplyResponse xmlns:ns1="http://fba-inventory.amazonaws.com/doc/2009-07-31/">
+    <ns1:GetInventorySupplyResult>
+      <ns1:MerchantSKUSupply>
+        <ns1:MerchantSKU>2R-JAXZ-P0IB</ns1:MerchantSKU>
+        <ns1:TotalSupplyQuantity>155</ns1:TotalSupplyQuantity>
+        <ns1:InStockSupplyQuantity>142</ns1:InStockSupplyQuantity>
+      </ns1:MerchantSKUSupply>
+    </ns1:GetInventorySupplyResult>
+    <ns1:ResponseMetadata>
+      <ns1:RequestId>463bcebc-ebd4-4122-abb2-dd05a79b35b6</ns1:RequestId>
+    </ns1:ResponseMetadata>
+  </ns1:GetInventorySupplyResponse>
+  </env:Body>
+</env:Envelope>

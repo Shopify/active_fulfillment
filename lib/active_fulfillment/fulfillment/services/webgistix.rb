@@ -1,9 +1,14 @@
 module ActiveMerchant
   module Fulfillment
     class WebgistixService < Service
-      TEST_URL = 'https://www.webgistix.com/XML/shippingTest.asp'
-      LIVE_URL = 'https://www.webgistix.com/XML/API.asp'
-      
+      SERVICE_URLS = {
+        :fulfillment => 'https://www.webgistix.com/XML/CreateOrder.asp',
+        :inventory => 'https://www.webgistix.com/XML/GetInventory.asp'
+      } 
+      TEST_URLS = SERVICE_URLS.merge({
+        :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
+      })
+
       SUCCESS, FAILURE = 'True', 'False'
       SUCCESS_MESSAGE = 'Successfully submitted the order'
       FAILURE_MESSAGE = 'Failed to submit the order'
@@ -50,12 +55,15 @@ module ActiveMerchant
       def initialize(options = {})
         requires!(options, :login, :password)
         super
-        @url = test? ? TEST_URL : LIVE_URL
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})  
         requires!(options, :shipping_method) 
-        commit build_fulfillment_request(order_id, shipping_address, line_items, options)
+        commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
+      end
+
+      def fetch_stock_levels(options = {})
+        commit :inventory, build_inventory_request(options)
       end
       
       def valid_credentials?
@@ -104,6 +112,19 @@ module ActiveMerchant
         xml.target!
       end
       
+      #<?xml version="1.0"?> 
+      # <InventoryXML> 
+      #   <Password>Webgistix</Password> 
+      #   <CustomerID>3</CustomerID> 
+      # </InventoryXML>
+      def build_inventory_request(options)
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.instruct!
+        xml.tag! 'InventoryXML' do
+          add_credentials(xml)
+        end
+      end
+            
       def add_credentials(xml)
         xml.tag! 'CustomerID', @options[:login]
         xml.tag! 'Password', @options[:password]
@@ -150,15 +171,16 @@ module ActiveMerchant
         end
       end
 
-      def commit(request)
-        @response = parse(ssl_post(@url, request,
-                            'EndPointURL'  => @url,
-                            'Content-Type' => 'text/xml; charset="utf-8"')
-                         )
+      def commit(action, request)
+        url = test? ? TEST_URLS[action] : SERVICE_URLS[action]
         
-        Response.new(success?(@response), message_from(@response), @response, 
-          :test => test?
+        data = ssl_post(url, request,
+          'EndPointURL'  => url,
+          'Content-Type' => 'text/xml; charset="utf-8"'
         )
+        
+        response = parse_response(action, data)
+        Response.new(success?(response), message_from(response), response, :test => test?)
       end
       
       def success?(response)
@@ -175,15 +197,26 @@ module ActiveMerchant
         end
       end
       
-      def parse(xml)
-        response = {}
-        
+      def parse_response(action, xml)
         begin 
           document = REXML::Document.new("<response>#{xml}</response>")
         rescue REXML::ParseException
-          response[:success] = FAILURE
-          return response
+          return {:success => FAILURE}
         end
+
+        case action
+        when :fulfillment
+          parse_fulfillment_response(document)
+        when :inventory
+          parse_inventory_response(document)
+        else
+          raise ArgumentError, "Unknown action #{action}"
+        end
+      end
+      
+      def parse_fulfillment_response(document)
+        response = {}
+        
         # Fetch the errors
         document.root.elements.to_a("Error").each_with_index do |e, i|
           response["error_#{i}".to_sym] = e.text
@@ -198,6 +231,21 @@ module ActiveMerchant
           response[:success] = FAILURE
         end
         
+        response
+      end
+
+      def parse_inventory_response(document)
+        response = {}
+        response[:stock_levels] = {}
+
+        document.root.each_element('//Item') do |node|
+          # {ItemID => 'SOME-ID', ItemQty => '101'}
+          params = node.elements.to_a.inject(Hash.new) {|h, k| h[k.name] = k.text; h}
+
+          response[:stock_levels][params['ItemID']] = params['ItemQty'].to_i
+        end
+
+        response[:success] = SUCCESS
         response
       end
     end

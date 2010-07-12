@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <ns1:ListUpdatedInventorySupplyResponse xmlns:ns1="http://fba-inventory.amazonaws.com/doc/2009-07-31/">
+      <ns1:ListUpdatedInventorySupplyResult>
+        <ns1:HasNext>false</ns1:HasNext>
+        <ns1:MerchantSKUSupply>
+          <ns1:MerchantSKU>GN-00-01A</ns1:MerchantSKU>
+          <ns1:FulfillmentNetworkSKU>X00002YKJ1</ns1:FulfillmentNetworkSKU>
+          <ns1:ASIN>B000021Y68</ns1:ASIN>
+          <ns1:Condition>NewItem</ns1:Condition>
+          <ns1:TotalSupplyQuantity>202</ns1:TotalSupplyQuantity>
+          <ns1:InStockSupplyQuantity>202</ns1:InStockSupplyQuantity>
+        </ns1:MerchantSKUSupply>
+        <ns1:MerchantSKUSupply>
+          <ns1:MerchantSKU>GN-00-02A</ns1:MerchantSKU>
+          <ns1:FulfillmentNetworkSKU>X11112YKJ2</ns1:FulfillmentNetworkSKU>
+          <ns1:ASIN>B111121Y68</ns1:ASIN>
+          <ns1:Condition>NewItem</ns1:Condition>
+          <ns1:TotalSupplyQuantity>240</ns1:TotalSupplyQuantity>
+          <ns1:InStockSupplyQuantity>199</ns1:InStockSupplyQuantity>
+        </ns1:MerchantSKUSupply>
+      </ns1:ListUpdatedInventorySupplyResult>
+      <ns1:ResponseMetadata>
+        <ns1:RequestId>727a00b4-9909-4277-a341-b3ce069da95f</ns1:RequestId>
+      </ns1:ResponseMetadata>
+    </ns1:ListUpdatedInventorySupplyResponse>
+  </env:Body>
+</env:Envelope>

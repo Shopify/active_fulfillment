@@ -63,6 +63,18 @@ class RemoteAmazonTest < Test::Unit::TestCase
     response = @service.fetch_current_orders
     assert response.success?
   end
+
+  def test_get_inventory
+    response = @service.fetch_stock_levels(:sku => '2R-JAXZ-P0IB')
+    assert response.success?
+    assert_equal 0, response.stock_levels['2R-JAXZ-P0IB']
+  end
+
+  def test_list_inventory
+    response = @service.fetch_stock_levels(:start_time => 1.year.ago)
+    assert response.success?
+    assert_equal 0, response.stock_levels['SETTLERS']
+  end
   
   def test_valid_credentials
     assert @service.valid_credentials?

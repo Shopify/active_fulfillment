@@ -66,6 +66,14 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     assert_equal "Access Denied", response.message
   end
   
+  def test_get_inventory
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert response.test?
+    assert_equal 95, response.stock_levels['GN-600-46']
+    assert_equal 97, response.stock_levels['GN-800-09']
+  end
+  
   def test_valid_credentials
     assert @service.valid_credentials?
   end

@@ -48,6 +48,10 @@ module Test
       
         yaml_data
       end
+
+      def xml_fixture(path) # where path is like 'usps/beverly_hills_to_ottawa_response'
+        open(File.join(File.dirname(__FILE__),'fixtures','xml',"#{path}.xml")) {|f| f.read}
+      end
       
       def symbolize_keys(hash)
         return unless hash.is_a?(Hash)

@@ -4,9 +4,18 @@ require 'openssl'
 module ActiveMerchant
   module Fulfillment
     class AmazonService < Service
-      OUTBOUND_URL   = "https://fba-outbound.amazonaws.com"
-      OUTBOUND_XMLNS = 'http://fba-outbound.amazonaws.com/doc/2007-08-02/'
-      VERSION        = "2007-08-02"
+      SERVICES = {
+        :outbound => {
+          :url     => 'https://fba-outbound.amazonaws.com',
+          :xmlns   => 'http://fba-outbound.amazonaws.com/doc/2007-08-02/',
+          :version => '2007-08-02'
+        },
+        :inventory => {
+          :url     => 'https://fba-inventory.amazonaws.com',
+          :xmlns   => 'http://fba-inventory.amazonaws.com/doc/2009-07-31/',
+          :version => '2009-07-31'          
+        }
+      }
     
       SUCCESS, FAILURE, ERROR = 'Accepted', 'Failure', 'Error'    
       MESSAGES = {
@@ -42,9 +51,16 @@ module ActiveMerchant
       @@digest = OpenSSL::Digest::Digest.new("sha1")
       
       OPERATIONS = {
-        :status => 'GetServiceStatus',
-        :create => 'CreateFulfillmentOrder',
-        :list   => 'ListAllFulfillmentOrders'
+        :outbound => {
+          :status => 'GetServiceStatus',
+          :create => 'CreateFulfillmentOrder',
+          :list   => 'ListAllFulfillmentOrders'
+        },
+        :inventory => {
+          :get  => 'GetInventorySupply',
+          :list => 'ListUpdatedInventorySupply',
+          :list_next => 'ListUpdatedInventorySupplyByNextToken'
+        }
       }
                    
       # The first is the label, and the last is the code
@@ -69,16 +85,33 @@ module ActiveMerchant
       end
       
       def status
-        commit :status, build_status_request
+        commit :outbound, :status, build_status_request
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})   
         requires!(options, :order_date, :comment, :shipping_method)
-        commit :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
+        commit :outbound, :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
       
       def fetch_current_orders
-        commit :list, build_get_current_fulfillment_orders_request
+        commit :outbound, :list, build_get_current_fulfillment_orders_request
+      end
+
+      def fetch_stock_levels(options = {})
+        if options[:sku]
+          commit :inventory, :get, build_inventory_get_request(options)
+        else
+          response = commit :inventory, :list, build_inventory_list_request(options)
+
+          while token = response.params['next_token'] do
+            next_page = commit :inventory, :list_next, build_next_inventory_list_request(token)
+
+            next_page.stock_levels.merge!(response.stock_levels)
+            response = next_page
+          end
+          
+          response
+        end
       end
       
       def valid_credentials?
@@ -105,16 +138,16 @@ module ActiveMerchant
       end
       
       def build_status_request
-        request = OPERATIONS[:status]
+        request = OPERATIONS[:outbound][:status]
         soap_request(request) do |xml|
-          xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS }
+          xml.tag! request, { 'xmlns' => SERVICES[:outbound][:xmlns] }
         end
       end
       
       def build_get_current_fulfillment_orders_request
-        request = OPERATIONS[:list]
+        request = OPERATIONS[:outbound][:list]
         soap_request(request) do |xml|
-          xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
+          xml.tag! request, { 'xmlns' => SERVICES[:outbound][:xmlns] } do
             xml.tag! "NumberOfResultsRequested", 5
             xml.tag! "QueryStartDateTime", Time.now.utc.yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
           end
@@ -122,17 +155,49 @@ module ActiveMerchant
       end
 
       def build_fulfillment_request(order_id, shipping_address, line_items, options)
-        request = OPERATIONS[:create]
+        request = OPERATIONS[:outbound][:create]
         soap_request(request) do |xml|
-          xml.tag! request, { 'xmlns' => OUTBOUND_XMLNS } do
-             xml.tag! "MerchantFulfillmentOrderId", order_id
-             xml.tag! "DisplayableOrderId", order_id
-             xml.tag! "DisplayableOrderDateTime", options[:order_date].strftime("%Y-%m-%dT%H:%M:%SZ")
-             xml.tag! "DisplayableOrderComment", options[:comment]
-             xml.tag! "ShippingSpeedCategory", options[:shipping_method]
+          xml.tag! request, { 'xmlns' => SERVICES[:outbound][:xmlns] } do
+            xml.tag! "MerchantFulfillmentOrderId", order_id
+            xml.tag! "DisplayableOrderId", order_id
+            xml.tag! "DisplayableOrderDateTime", options[:order_date].strftime("%Y-%m-%dT%H:%M:%SZ")
+            xml.tag! "DisplayableOrderComment", options[:comment]
+            xml.tag! "ShippingSpeedCategory", options[:shipping_method]
    
-             add_address(xml, shipping_address)
-             add_items(xml, line_items)
+            add_address(xml, shipping_address)
+            add_items(xml, line_items)
+          end
+        end
+      end
+
+      def build_inventory_get_request(options)
+        request = OPERATIONS[:inventory][:get]
+        soap_request(request) do |xml|
+          xml.tag! request, { 'xmlns' => SERVICES[:inventory][:xmlns] } do
+            xml.tag! "MerchantSKU", options[:sku]
+            xml.tag! "ResponseGroup", "Basic"
+          end
+        end
+      end
+
+      def build_inventory_list_request(options)
+        start_time = options[:start_time] || 1.day.ago
+
+        request = OPERATIONS[:inventory][:list]
+        soap_request(request) do |xml|
+          xml.tag! request, { 'xmlns' => SERVICES[:inventory][:xmlns] } do
+            xml.tag! "NumberOfResultsRequested", 50
+            xml.tag! "QueryStartDateTime", start_time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+            xml.tag! "ResponseGroup", "Basic"
+          end
+        end
+      end
+
+      def build_next_inventory_list_request(token)
+        request = OPERATIONS[:inventory][:list_next]
+        soap_request(request) do |xml|
+          xml.tag! request, { 'xmlns' => SERVICES[:inventory][:xmlns] } do
+            xml.tag! "NextToken", token
           end
         end
       end
@@ -173,9 +238,9 @@ module ActiveMerchant
         end
       end
       
-      def commit(op, body)
-        data = ssl_post(OUTBOUND_URL, body, 'Content-Type' => 'application/soap+xml; charset=utf-8')
-        response = parse(op, data)   
+      def commit(service, op, body)
+        data = ssl_post(SERVICES[service][:url], body, 'Content-Type' => 'application/soap+xml; charset=utf-8')
+        response = parse_response(service, op, data)   
         Response.new(success?(response), message_from(response), response)
       rescue ActiveMerchant::ResponseError => e        
         response = parse_error(e.response)
@@ -190,14 +255,48 @@ module ActiveMerchant
         response[:response_comment]
       end
       
-      def parse(op, xml)
+      def parse_response(service, op, xml)
+        begin 
+          document = REXML::Document.new(xml)
+        rescue REXML::ParseException
+          return {:success => FAILURE}
+        end
+
+        case service
+        when :outbound
+          parse_fulfillment_response(op, document)
+        when :inventory
+          parse_inventory_response(document)
+        else
+          raise ArgumentError, "Unknown service #{service}"
+        end
+      end
+      
+      def parse_fulfillment_response(op, document)
         response = {}
-        action   = OPERATIONS[op]                
-        document = REXML::Document.new(xml)
+        action   = OPERATIONS[:outbound][op]
         node     = REXML::XPath.first(document, "//ns1:#{action}Response")
         
         response[:response_status]  = SUCCESS
         response[:response_comment] = MESSAGES[op][SUCCESS]
+        response
+      end
+
+      def parse_inventory_response(document)
+        response = {}
+        response[:stock_levels] = {}
+
+        document.each_element('//ns1:MerchantSKUSupply') do |node|
+          # {MerchantSKU => 'SOME-ID', InStockSupplyQuantity => '101', ...}
+          params = node.elements.to_a.inject(Hash.new) {|h, k| h[k.name] = k.text; h}
+
+          response[:stock_levels][params['MerchantSKU']] = params['InStockSupplyQuantity'].to_i
+        end
+
+        next_token = REXML::XPath.first(document, '//ns1:NextToken')
+        response[:next_token] = (next_token ? next_token.text : nil)
+
+        response[:response_status] = SUCCESS
         response
       end
       

@@ -89,6 +89,16 @@ class WebgistixTest < Test::Unit::TestCase
     assert_equal 'Unknown ItemID:  testitem', response.params['error_1']
     assert_equal 'Unknown ItemID:  WX-01-1000', response.params['error_2']
   end
+
+  def test_stock_levels
+    @service.expects(:ssl_post).returns(inventory_response)
+    
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal 202, response.stock_levels['GN-00-01A']
+    assert_equal 199, response.stock_levels['GN-00-02A']
+  end
   
   def test_failed_login
     @service.expects(:ssl_post).returns(invalid_login_response)
@@ -141,5 +151,12 @@ class WebgistixTest < Test::Unit::TestCase
   
   def garbage_response
     '<font face="Arial" size=2>/XML/shippingTest.asp</font><font face="Arial" size=2>, line 39</font>'
+  end
+  
+  def inventory_response
+    '<InventoryXML>' +
+      '<Item><ItemID>GN-00-01A</ItemID><ItemQty>202</ItemQty></Item>' +
+      '<Item><ItemID>GN-00-02A</ItemID><ItemQty>199</ItemQty></Item>' +
+      '</InventoryXML>'
   end
 end
