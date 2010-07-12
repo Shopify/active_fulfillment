@@ -36,6 +36,10 @@ Gem::Specification.new do |s|
      "lib/active_merchant/common/validateable.rb",
      "lib/certs/cacert.pem",
      "test/fixtures.yml",
+     "test/fixtures/xml/amazon/inventory_get_response.xml",
+     "test/fixtures/xml/amazon/inventory_list_response.xml",
+     "test/fixtures/xml/amazon/inventory_list_response_with_next_1.xml",
+     "test/fixtures/xml/amazon/inventory_list_response_with_next_2.xml",
      "test/remote/amazon_test.rb",
      "test/remote/shipwire_test.rb",
      "test/remote/webgistix_test.rb",
@@ -60,18 +64,21 @@ Gem::Specification.new do |s|
      "test/unit/services/shipwire_test.rb",
      "test/unit/services/webgistix_test.rb"
   ]
-  
-  s.add_dependency('activesupport', '~> 2.3.2')
-  s.add_dependency('builder', '>= 2.0.0')
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<activesupport>, ["~> 2.3.2"])
+      s.add_runtime_dependency(%q<builder>, [">= 2.0.0"])
     else
+      s.add_dependency(%q<activesupport>, ["~> 2.3.2"])
+      s.add_dependency(%q<builder>, [">= 2.0.0"])
     end
   else
+    s.add_dependency(%q<activesupport>, ["~> 2.3.2"])
+    s.add_dependency(%q<builder>, [">= 2.0.0"])
   end
 end
 
