@@ -30,6 +30,15 @@ rescue LoadError
   require 'active_support'
 end
 
+require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/delegating_attributes'
+require 'active_support/core_ext/time/calculations'
+require 'active_support/core_ext/numeric/time'
+begin
+  require 'active_support/core_ext/time/acts_like'
+rescue LoadError
+end
+
 begin
   require 'builder'
 rescue LoadError
