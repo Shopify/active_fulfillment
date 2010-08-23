@@ -54,7 +54,8 @@ module ActiveMerchant
         :outbound => {
           :status => 'GetServiceStatus',
           :create => 'CreateFulfillmentOrder',
-          :list   => 'ListAllFulfillmentOrders'
+          :list   => 'ListAllFulfillmentOrders',
+          :tracking => 'GetFulfillmentOrder'
         },
         :inventory => {
           :get  => 'GetInventorySupply',
@@ -110,6 +111,26 @@ module ActiveMerchant
             response = next_page
           end
           
+          response
+        end
+      end
+
+      def fetch_tracking_numbers(order_ids, options = {})
+        order_ids.inject(nil) do |previous, o_id|
+          response = commit :outbound, :tracking, build_tracking_request(o_id, options)
+
+          if !response.success?
+            if response.faultstring =~ /Reason: requested order not found./
+              response = Response.new(true, nil, {
+                :status           => SUCCESS,
+                :tracking_numbers => {}
+              })
+            else
+              return response
+            end
+          end
+
+          response.tracking_numbers.merge!(previous.tracking_numbers) if previous
           response
         end
       end
@@ -202,6 +223,15 @@ module ActiveMerchant
         end
       end
 
+      def build_tracking_request(order_id, options)
+        request = OPERATIONS[:outbound][:tracking]
+        soap_request(request) do |xml|
+          xml.tag! request, { 'xmlns' => SERVICES[:outbound][:xmlns] } do
+            xml.tag! "MerchantFulfillmentOrderId", order_id
+          end
+        end
+      end
+
       def add_credentials(xml, request)
         login     = @options[:login]
         timestamp = "#{Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S")}Z"
@@ -264,7 +294,12 @@ module ActiveMerchant
 
         case service
         when :outbound
-          parse_fulfillment_response(op, document)
+          case op
+          when :tracking
+            parse_tracking_response(document)
+          else
+            parse_fulfillment_response(op, document)
+          end
         when :inventory
           parse_inventory_response(document)
         else
@@ -288,13 +323,27 @@ module ActiveMerchant
 
         document.each_element('//ns1:MerchantSKUSupply') do |node|
           # {MerchantSKU => 'SOME-ID', InStockSupplyQuantity => '101', ...}
-          params = node.elements.to_a.inject(Hash.new) {|h, k| h[k.name] = k.text; h}
+          params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
           response[:stock_levels][params['MerchantSKU']] = params['InStockSupplyQuantity'].to_i
         end
 
         next_token = REXML::XPath.first(document, '//ns1:NextToken')
         response[:next_token] = (next_token ? next_token.text : nil)
+
+        response[:response_status] = SUCCESS
+        response
+      end
+      
+      def parse_tracking_response(document)
+        response = {}
+        response[:tracking_numbers] = {}
+
+        track_node = REXML::XPath.first(document, '//ns1:FulfillmentShipmentPackage/ns1:TrackingNumber')
+        if track_node
+          id_node = REXML::XPath.first(document, '//ns1:MerchantFulfillmentOrderId')
+          response[:tracking_numbers][id_node.text] = track_node.text
+        end
 
         response[:response_status] = SUCCESS
         response

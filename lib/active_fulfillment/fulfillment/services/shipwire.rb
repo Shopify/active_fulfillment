@@ -54,12 +54,12 @@ module ActiveMerchant
         commit :inventory, build_inventory_request(options)
       end
       
-      def fetch_tracking_numbers(options = {})
-        commit :tracking, build_tracking_request(options)
+      def fetch_tracking_numbers(order_ids)
+        commit :tracking, build_tracking_request(order_ids)
       end
       
       def valid_credentials?
-        response = fetch_tracking_numbers
+        response = fetch_tracking_numbers([])
         response.message !~ INVALID_LOGIN
       end
       
@@ -91,14 +91,16 @@ module ActiveMerchant
         end
       end
       
-      def build_tracking_request(options)
+      def build_tracking_request(order_ids)
         xml = Builder::XmlMarkup.new
         xml.instruct!
         xml.declare! :DOCTYPE, :InventoryStatus, :SYSTEM, SCHEMA_URLS[:inventory]
         xml.tag! 'TrackingUpdate' do
           add_credentials(xml)
           xml.tag! 'Server', test? ? 'Test' : 'Production'
-          xml.tag! 'Bookmark', '3'
+          order_ids.each do |o_id|
+            xml.tag! 'OrderNo', o_id
+          end
         end
       end
 

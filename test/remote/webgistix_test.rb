@@ -74,6 +74,12 @@ class RemoteWebgistixTest < Test::Unit::TestCase
     assert_equal 97, response.stock_levels['GN-800-09']
   end
   
+  def test_fetch_tracking_numbers
+    response = @service.fetch_tracking_numbers(['123456'])
+    assert response.success?
+    assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
+  end
+  
   def test_valid_credentials
     assert @service.valid_credentials?
   end

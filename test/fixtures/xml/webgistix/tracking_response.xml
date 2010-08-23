@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Orders>
+  <Shipment>
+    <InvoiceNumber>AB12345</InvoiceNumber>
+    <WebgistixOrderNumber>67891</WebgistixOrderNumber>
+    <Method>UPS Ground</Method>
+    <DateShipped>10/25/2009</DateShipped>
+    <ShipmentTrackingNumber>1Z8E5A380396682872</ShipmentTrackingNumber>
+  </Shipment>
+  <Shipment>
+    <InvoiceNumber>XY4567</InvoiceNumber>
+    <ShipmentTrackingNumber>Not Shipped</ShipmentTrackingNumber>
+  </Shipment>
+</Orders>

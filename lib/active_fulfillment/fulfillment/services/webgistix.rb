@@ -3,7 +3,8 @@ module ActiveMerchant
     class WebgistixService < Service
       SERVICE_URLS = {
         :fulfillment => 'https://www.webgistix.com/XML/CreateOrder.asp',
-        :inventory => 'https://www.webgistix.com/XML/GetInventory.asp'
+        :inventory => 'https://www.webgistix.com/XML/GetInventory.asp',
+        :tracking  => 'https://www.webgistix.com/XML/GetTracking.asp'
       } 
       TEST_URLS = SERVICE_URLS.merge({
         :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
@@ -13,6 +14,7 @@ module ActiveMerchant
       SUCCESS_MESSAGE = 'Successfully submitted the order'
       FAILURE_MESSAGE = 'Failed to submit the order'
       INVALID_LOGIN = 'Access Denied'
+      NOT_SHIPPED = 'Not Shipped'
       
       # The first is the label, and the last is the code
       def self.shipping_methods
@@ -64,6 +66,10 @@ module ActiveMerchant
 
       def fetch_stock_levels(options = {})
         commit :inventory, build_inventory_request(options)
+      end
+
+      def fetch_tracking_numbers(order_ids, options = {})
+        commit :tracking, build_tracking_request(order_ids, options)
       end
       
       def valid_credentials?
@@ -124,7 +130,32 @@ module ActiveMerchant
           add_credentials(xml)
         end
       end
-            
+
+      #<?xml version="1.0"?>
+      # <TrackingXML>
+      #   <Password>Webgistix</Password> 
+      #   <CustomerID>3</CustomerID> 
+      #   <Tracking>
+      #     <Order>AB12345</Order>
+      #   </Tracking>
+      #   <Tracking>
+      #     <Order>XY4567</Order>
+      #   </Tracking>
+      # </TrackingXML>
+      def build_tracking_request(order_ids, options)
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.instruct!
+        xml.tag! 'TrackingXML' do
+          add_credentials(xml)
+          
+          order_ids.each do |o_id|
+            xml.tag! 'Tracking' do
+              xml.tag! 'Order', o_id
+            end
+          end
+        end
+      end
+
       def add_credentials(xml)
         xml.tag! 'CustomerID', @options[:login]
         xml.tag! 'Password', @options[:password]
@@ -209,6 +240,8 @@ module ActiveMerchant
           parse_fulfillment_response(document)
         when :inventory
           parse_inventory_response(document)
+        when :tracking
+          parse_tracking_response(document)
         else
           raise ArgumentError, "Unknown action #{action}"
         end
@@ -240,9 +273,25 @@ module ActiveMerchant
 
         document.root.each_element('//Item') do |node|
           # {ItemID => 'SOME-ID', ItemQty => '101'}
-          params = node.elements.to_a.inject(Hash.new) {|h, k| h[k.name] = k.text; h}
+          params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
           response[:stock_levels][params['ItemID']] = params['ItemQty'].to_i
+        end
+
+        response[:success] = SUCCESS
+        response
+      end
+
+      def parse_tracking_response(document)
+        response = {}
+        response[:tracking_numbers] = {}
+
+        document.root.each_element('//Shipment') do |node|
+          # {InvoiceNumber => 'SOME-ID', ShipmentTrackingNumber => 'SOME-TRACKING-NUMBER'}
+          params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
+
+          tracking = params['ShipmentTrackingNumber']
+          response[:tracking_numbers][params['InvoiceNumber']] = tracking unless tracking == NOT_SHIPPED
         end
 
         response[:success] = SUCCESS

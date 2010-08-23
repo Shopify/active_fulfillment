@@ -125,10 +125,10 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
   
   def test_fetch_tracking_numbers
-    response = @shipwire.fetch_tracking_numbers
+    response = @shipwire.fetch_tracking_numbers(['123456'])
     assert response.success?    
     assert response.test?
-    assert_equal Hash.new, response.tracking_numbers
+    assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
   end
   
   def test_valid_credentials

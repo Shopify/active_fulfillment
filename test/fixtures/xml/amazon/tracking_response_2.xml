@@ -1,0 +1,38 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <ns1:GetFulfillmentOrderResponse
+      xmlns:ns1="http://fba-outbound.amazonaws.com/doc/2007-08-02/">
+      <ns1:GetFulfillmentOrderResult>
+        <ns1:FulfillmentOrder>
+          <ns1:MerchantFulfillmentOrderId>TEST-00000002</ns1:MerchantFulfillmentOrderId>
+          <ns1:ReceivedDateTime>2007-08-02T08:00:00Z</ns1:ReceivedDateTime>
+          <ns1:ShippingSpeedCategory>Standard</ns1:ShippingSpeedCategory>
+          <ns1:DisplayableOrderDateTime>2007-08-02T00:00:00Z</ns1:DisplayableOrderDateTime>
+          <ns1:DisplayableOrderComment>Thank you for your order!</ns1:DisplayableOrderComment>
+          <ns1:DisplayableOrderId>TEST-00000001</ns1:DisplayableOrderId>
+          <ns1:DestinationAddress>
+            <ns1:Name>John Smith</ns1:Name>
+            <ns1:Line1>2412 25th Ave NW.</ns1:Line1>
+            <ns1:City>Seattle</ns1:City>
+            <ns1:StateOrProvinceCode>WA</ns1:StateOrProvinceCode>
+            <ns1:CountryCode>US</ns1:CountryCode>
+            <ns1:PostalCode>98104</ns1:PostalCode>
+            <ns1:PhoneNumber>206-266-1000</ns1:PhoneNumber>
+          </ns1:DestinationAddress>
+          <ns1:FulfillmentOrderStatus>Complete</ns1:FulfillmentOrderStatus>
+          <ns1:StatusUpdatedDateTime>2007-08-03T16:00:00Z</ns1:StatusUpdatedDateTime>
+        </ns1:FulfillmentOrder>
+        <ns1:FulfillmentOrderItem>
+          <ns1:MerchantSKU>MSKU-00000001</ns1:MerchantSKU>
+          <ns1:MerchantFulfillmentOrderItemId>TEST-00000001-1</ns1:MerchantFulfillmentOrderItemId>
+          <ns1:Quantity>2</ns1:Quantity>
+          <ns1:CancelledQuantity>0</ns1:CancelledQuantity>
+          <ns1:UnfulfillableQuantity>0</ns1:UnfulfillableQuantity>
+        </ns1:FulfillmentOrderItem>
+      </ns1:GetFulfillmentOrderResult>
+      <ns1:ResponseMetadata>
+        <ns1:RequestId>963215ec-bec6-4ae0-84e0-19f5823ee33a</ns1:RequestId>
+      </ns1:ResponseMetadata>
+    </ns1:GetFulfillmentOrderResponse>
+  </soapenv:Body>
+</soapenv:Envelope>

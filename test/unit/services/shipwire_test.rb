@@ -62,10 +62,9 @@ class ShipwireTest < Test::Unit::TestCase
     
   def test_no_tracking_numbers_available
     @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
-    response = @shipwire.fetch_tracking_numbers
+    response = @shipwire.fetch_tracking_numbers(['1234'])
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers
-    
   end
   
   def test_successful_tracking
@@ -73,7 +72,7 @@ class ShipwireTest < Test::Unit::TestCase
                  "2987" => "1ZW682E90326795080" }
     
     @shipwire.expects(:ssl_post).returns(successful_tracking_response)
-    response = @shipwire.fetch_tracking_numbers
+    response = @shipwire.fetch_tracking_numbers(["2986", "2987"])
     assert response.success?
     assert_equal "3", response.params["total_orders"]
     assert_equal "Test", response.params["status"]
@@ -84,7 +83,11 @@ class ShipwireTest < Test::Unit::TestCase
   
   def test_successful_tracking_with_live_data
     @shipwire.expects(:ssl_post).returns(successful_live_tracking_response)
-    response = @shipwire.fetch_tracking_numbers
+    response = @shipwire.fetch_tracking_numbers([
+        '21',   '22',   '23',   '24',   '25',
+        '26', '2581', '2576', '2593', '2598',
+      '2610', '2611', '2613', '2616', '2631'
+    ])
     assert response.success?
     assert_equal "15", response.params["total_orders"]
     assert_equal "0", response.params["status"]

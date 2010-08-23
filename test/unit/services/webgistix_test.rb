@@ -99,6 +99,16 @@ class WebgistixTest < Test::Unit::TestCase
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
   end
+
+  def test_tracking_numbers
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/tracking_response'))
+    
+    response = @service.fetch_tracking_numbers(['AB12345', 'XY4567'])
+    assert response.success?
+    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal '1Z8E5A380396682872', response.tracking_numbers['AB12345']
+    assert_nil response.tracking_numbers['XY4567']
+  end
   
   def test_failed_login
     @service.expects(:ssl_post).returns(invalid_login_response)

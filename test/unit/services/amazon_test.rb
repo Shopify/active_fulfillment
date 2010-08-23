@@ -90,6 +90,49 @@ class AmazonTest < Test::Unit::TestCase
     assert_equal 555, response.stock_levels['GN-02-02A']
   end
   
+  def test_fetch_tracking_numbers
+    @service.expects(:ssl_post).twice.returns(
+      xml_fixture('amazon/tracking_response_1'),
+      xml_fixture('amazon/tracking_response_2')
+    )
+      
+    response = @service.fetch_tracking_numbers(['TEST-00000001', 'TEST-00000002'])
+    assert response.success?
+    assert_equal 'UPS00000001', response.tracking_numbers['TEST-00000001']
+    assert_nil response.tracking_numbers['TEST-00000002']
+  end
+
+  def test_fetch_tracking_numbers_ignores_not_found
+    response = mock('response')
+    response.stubs(:code).returns(500)
+    response.stubs(:message).returns('Internal Server Error')
+    response.stubs(:body).returns(xml_fixture('amazon/tracking_response_not_found'))
+    
+    @service.expects(:ssl_post).times(3).
+      returns(xml_fixture('amazon/tracking_response_1')).
+      raises(ActiveMerchant::ResponseError.new(response)).
+      returns(xml_fixture('amazon/tracking_response_2'))
+      
+    response = @service.fetch_tracking_numbers(['TEST-00000001', '#1337-1', 'TEST-00000002'])
+    assert response.success?
+    assert_equal 'UPS00000001', response.tracking_numbers['TEST-00000001']
+  end
+
+  def test_fetch_tracking_numbers_aborts_on_error
+    response = mock('response')
+    response.stubs(:code).returns(500)
+    response.stubs(:message).returns('Internal Server Error')
+    response.stubs(:body).returns(xml_fixture('amazon/tracking_response_error'))
+    
+    @service.expects(:ssl_post).twice.
+      returns(xml_fixture('amazon/tracking_response_1')).
+      raises(ActiveMerchant::ResponseError.new(response))
+      
+    response = @service.fetch_tracking_numbers(['TEST-00000001', 'ERROR', 'TEST-00000002'])
+    assert !response.success?
+    assert_equal 'Something bad happened!', response.faultstring
+  end
+
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")
     @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
