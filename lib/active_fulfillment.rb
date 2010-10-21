@@ -34,6 +34,7 @@ require 'active_support/core_ext/class/inheritable_attributes'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/time/calculations'
 require 'active_support/core_ext/numeric/time'
+require 'active_support/core_ext/enumerable'
 begin
   require 'active_support/core_ext/time/acts_like'
 rescue LoadError
