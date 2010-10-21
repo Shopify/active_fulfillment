@@ -116,10 +116,10 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
-    assert_equal 'Access Denied', response.message
+    assert_equal 'Invalid Credentials', response.message
     assert_nil response.params['order_id']
     
-    assert_equal 'Access Denied', response.params['error_0']
+    assert_equal 'Invalid Credentials', response.params['error_0']
   end
   
   def test_garbage_response
@@ -152,11 +152,11 @@ class WebgistixTest < Test::Unit::TestCase
   end
   
   def invalid_login_response
-    '<Error>Access Denied</Error>'
+    '<Errors><Error>Invalid Credentials</Error></Errors>'
   end
   
   def failure_response
-    '<Error>No Address Line 1</Error><Error>Unknown ItemID:  testitem</Error><Error>Unknown ItemID:  WX-01-1000</Error>'
+    '<Errors><Error>No Address Line 1</Error><Error>Unknown ItemID:  testitem</Error><Error>Unknown ItemID:  WX-01-1000</Error></Errors>'
   end
   
   def garbage_response

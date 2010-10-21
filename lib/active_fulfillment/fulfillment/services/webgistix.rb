@@ -13,7 +13,7 @@ module ActiveMerchant
       SUCCESS, FAILURE = 'True', 'False'
       SUCCESS_MESSAGE = 'Successfully submitted the order'
       FAILURE_MESSAGE = 'Failed to submit the order'
-      INVALID_LOGIN = 'Access Denied'
+      INVALID_LOGIN = 'Invalid Credentials'
       NOT_SHIPPED = 'Not Shipped'
       
       # The first is the label, and the last is the code
@@ -248,12 +248,7 @@ module ActiveMerchant
       end
       
       def parse_fulfillment_response(document)
-        response = {}
-        
-        # Fetch the errors
-        document.root.elements.to_a("Error").each_with_index do |e, i|
-          response["error_#{i}".to_sym] = e.text
-        end
+        response = parse_errors(document)
         
         # Check if completed
         if completed = REXML::XPath.first(document, '//Completed')
@@ -268,7 +263,7 @@ module ActiveMerchant
       end
 
       def parse_inventory_response(document)
-        response = {}
+        response = parse_errors(document)
         response[:stock_levels] = {}
 
         document.root.each_element('//Item') do |node|
@@ -278,12 +273,11 @@ module ActiveMerchant
           response[:stock_levels][params['ItemID']] = params['ItemQty'].to_i
         end
 
-        response[:success] = SUCCESS
         response
       end
 
       def parse_tracking_response(document)
-        response = {}
+        response = parse_errors(document)
         response[:tracking_numbers] = {}
 
         document.root.each_element('//Shipment') do |node|
@@ -294,9 +288,19 @@ module ActiveMerchant
           response[:tracking_numbers][params['InvoiceNumber']] = tracking unless tracking == NOT_SHIPPED
         end
 
-        response[:success] = SUCCESS
         response
       end
+      
+      def parse_errors(document)
+        response = {}
+        
+        REXML::XPath.match(document, "//Errors/Error").to_a.each_with_index do |e, i|
+          response["error_#{i}".to_sym] = e.text
+        end
+        
+        response[:success] = response.empty? ? SUCCESS : FAILURE
+        response
+      end        
     end
   end
 end
