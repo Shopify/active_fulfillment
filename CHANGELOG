@@ -1,5 +1,7 @@
 = ActiveFulfillment CHANGELOG
 
+== Version 1.0.1 (Dec 13, 2010)
+
 * Updated common files with changes from activemerchant [Dennis Theisen]
 * Updated Webgistix USPS shipping methods (4 added, 1 removed) [Dennis Theisen]
 * Changed Webgistix to treat a duplicate response as success instead of failure and to retry failed connection errors. [Dennis Theisen]
