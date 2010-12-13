@@ -47,7 +47,7 @@ begin
     gemspec.email = "cody@shopify.com"
     gemspec.homepage = "http://github.com/shopify/active_fulfillment"
     gemspec.authors = ["Cody Fauser", "James MacAulay"]
-    gemspec.add_dependency('activesupport', '~> 2.3.2')
+    gemspec.add_dependency('activesupport', '>= 2.3.2')
     gemspec.add_dependency('builder', '>= 2.0.0')
   end
 rescue LoadError
