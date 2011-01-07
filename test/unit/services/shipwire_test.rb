@@ -59,7 +59,17 @@ class ShipwireTest < Test::Unit::TestCase
     country_node = REXML::XPath.first(xml, "//Country")
     assert_equal 'US', country_node.text
   end
-    
+
+  def test_stock_levels
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
+
+    response = @shipwire.fetch_stock_levels
+    assert response.success?
+    assert_equal 926, response.stock_levels['BlackDog']
+    assert_equal 805, response.stock_levels['MoustacheCat']
+    assert_equal 921, response.stock_levels['KingMonkey']
+  end
+
   def test_no_tracking_numbers_available
     @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
     response = @shipwire.fetch_tracking_numbers(['1234'])

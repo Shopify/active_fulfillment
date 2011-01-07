@@ -1,5 +1,7 @@
 = ActiveFulfillment CHANGELOG
 
+* Include "pending" counts in stock levels for Shipwire [wisq]
+
 == Version 1.0.1 (Dec 13, 2010)
 
 * Updated common files with changes from activemerchant [Dennis Theisen]
@@ -8,7 +10,7 @@
 
 == Version 1.0.0 (July 12, 2010)
 
-* Add inventory support to Amazon and Webgistix [Adrian Irving-Beer]
+* Add inventory support to Amazon and Webgistix [wisq]
 
 == Version 0.10.0 (July 6, 2010)
 

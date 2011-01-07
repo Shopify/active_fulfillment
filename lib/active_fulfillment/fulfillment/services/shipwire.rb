@@ -196,7 +196,8 @@ module ActiveMerchant
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
           if node.name == 'Product'
-            response[:stock_levels][node.attributes['code']] = node.attributes['quantity'].to_i
+            amount = ['quantity', 'pending'].map { |a| node.attributes[a].to_i }.sum
+            response[:stock_levels][node.attributes['code']] = amount
           else
             response[node.name.underscore.to_sym] = node.text
           end
