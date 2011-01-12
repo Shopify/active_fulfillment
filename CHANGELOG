@@ -1,5 +1,7 @@
 = ActiveFulfillment CHANGELOG
 
+== Version 1.0.2 (Jan 12, 2010)
+
 * Include "pending" counts in stock levels for Shipwire [wisq]
 
 == Version 1.0.1 (Dec 13, 2010)
