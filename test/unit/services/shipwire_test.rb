@@ -60,11 +60,27 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal 'US', country_node.text
   end
 
-  def test_stock_levels
+  def test_stock_levels_dont_include_pending_by_default
     @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
 
     response = @shipwire.fetch_stock_levels
     assert response.success?
+    assert_equal 926, response.stock_levels['BlackDog']
+    assert_equal -1, response.stock_levels['MoustacheCat']
+    assert_equal 677, response.stock_levels['KingMonkey']
+  end
+
+  def test_stock_levels_include_pending_when_set
+    @shipwire = ShipwireService.new(
+                  :login => 'cody@example.com',
+                  :password => 'test',
+                  :include_pending_stock => true
+                )
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
+
+    response = @shipwire.fetch_stock_levels
+    assert response.success?
+    assert @shipwire.include_pending_stock?
     assert_equal 926, response.stock_levels['BlackDog']
     assert_equal 805, response.stock_levels['MoustacheCat']
     assert_equal 921, response.stock_levels['KingMonkey']

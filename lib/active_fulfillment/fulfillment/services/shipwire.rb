@@ -3,6 +3,7 @@ require 'cgi'
 module ActiveMerchant
   module Fulfillment
     class ShipwireService < Service
+
       SERVICE_URLS = { :fulfillment => 'https://api.shipwire.com/exec/FulfillmentServices.php',
                        :inventory   => 'https://api.shipwire.com/exec/InventoryServices.php',
                        :tracking    => 'https://api.shipwire.com/exec/TrackingServices.php'
@@ -65,6 +66,10 @@ module ActiveMerchant
       
       def test_mode?
         true
+      end
+
+      def include_pending_stock?
+        @options[:include_pending_stock]
       end
 
       private
@@ -196,7 +201,10 @@ module ActiveMerchant
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
           if node.name == 'Product'
-            amount = ['quantity', 'pending'].map { |a| node.attributes[a].to_i }.sum
+            to_check = ['quantity']
+            to_check << 'pending' if include_pending_stock?
+
+            amount = to_check.sum { |a| node.attributes[a].to_i }
             response[:stock_levels][node.attributes['code']] = amount
           else
             response[node.name.underscore.to_sym] = node.text
