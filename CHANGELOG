@@ -1,5 +1,10 @@
 = ActiveFulfillment CHANGELOG
 
+== Version 1.0.3 (Jan 21, 2010)
+
+* Include "pending" counts in stock levels for Shipwire [wisq]
+* Add option to include pending stock in Shipwire inventory calculations [jessehk]
+
 == Version 1.0.2 (Jan 12, 2010)
 
 * Include "pending" counts in stock levels for Shipwire [wisq]
