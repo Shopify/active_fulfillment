@@ -242,7 +242,7 @@ module ActiveMerchant #:nodoc:
       { :alpha2 => 'QA', :name => 'Qatar', :alpha3 => 'QAT', :numeric => '634' }, 
       { :alpha2 => 'RE', :name => 'Reunion', :alpha3 => 'REU', :numeric => '638' }, 
       { :alpha2 => 'RO', :name => 'Romania', :alpha3 => 'ROM', :numeric => '642' }, 
-      { :alpha2 => 'RU', :name => 'Russia', :alpha3 => 'RUS', :numeric => '643' }, 
+      { :alpha2 => 'RU', :name => 'Russian Federation', :alpha3 => 'RUS', :numeric => '643' }, 
       { :alpha2 => 'RW', :name => 'Rwanda', :alpha3 => 'RWA', :numeric => '646' }, 
       { :alpha2 => 'BL', :name => 'Saint Barthélemy', :alpha3 => 'BLM', :numeric => '652' }, 
       { :alpha2 => 'SH', :name => 'Saint Helena', :alpha3 => 'SHN', :numeric => '654' }, 
