@@ -225,7 +225,10 @@ module ActiveMerchant
         
         document.root.elements.each do |node|
           if node.name == 'Order'
-            response[:tracking_numbers][node.attributes['id']] = node.attributes['trackingNumber'] if node.attributes["shipped"] == "YES"
+            if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
+              tracking_number = node.elements['TrackingNumber'].text 
+              response[:tracking_numbers][node.attributes['id']] = tracking_number
+            end
           else
             response[node.name.underscore.to_sym] = node.text
           end
