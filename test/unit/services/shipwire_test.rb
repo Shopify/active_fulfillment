@@ -132,6 +132,14 @@ class ShipwireTest < Test::Unit::TestCase
     assert !@shipwire.valid_credentials?
   end
 
+  def test_affiliate_id
+    ActiveMerchant::Fulfillment::ShipwireService.affiliate_id = 'affiliate_id'
+
+    xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
+    affiliate_id = REXML::XPath.first(xml, "//AffiliateId")
+    assert_equal 'affiliate_id', affiliate_id.text
+  end
+
   private
   def successful_empty_tracking_response
     "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<TrackingUpdateResponse><Status>Test</Status><TotalOrders></TotalOrders><TotalShippedOrders></TotalShippedOrders><TotalProducts></TotalProducts><Bookmark></Bookmark></TrackingUpdateResponse>"

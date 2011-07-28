@@ -29,6 +29,8 @@ module ActiveMerchant
                    
       INVALID_LOGIN = /Error with Valid Username\/EmailAddress and Password Required/
 
+      class_attribute :affiliate_id
+
       # The first is the label, and the last is the code
       def self.shipping_methods
         [ ['1 Day Service',   '1D'],
@@ -113,6 +115,7 @@ module ActiveMerchant
         xml.tag! 'EmailAddress', @options[:login]
         xml.tag! 'Password', @options[:password]
         xml.tag! 'Server', test? ? 'Test' : 'Production'
+        xml.tag! 'AffiliateId', affiliate_id if affiliate_id.present?
       end
 
       def add_order(xml, order_id, shipping_address, line_items, options)
