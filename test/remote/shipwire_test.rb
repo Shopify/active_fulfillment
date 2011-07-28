@@ -45,7 +45,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
     assert !response.success?
     assert response.test?
     assert_equal 'Error', response.params['status']
-    assert_equal "Could not verify e-mail/password combination", response.message
+    assert_equal "Could not verify Username/EmailAddress and Password combination", response.message
   end
   
   def test_successful_order_submission_to_us
@@ -112,7 +112,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
     assert !response.success?
     assert response.test?
     assert_equal 'Error', response.params['status']
-    assert_equal "Error with EmailAddress, valid email is required. There is an error in XML document.", response.message
+    assert_equal "Error with Valid Username/EmailAddress and Password Required. There is an error in XML document.", response.message
   end
   
   def test_get_inventory

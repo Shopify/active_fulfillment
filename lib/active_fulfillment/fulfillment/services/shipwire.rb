@@ -27,8 +27,8 @@ module ActiveMerchant
                      'UK'  => 'United Kingdom'
                    }
                    
-      INVALID_LOGIN = /Error with EmailAddress, valid email is required/
-                   
+      INVALID_LOGIN = /Error with Valid Username\/EmailAddress and Password Required/
+
       # The first is the label, and the last is the code
       def self.shipping_methods
         [ ['1 Day Service',   '1D'],

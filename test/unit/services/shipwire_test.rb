@@ -221,7 +221,7 @@ class ShipwireTest < Test::Unit::TestCase
     <<-XML
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <TrackingUpdateResponse><Status>Error</Status><ErrorMessage>
-Error with EmailAddress, valid email is required.
+Error with Valid Username/EmailAddress and Password Required.
     There is an error in XML document.
 </ErrorMessage></TrackingUpdateResponse>    
     XML
