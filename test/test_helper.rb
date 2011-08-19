@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
+require 'rubygems'
+require 'bundler'
+Bundler.setup
+
 require 'test/unit'
 require 'digest/md5'
 require 'active_fulfillment'
+require 'active_utils'
 
-begin
-  require 'mocha'
-rescue LoadError
-  require 'rubygems'
-  require 'mocha'
-end
+require 'mocha'
 
 module Test
   module Unit

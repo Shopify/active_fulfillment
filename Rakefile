@@ -1,9 +1,9 @@
-require 'rubygems'
+require 'bundler'
+Bundler::GemHelper.install_tasks
+
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'rake/contrib/rubyforgepublisher'
 
 desc "Default Task"
 task :default => 'test:units'
@@ -33,31 +33,4 @@ Rake::RDocTask.new do |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
-end
-
-task :install => [:package] do
-  `gem install pkg/#{PKG_FILE_NAME}.gem`
-end
-
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gemspec|
-    gemspec.name = 'active_fulfillment'
-    gemspec.summary = "Framework and tools for dealing with shipping, tracking and order fulfillment services."
-    gemspec.email = "cody@shopify.com"
-    gemspec.homepage = "http://github.com/shopify/active_fulfillment"
-    gemspec.authors = ["Cody Fauser", "James MacAulay"]
-    gemspec.add_dependency('activesupport', '>= 2.3.11')
-    gemspec.add_dependency('builder', '>= 2.0.0')
-  end
-rescue LoadError
-  puts "Jeweler not available. Install it with: gem install jeweler"
-end
-
-desc "Update common files from active_merchant directory"
-task :update_common do 
-  STDERR.puts "Updating common include from ../active_merchant. Please make sure this is up-to-date"
-  system("diff -u lib/active_merchant/common.rb ../active_merchant/lib/active_merchant/common.rb | patch -p0")
-  system("diff -ur lib/active_merchant/common ../active_merchant/lib/active_merchant/common | patch -p0")  
-  STDERR.puts "done.."
 end
