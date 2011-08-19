@@ -52,7 +52,7 @@ end
 require 'cgi'
 require 'net/https'
 require 'rexml/document'
-require 'active_merchant/common'
+require 'active_utils'
 
 require 'active_fulfillment/fulfillment/base'
 require 'active_fulfillment/fulfillment/response'

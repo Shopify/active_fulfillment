@@ -19,17 +19,6 @@ module Test
       
       LOCAL_CREDENTIALS = ENV['HOME'] + '/.active_merchant/fixtures.yml' unless defined?(LOCAL_CREDENTIALS)
       DEFAULT_CREDENTIALS = File.dirname(__FILE__) + '/fixtures.yml' unless defined?(DEFAULT_CREDENTIALS)
-      
-      def generate_order_id
-        md5 = Digest::MD5.new
-        now = Time.now
-        md5 << now.to_s
-        md5 << String(now.usec)
-        md5 << String(rand(0))
-        md5 << String($$)
-        md5 << self.class.name
-        md5.hexdigest
-      end
 
       def all_fixtures
         @@fixtures ||= load_fixtures
