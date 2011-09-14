@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
     "lib/active_fulfillment/fulfillment/services/amazon.rb",
     "lib/active_fulfillment/fulfillment/services/shipwire.rb",
     "lib/active_fulfillment/fulfillment/services/webgistix.rb",
-    "lib/certs/cacert.pem",
     "test/fixtures.yml",
     "test/fixtures/xml/amazon/inventory_get_response.xml",
     "test/fixtures/xml/amazon/inventory_list_response.xml",
