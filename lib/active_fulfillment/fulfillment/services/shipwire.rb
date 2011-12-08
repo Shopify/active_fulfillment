@@ -74,6 +74,10 @@ module ActiveMerchant
         @options[:include_pending_stock]
       end
 
+      def include_empty_stock?
+        @options[:include_empty_stock]
+      end
+
       private
       def build_fulfillment_request(order_id, shipping_address, line_items, options)
         xml = Builder::XmlMarkup.new :indent => 2
@@ -95,6 +99,7 @@ module ActiveMerchant
           add_credentials(xml)
           xml.tag! 'Warehouse', WAREHOUSES[options[:warehouse]]
           xml.tag! 'ProductCode', options[:sku]
+          xml.tag! 'IncludeEmpty' if include_empty_stock?
         end
       end
       

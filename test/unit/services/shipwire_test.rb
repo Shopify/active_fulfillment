@@ -86,6 +86,16 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal 921, response.stock_levels['KingMonkey']
   end
 
+  def test_inventory_request_with_include_empty_tag
+     @shipwire = ShipwireService.new(
+                  :login => 'cody@example.com',
+                  :password => 'test',
+                  :include_empty_stock => true
+                )
+    xml = REXML::Document.new(@shipwire.send(:build_inventory_request, {}))
+    assert REXML::XPath.first(xml, '//IncludeEmpty')
+  end
+
   def test_no_tracking_numbers_available
     @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
     response = @shipwire.fetch_tracking_numbers(['1234'])
