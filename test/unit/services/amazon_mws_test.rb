@@ -40,19 +40,19 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal AmazonMarketplaceWebService::ENDPOINTS[:jp], service.endpoint
   end
 
-  def test_prepare_for_signing
+  def test_build_basic_api_query
     options = {
       "Action" => "SubmitFeed",
       "FeedType" => "_POST_INVENTORY_AVAILABILITY_DATA_",
       "Merchant" => "SuperMerchant123"
     }
     expected_keys = ["AWSAccessKeyId", "Action", "FeedType", "Merchant", "SignatureMethod", "SignatureVersion", "Timestamp", "Version"]
-    opts = @service.prepare_for_signing(options)
-    assert_equal expected_keys.sort, opts.keys.sort
-    assert_equal "l", opts['AWSAccessKeyId']
-    assert_equal AmazonMarketplaceWebService::SIGNATURE_VERSION, opts['SignatureVersion']
-    assert_equal "Hmac#{AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts['SignatureMethod']
-    assert_equal AmazonMarketplaceWebService::VERSION, opts['Version']
+    opts = @service.build_basic_api_query(options)
+    assert_equal expected_keys.sort, opts.keys.map(&:to_s).sort
+    assert_equal "l", opts["AWSAccessKeyId"]
+    assert_equal AmazonMarketplaceWebService::SIGNATURE_VERSION, opts["SignatureVersion"]
+    assert_equal "Hmac#{AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts["SignatureMethod"]
+    assert_equal AmazonMarketplaceWebService::VERSION, opts["Version"]
   end
 
   def test_create_signature
@@ -71,6 +71,12 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     }
     
     assert_equal expected_signature, service.sign(:POST, "/", options)
+  end
+
+  def test_successful_fulfillment
+    @service.expects(:ssl_post).returns(successful_fulfillment_response)
+    response = @service.fulfill('12345678', @address, @line_items, @options)
+    assert response.success?
   end
 
   private

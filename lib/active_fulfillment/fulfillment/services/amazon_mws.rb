@@ -65,18 +65,27 @@ module ActiveMerchant
         ENDPOINTS[@options[:endpoint] || :us]
       end
 
+      def fulfill(order_id, shipping_address, line_items, options = {})
+        requires!(options, :order_date, :comment, :shipping_method)
+        commit :outbound, :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
+      end
+
+      def commit(this, is, not_working_yet)
+        Response.new(false, "Not implemented", {:todo => "Implement"})
+      end
+
       def sign(http_verb, request_uri, options)
-        opts = prepare_for_signing(options)
+        opts = build_basic_api_query(options)
         string_to_sign = "#{http_verb.to_s.upcase}\n"
         string_to_sign += "#{endpoint}\n"
         string_to_sign += "#{request_uri}\n"
         string_to_sign += opts.sort.map{ |key,value| [CGI.escape(key.to_s), CGI.escape(value.to_s)].join('=') }.join('&')
         
-        #remove trailing newline created by encode64
+        # remove trailing newline created by encode64
         Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp
       end
 
-      def prepare_for_signing(options)
+      def build_basic_api_query(options)
         opts = options.dup
         opts["AWSAccessKeyId"] = @options[:login] unless opts["AWSAccessKey"]
         opts["Timestamp"] = Time.now.utc.iso8601 unless opts["Timestamp"]
@@ -84,6 +93,17 @@ module ActiveMerchant
         opts["SignatureMethod"] = "Hmac#{SIGNATURE_METHOD}" unless opts["SignatureMethod"]
         opts["SignatureVersion"] = SIGNATURE_VERSION unless opts["SignatureVersion"]
         opts
+      end
+
+      private
+      def build_fulfillment_request(order_id, shipping_address, line_items, options)
+        params = {
+          :Action => OPERATIONS[:outbound][:create],
+          :SellerFulfillmentOrderId => order_id.to_s,
+          :DisplayableOrderId => order_id.to_s
+        }
+        request = OPERATIONS[:outbound][:create]
+        request = build_basic_api_query(params)
       end
     end
   end
