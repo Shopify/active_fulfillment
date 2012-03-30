@@ -69,8 +69,10 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "Timestamp" => "2009-08-20T01:10:27.607Z",
       "Version" => "2009-01-01"
     }
+
+    uri = URI.parse("https://#{AmazonMarketplaceWebService::ENDPOINTS[:us]}")
     
-    assert_equal expected_signature, service.sign(:POST, "/", options)
+    assert_equal expected_signature, service.sign(:POST, uri, options)
   end
 
   def test_successful_fulfillment
