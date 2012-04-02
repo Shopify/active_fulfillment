@@ -75,6 +75,29 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal expected_signature, service.sign(:POST, uri, options)
   end
 
+  def test_build_address
+    expected_items = {
+      "DestinationAddress.Name" => @address[:name].gsub(' ', '%20'),
+      "DestinationAddress.Line1" => @address[:address1].gsub(' ', '%20'),
+      "DestinationAddress.Line2" => @address[:address2].gsub(' ', '%20'),
+      "DestinationAddress.City" => @address[:city].gsub(' ', '%20'),
+      "DestinationAddress.StateOrProvinceCode" => @address[:state].gsub(' ', '%20'),
+      "DestinationAddress.CountryCode" => @address[:country].gsub(' ', '%20'),
+      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20')
+    }
+    assert_equal expected_items, @service.build_address(@address)
+  end
+
+  def test_build_items
+    expected_items = {
+      "Item.member.1.Quantity" => "1",
+      "Item.member.1.SellerSKU" => "SETTLERS1",
+      "Item.member.1.DisplayableComment" => "Awesome"
+    }
+                        
+    assert_equal expected_items, @service.build_items(@line_items)
+  end
+
   def test_successful_fulfillment
     @service.expects(:ssl_post).returns(successful_fulfillment_response)
     response = @service.fulfill('12345678', @address, @line_items, @options)
