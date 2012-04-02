@@ -10,18 +10,18 @@
     m4dIRiiJvL+BmWF+/QKCLcvmKQEAAA==</NextToken>
     <InventorySupplyList>
       <member>
-        <SellerSKU>SampleSKU5</SellerSKU>
+        <SellerSKU>GN-01-01A</SellerSKU>
         <ASIN>B00008UI0R</ASIN>
-        <TotalSupplyQuantity>0</TotalSupplyQuantity>
+        <TotalSupplyQuantity>123</TotalSupplyQuantity>
         <FNSKU>B00008UI0R</FNSKU>
         <Condition/>
         <SupplyDetail/>
         <InStockSupplyQuantity>0</InStockSupplyQuantity>
       </member>
       <member>
-        <SellerSKU>SampleSKU6</SellerSKU>
+        <SellerSKU>GN-01-02A</SellerSKU>
         <ASIN>B00000K3CQ</ASIN>
-        <TotalSupplyQuantity>5259</TotalSupplyQuantity>
+        <TotalSupplyQuantity>321</TotalSupplyQuantity>
         <FNSKU>X0000000FM</FNSKU>
         <Condition>NewItem</Condition>
         <SupplyDetail/>
