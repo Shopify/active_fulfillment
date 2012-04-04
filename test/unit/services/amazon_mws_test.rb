@@ -104,6 +104,72 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert response.success?
   end
 
+  def test_invalid_arguments
+    fail("Implement this test")
+  end
+
+  def test_missing_order_comment
+    @options.delete(:comment)
+    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+  end
+
+  def test_missing_order_date
+    @options.delete(:order_date)
+    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+  end
+
+  def test_missing_shipping_method
+    @options.delete(:shipping_method)
+    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+  end
+
+  def test_get_service_status
+    @service.expects(:ssl_post).returns(successful_status_response)
+
+    response = @service.status
+    assert response.success?
+  end
+
+  def test_get_inventory
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
+
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal 202, response.stock_levels['GN-00-01A']
+    assert_equal 240, response.stock_levels['GN-00-02A']
+  end
+
+  def test_get_inventory_multipage
+    @service.expects(:ssl_post).twice.returns(
+                                              xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'),
+                                              xml_fixture('amazon_mws/inventory_list_inventory_supply')
+                                              )
+
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal 202, response.stock_levels['GN-00-01A']
+    assert_equal 240, response.stock_levels['GN-00-02A']
+    assert_equal 123, response.stock_levels['GN-01-01A']
+    assert_equal 321, response.stock_levels['GN-01-02A']
+  end
+
+  def test_fetch_tracking_numbers
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
+
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
+    assert response.success?
+    assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+  end
+
+  def test_fetch_tracking_numbers_ignores_not_found
+  end
+
+  def test_fetch_tracking_numbers_aborts_on_error
+  end
+
+  def test_404_error
+  end
+
   private
   def build_mock_response(response, message, code = "200")
     http_response = mock(:code => code, :message => message)
@@ -144,6 +210,12 @@ traffic.</Text>
       <RequestId>d80c6c7b-f7c7-4fa7-bdd7-854711cb3bcc</RequestId>
     </ResponseMetadata>
   </GetServiceStatusResponse>
+    XML
+  end
+
+  def invalid_create_response
+    <<-XML
+
     XML
   end
 end

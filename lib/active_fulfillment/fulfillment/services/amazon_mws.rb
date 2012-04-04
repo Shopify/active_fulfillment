@@ -114,6 +114,47 @@ module ActiveMerchant
         commit :post, :outbound, :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
 
+      def status
+        commit :post, :outbound, :status, build_status_request
+      end
+
+      def fetch_stock_levels(options = {})
+        if options[:sku]
+          commit :post, :inventory, :get, build_get_current_fulfillment_orders_request(options)
+        else
+          response = commit :post, :inventory, :list, build_inventory_list_request(options)
+
+          while token = response.params['next_token'] do
+            next_page = commit :post, :inventory, :list_next, build_next_inventory_list_request(token)
+
+            next_page.stock_levels.merge!(response.stock_levels)
+            response = next_page
+          end
+
+          response
+        end
+      end
+
+      def fetch_tracking_numbers(order_ids, options = {})
+        order_ids.reduce(nil) do |previous, order_id|
+          response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
+
+          if !response.success?
+            if response.faultstring =~ /Reason: requested order not found./
+              response = Response.new(true, nil, {
+                                        :status => SUCCESS,
+                                        :tracking_numbers => {}
+                                      })
+            else
+              return response
+            end
+          end
+
+          response.tracking_numbers.merge!(previous.tracking_numbers) if previous
+          response
+        end
+      end
+
       def commit(verb, service, op, params)
         uri = URI.parse("#{endpoint}/#{OPERATIONS[service][op]}/#{VERSION}")
         signature = sign(verb, uri, params)
@@ -161,6 +202,17 @@ module ActiveMerchant
       end
 
       def parse_tracking_response(document)
+        response = {}
+        response[:tracking_numbers] = {}
+
+        tracking_node = REXML::XPath.first(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
+        if tracking_node
+          id_node = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId")
+          response[:tracking_numbers][id_node.text.strip] = tracking_node.text.strip
+        end
+
+        response[:response_status] = SUCCESS
+        response
       end
 
       def parse_fulfillment_response(op, document)
@@ -174,6 +226,20 @@ module ActiveMerchant
       end
 
       def parse_inventory_response(document)
+        response = {}
+        response[:stock_levels] = {}
+
+        document.each_element('//InventorySupplyList/member') do |node|
+          params = node.elements.to_a.each_with_object({}) { |elem, hash| hash[elem.name] = elem.text }
+
+          response[:stock_levels][params['SellerSKU']] = params['TotalSupplyQuantity'].to_i
+        end
+        
+        next_token = REXML::XPath.first(document, '//NextToken')
+        response[:next_token] = next_token ? next_token.text : nil
+        
+        response[:response_status] = SUCCESS
+        response
       end
 
       def sign(http_verb, uri, options)
@@ -226,6 +292,35 @@ module ActiveMerchant
         request
       end
 
+      def build_get_current_fulfillment_orders_request(options)
+      end
+
+      def build_inventory_list_request(options)
+        start_time = options.delete(:start_time) || 1.day.ago
+        response_group = options.delete(:start_time) || "Basic"
+        params = {
+          :Action => OPERATIONS[:inventory][:list],
+          :QueryStartDateTime => start_time.iso8601,
+          :ResponseGroup => response_group
+        }
+
+        build_basic_api_query(params.merge(options))
+      end
+
+      def build_next_inventory_list_request(token)
+        params = {
+          :NextToken => token
+        }
+        
+        build_basic_api_query(params)
+      end
+
+      def build_tracking_request(order_id, options)
+        params = {:Action => OPERATIONS[:outbound][:tracking], :MerchantFulfillmentOrderId => order_id}
+
+        build_basic_api_query(params.merge(options))
+      end
+
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
         ary = address.map{ |key, value|
@@ -244,6 +339,10 @@ module ActiveMerchant
             hash
           end
         end
+      end
+
+      def build_status_request
+        build_basic_api_query({ :Action => OPERATIONS[:outbound][:status] })
       end
 
       def escape(str)
