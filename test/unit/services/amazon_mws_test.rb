@@ -154,14 +154,30 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_fetch_tracking_numbers
-    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
+    @service.expects(:ssl_post).twice.
+      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
+      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order_2'))
 
-    response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'extern_id_1154539615777'])
     assert response.success?
     assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+    assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
   def test_fetch_tracking_numbers_ignores_not_found
+    response = mock('response')
+    response.stubs(:code).returns(500)
+    response.stubs(:message).returns("Internal Server Error")
+    response.stubs(:body).returns(xml_fixture('amazon_mws/tracking_response_not_found'))
+
+    @service.expects(:ssl_post).times(3).
+      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
+      raises(ActiveMerchant::ResponseError.new(response)).
+      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order_2'))
+
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'dafdfafsdafdafasdfa', 'extern_id_1154539615777'])
+    assert response.success?
+    assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
   end
 
   def test_fetch_tracking_numbers_aborts_on_error

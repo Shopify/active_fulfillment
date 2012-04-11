@@ -118,6 +118,10 @@ module ActiveMerchant
         commit :post, :outbound, :status, build_status_request
       end
 
+      def fetch_current_orders
+        commit :post, :outbound, :status, build_get_current_fulfillment_orders_request
+      end
+
       def fetch_stock_levels(options = {})
         if options[:sku]
           commit :post, :inventory, :get, build_get_current_fulfillment_orders_request(options)
@@ -140,7 +144,7 @@ module ActiveMerchant
           response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
 
           if !response.success?
-            if response.faultstring =~ /Reason: requested order not found./
+            if response.faultstring.match(/^Requested order \'[A-Za-z0-9]+\' not found$/)
               response = Response.new(true, nil, {
                                         :status => SUCCESS,
                                         :tracking_numbers => {}
@@ -242,6 +246,29 @@ module ActiveMerchant
         response
       end
 
+      def parse_error(http_response)
+        response = {}
+        response[:http_code] = http_response.code
+        response[:http_message] = http_response.message
+
+        document = REXML::Document.new(http_response.body)
+
+        node = REXML::XPath.first(document, '//Error')
+        error_code = REXML::XPath.first(node, '//Code')
+        error_message = REXML::XPath.first(node, '//Message')
+
+        response[:response_status] = FAILURE
+        response[:faultcode] = error_code ? error_code.text : ""
+        response[:faultstring] = error_message ? error_message.text : ""
+        response[:response_comment] = "#{response[:error_code]}: #{response[:error_message]}"
+        response
+      rescue REXML::ParseException => e
+        response[:http_body] = http_response.body
+        response[:response_status] = FAILURE
+        response[:response_comment] = "#{response[:http_code]}: #{response[:http_message]}"
+        response
+      end
+
       def sign(http_verb, uri, options)
         opts = build_basic_api_query(options)
         string_to_sign = "#{http_verb.to_s.upcase}\n"
@@ -292,10 +319,17 @@ module ActiveMerchant
         request
       end
 
-      def build_get_current_fulfillment_orders_request(options)
+      def build_get_current_fulfillment_orders_request(options = {})
+        start_time = options.delete(:start_time) || 1.day.ago.utc
+        params = {
+          :Action => OPERATIONS[:outbound][:list],
+          :QueryStartDateTime => start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        }
+
+        build_basic_api_query(params.merge(options))
       end
 
-      def build_inventory_list_request(options)
+      def build_inventory_list_request(options = {})
         start_time = options.delete(:start_time) || 1.day.ago
         response_group = options.delete(:start_time) || "Basic"
         params = {
