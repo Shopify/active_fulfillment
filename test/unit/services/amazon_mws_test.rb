@@ -181,9 +181,31 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_fetch_tracking_numbers_aborts_on_error
+    response = mock('response')
+    response.stubs(:code).returns(500)
+    response.stubs(:message).returns("Internal Server Error")
+    response.stubs(:body).returns(xml_fixture('amazon_mws/tracking_response_error'))
+
+    @service.expects(:ssl_post).twice.
+      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
+      raises(ActiveMerchant::ResponseError.new(response))
+
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'ERROR', 'extern_id_1154539615777'])
+    assert !response.success?
+    assert_equal 'Something has gone terribly wrong!', response.faultstring
   end
 
   def test_404_error
+    http_response = build_mock_response(response_from_404, "Not Found", "404")
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+
+    response = @service.fulfill('987654321', @address, @line_items, @options)
+    assert !response.success?
+
+    assert_equal "404: Not Found", response.response_comment
+    assert_equal "404", response.http_code
+    assert_equal "Not Found", response.http_message
+    assert_equal response_from_404, response.http_body
   end
 
   private
@@ -233,5 +255,9 @@ traffic.</Text>
     <<-XML
 
     XML
+  end
+
+  def response_from_404
+    '<html><head><title>Apache Tomcat</title></head><body>That was not found</body></html>'
   end
 end
