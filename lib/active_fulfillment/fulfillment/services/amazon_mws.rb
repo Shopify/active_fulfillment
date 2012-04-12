@@ -263,6 +263,7 @@ module ActiveMerchant
         response[:response_comment] = "#{response[:error_code]}: #{response[:error_message]}"
         response
       rescue REXML::ParseException => e
+      rescue NoMethodError => e
         response[:http_body] = http_response.body
         response[:response_status] = FAILURE
         response[:response_comment] = "#{response[:http_code]}: #{response[:http_message]}"

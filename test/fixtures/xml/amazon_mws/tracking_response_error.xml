@@ -1,0 +1,9 @@
+<ErrorResponse
+    xmlns="http://mws.amazonaws.com/FulfillmentOutboundShipment/2010-10-01/">
+  <Error>
+    <Type>Sender</Type>
+    <Code>UnknownError</Code>
+    <Message>Something has gone terribly wrong!</Message>
+  </Error>
+  <RequestId>2d51bcf0-9237-49a6-a778-62195564575f</RequestId>
+</ErrorResponse>
