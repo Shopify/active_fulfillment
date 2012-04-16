@@ -11,7 +11,7 @@ module ActiveMerchant
 
       SIGNATURE_VERSION = 2
       SIGNATURE_METHOD  = "SHA256"
-      VERSION = "2011-01-01"
+      VERSION = "2010-10-01"
 
       SUCCESS, FAILURE, ERROR = 'Accepted', 'Failure', 'Error'
 
@@ -66,7 +66,15 @@ module ActiveMerchant
           :sku => "Item.member.%d.SellerSKU",
           :network_sku => "Item.member.%d.FulfillmentNetworkSKU",
           :item_disposition => "Item.member.%d.OrderItemDisposition"
+        },
+        :list_inventory => {
+          :sku => "SellerSkus.member.%d"
         }
+      }
+
+      ACTIONS = {
+        :outbound => "FulfillmentOutboundShipment",
+        :inventory => "FulfillmentInventory"
       }
 
       OPERATIONS = {
@@ -79,7 +87,7 @@ module ActiveMerchant
         :inventory => {
           :get  => 'ListInventorySupply',
           :list => 'ListInventorySupply',
-          :list_next => 'ListInventorySupply'
+          :list_next => 'ListInventorySupplyByNextToken'
         }
       }
 
@@ -103,6 +111,10 @@ module ActiveMerchant
         requires!(options, :login, :password)
         options
         super
+      end
+
+      def seller_id=(seller_id)
+        @seller_id = seller_id
       end
 
       def endpoint
@@ -160,11 +172,11 @@ module ActiveMerchant
       end
 
       def commit(verb, service, op, params)
-        uri = URI.parse("#{endpoint}/#{OPERATIONS[service][op]}/#{VERSION}")
+        uri = URI.parse("https://#{endpoint}/#{ACTIONS[service]}/#{VERSION}")
         signature = sign(verb, uri, params)
         query = build_query(params) + "&Signature=#{signature}"
         headers = build_headers(query)
-        
+
         data = ssl_post(uri.to_s, query, headers)
         response = parse_response(service, op, data)
         Response.new(success?(response), message_from(response), response)
@@ -278,7 +290,7 @@ module ActiveMerchant
         string_to_sign += build_query(options)
         
         # remove trailing newline created by encode64
-        Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp
+        escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
       end
 
       def md5_content(content)
@@ -304,6 +316,7 @@ module ActiveMerchant
         opts["Version"] = VERSION unless opts["Version"]
         opts["SignatureMethod"] = "Hmac#{SIGNATURE_METHOD}" unless opts["SignatureMethod"]
         opts["SignatureVersion"] = SIGNATURE_VERSION unless opts["SignatureVersion"]
+        opts["SellerId"] = @seller_id unless opts["SellerId"] || !@seller_id
         opts
       end
 
@@ -332,12 +345,18 @@ module ActiveMerchant
 
       def build_inventory_list_request(options = {})
         start_time = options.delete(:start_time) || 1.day.ago
-        response_group = options.delete(:start_time) || "Basic"
+        response_group = options.delete(:response_group) || "Basic"
         params = {
           :Action => OPERATIONS[:inventory][:list],
-          :QueryStartDateTime => start_time.iso8601,
           :ResponseGroup => response_group
         }
+        if skus = options.delete(:skus)
+          skus.each_with_index do |sku, index|
+            params[LOOKUPS[:list_inventory][:sku] % (index + 1)] = sku
+          end
+        else
+          params[:QueryStartDateTime] = options.delete(:start_time) || 1.day.ago
+        end
 
         build_basic_api_query(params.merge(options))
       end
