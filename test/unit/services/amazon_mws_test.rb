@@ -103,9 +103,10 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_build_items
     expected_items = {
-      "Item.member.1.Quantity" => "1",
-      "Item.member.1.SellerSKU" => "SETTLERS1",
-      "Item.member.1.DisplayableComment" => "Awesome"
+      "Items.member.1.DisplayableComment" => "Awesome",
+      "Items.member.1.Quantity" => "1",
+      "Items.member.1.SellerFulfillmentOrderItemId" => "SETTLERS1",
+      "Items.member.1.SellerSKU" => "SETTLERS1"
     }
                         
     assert_equal expected_items, @service.build_items(@line_items)
@@ -118,7 +119,11 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_invalid_arguments
-    fail("Implement this test")
+    http_response = build_mock_response(invalid_params_response, "", 500)
+    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    response = @service.fulfill('12345678', @address, @line_items, @options)
+    assert !response.success?
+    assert_equal "MalformedInput: timestamp must follow ISO8601", response.params['response_comment']
   end
 
   def test_missing_order_comment
@@ -272,5 +277,18 @@ traffic.</Text>
 
   def response_from_404
     '<html><head><title>Apache Tomcat</title></head><body>That was not found</body></html>'
+  end
+
+  def invalid_params_response
+    <<-XML
+    <ErrorResponse xmlns="http://mws.amazonaws.com/FulfillmentInventory/2010-10-01/">
+      <Error>
+        <Type>Sender</Type>
+        <Code>MalformedInput</Code>
+        <Message>timestamp must follow ISO8601</Message>
+      </Error>
+      <RequestId>e71f72f5-3df6-4306-bb67-9f55bd9d9665</RequestId>
+    </ErrorResponse>
+    XML
   end
 end
