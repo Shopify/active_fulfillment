@@ -55,15 +55,28 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal AmazonMarketplaceWebService::VERSION, opts["Version"]
   end
 
+  def test_build_inventory_list_request
+    skus = ["CITADELS", "INNOVATION", "JAIPUR"]
+    request_params = @service.build_inventory_list_request(:skus => skus)
+    keys = request_params.keys
+
+    assert keys.include?("SellerSkus.member.1")
+    assert keys.include?("SellerSkus.member.2")
+    assert keys.include?("SellerSkus.member.3")
+    assert_equal 'CITADELS', request_params['SellerSkus.member.1']
+    assert_equal 'INNOVATION', request_params['SellerSkus.member.2']
+    assert_equal 'JAIPUR', request_params["SellerSkus.member.3"]
+  end
+
   def test_create_signature
     service = AmazonMarketplaceWebService.new(:login => "0PExampleR2", :password => "sekrets")
-    expected_signature = "39XxH6iKLysjjDmWZSkyr2z8iSxfECHBYE1Pd0Qqpwo="
+    expected_signature = "39XxH6iKLysjjDmWZSkyr2z8iSxfECHBYE1Pd0Qqpwo%3D"
     options = {
       "AWSAccessKeyId" => "0PExampleR2",
       "Action" => "SubmitFeed",
       "FeedType" => "_POST_INVENTORY_AVAILABILITY_DATA_",
       "Marketplace" => "ATExampleER",
-      "Merchant" => "A1ExampleE6",
+      "Merchant" => "A1ExampleE6", 
       "SignatureMethod" => "HmacSHA256",
       "SignatureVersion" => "2",
       "Timestamp" => "2009-08-20T01:10:27.607Z",
