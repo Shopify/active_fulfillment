@@ -109,6 +109,7 @@ module ActiveMerchant
 
       def initialize(options = {})
         requires!(options, :login, :password)
+        @seller_id = options[:seller_id]
         options
         super
       end
@@ -135,20 +136,17 @@ module ActiveMerchant
       end
 
       def fetch_stock_levels(options = {})
-        if options[:sku]
-          commit :post, :inventory, :get, build_get_current_fulfillment_orders_request(options)
-        else
-          response = commit :post, :inventory, :list, build_inventory_list_request(options)
+        options[:skus] = [options.delete(:sku)] if options.include?(:sku)
+        response = commit :post, :inventory, :list, build_inventory_list_request(options)
 
-          while token = response.params['next_token'] do
-            next_page = commit :post, :inventory, :list_next, build_next_inventory_list_request(token)
+        while token = response.params['next_token'] do
+          next_page = commit :post, :inventory, :list_next, build_next_inventory_list_request(token)
 
-            next_page.stock_levels.merge!(response.stock_levels)
-            response = next_page
-          end
-
-          response
+          next_page.stock_levels.merge!(response.stock_levels)
+          response = next_page
         end
+
+        response
       end
 
       def fetch_tracking_numbers(order_ids, options = {})
@@ -272,7 +270,7 @@ module ActiveMerchant
         response[:response_status] = FAILURE
         response[:faultcode] = error_code ? error_code.text : ""
         response[:faultstring] = error_message ? error_message.text : ""
-        response[:response_comment] = "#{response[:error_code]}: #{response[:error_message]}"
+        response[:response_comment] = "#{response[:faultcode]}: #{response[:faultstring]}"
         response
       rescue REXML::ParseException => e
       rescue NoMethodError => e
