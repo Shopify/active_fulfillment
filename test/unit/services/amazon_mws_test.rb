@@ -103,9 +103,10 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_build_items
     expected_items = {
-      "Item.member.1.Quantity" => "1",
-      "Item.member.1.SellerSKU" => "SETTLERS1",
-      "Item.member.1.DisplayableComment" => "Awesome"
+      "Items.member.1.DisplayableComment" => "Awesome",
+      "Items.member.1.Quantity" => "1",
+      "Items.member.1.SellerFulfillmentOrderItemId" => "SETTLERS1",
+      "Items.member.1.SellerSKU" => "SETTLERS1"
     }
                         
     assert_equal expected_items, @service.build_items(@line_items)

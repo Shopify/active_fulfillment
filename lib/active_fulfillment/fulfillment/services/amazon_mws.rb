@@ -57,15 +57,15 @@ module ActiveMerchant
           :zip => "DestinationAddress.PostalCode"
         },
         :line_items => {
-          :comment => "Item.member.%d.DisplayableComment",
-          :gift_message => "Item.member.%d.GiftMessage",
-          :currency_code => "Item.member.%d.PerUnitDeclaredValue.CurrencyCode",
-          :value => "Item.member.%d.PerUnitDeclaredValue.Value",
-          :quantity => "Item.member.%d.Quantity",
-          :order_id => "Item.member.%d.SellerFulfillmentOrderItemId",
-          :sku => "Item.member.%d.SellerSKU",
-          :network_sku => "Item.member.%d.FulfillmentNetworkSKU",
-          :item_disposition => "Item.member.%d.OrderItemDisposition"
+          :comment => "Items.member.%d.DisplayableComment",
+          :gift_message => "Items.member.%d.GiftMessage",
+          :currency_code => "Items.member.%d.PerUnitDeclaredValue.CurrencyCode",
+          :value => "Items.member.%d.PerUnitDeclaredValue.Value",
+          :quantity => "Items.member.%d.Quantity",
+          :order_id => "Items.member.%d.SellerFulfillmentOrderItemId",
+          :sku => "Items.member.%d.SellerSKU",
+          :network_sku => "Items.member.%d.FulfillmentNetworkSKU",
+          :item_disposition => "Items.member.%d.OrderItemDisposition",
         },
         :list_inventory => {
           :sku => "SellerSkus.member.%d"
@@ -154,7 +154,7 @@ module ActiveMerchant
           response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
 
           if !response.success?
-            if response.faultstring.match(/^Requested order \'[A-Za-z0-9]+\' not found$/)
+            if response.faultstring.match(/^Requested order \'.+\' not found$/)
               response = Response.new(true, nil, {
                                         :status => SUCCESS,
                                         :tracking_numbers => {}
@@ -167,6 +167,14 @@ module ActiveMerchant
           response.tracking_numbers.merge!(previous.tracking_numbers) if previous
           response
         end
+      end
+
+      def valid_credentials?
+        fetch_stock_levels.success?
+      end
+
+      def test_mode?
+        false
       end
 
       def commit(verb, service, op, params)
@@ -267,7 +275,7 @@ module ActiveMerchant
         error_code = REXML::XPath.first(node, '//Code')
         error_message = REXML::XPath.first(node, '//Message')
 
-        response[:response_status] = FAILURE
+        response[:status] = FAILURE
         response[:faultcode] = error_code ? error_code.text : ""
         response[:faultstring] = error_message ? error_message.text : ""
         response[:response_comment] = "#{response[:faultcode]}: #{response[:faultstring]}"
@@ -322,11 +330,14 @@ module ActiveMerchant
         params = {
           :Action => OPERATIONS[:outbound][:create],
           :SellerFulfillmentOrderId => order_id.to_s,
-          :DisplayableOrderId => order_id.to_s
+          :DisplayableOrderId => order_id.to_s,
+          :DisplayableOrderComment => options[:comment],
+          :DisplayableOrderDateTime => options[:order_date],
+          :ShippingSpeedCategory => options[:shipping_method]
         }
         request = build_basic_api_query(params.merge(options))
-        request.merge build_address(shipping_address)
-        request.merge build_items(line_items)
+        request = request.merge build_address(shipping_address)
+        request = request.merge build_items(line_items)
 
         request
       end
@@ -342,7 +353,6 @@ module ActiveMerchant
       end
 
       def build_inventory_list_request(options = {})
-        start_time = options.delete(:start_time) || 1.day.ago
         response_group = options.delete(:response_group) || "Basic"
         params = {
           :Action => OPERATIONS[:inventory][:list],
@@ -353,7 +363,8 @@ module ActiveMerchant
             params[LOOKUPS[:list_inventory][:sku] % (index + 1)] = sku
           end
         else
-          params[:QueryStartDateTime] = options.delete(:start_time) || 1.day.ago
+          start_time = options.delete(:start_time) || 1.day.ago
+          params[:QueryStartDateTime] = start_time.utc.iso8601
         end
 
         build_basic_api_query(params.merge(options))
@@ -368,7 +379,7 @@ module ActiveMerchant
       end
 
       def build_tracking_request(order_id, options)
-        params = {:Action => OPERATIONS[:outbound][:tracking], :MerchantFulfillmentOrderId => order_id}
+        params = {:Action => OPERATIONS[:outbound][:tracking], :SellerFulfillmentOrderId => order_id}
 
         build_basic_api_query(params.merge(options))
       end
@@ -376,20 +387,30 @@ module ActiveMerchant
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
         ary = address.map{ |key, value|
-          [escape(LOOKUPS[:destination_address][key]), escape(value.to_s)]
+          [escape(LOOKUPS[:destination_address][key]), escape(value)]
         }
         Hash[ary]
       end
 
       def build_items(line_items)
+        lookup = LOOKUPS[:line_items]
         counter = 0
         line_items.reduce({}) do |items, line_item|
           counter += 1
-          line_item.keys.reduce(items) do |hash, key|
-            entry = escape(LOOKUPS[:line_items][key] % counter)
-            hash[entry] = escape(line_item[key].to_s)
-            hash
+          lookup.each do |key, value|
+            entry = value % counter
+            case key
+            when :sku
+              items[entry] = escape(line_item[:sku] || "SKU-#{counter}")
+            when :order_id
+              items[entry] = escape(line_item[:sku] || "FULFILLMENT-ITEM-ID-#{counter}")
+            when :quantity
+              items[entry] = escape(line_item[:quantity] || 1)
+            else
+              items[entry] = escape(line_item[key]) if line_item.include? key
+            end
           end
+          items
         end
       end
 
@@ -398,7 +419,7 @@ module ActiveMerchant
       end
 
       def escape(str)
-        CGI.escape(str).gsub('+', '%20')
+        CGI.escape(str.to_s).gsub('+', '%20')
       end
     end
   end
