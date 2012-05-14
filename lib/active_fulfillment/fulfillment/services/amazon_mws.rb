@@ -102,10 +102,6 @@ module ActiveMerchant
           [ 'Priority Shipping', 'Priority' ]
         ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
       end
-      
-      def self.sign(aws_secret_access_key, auth_string)
-        Base64.encode64(OpenSSL::HMAC.digest(@@digest, aws_secret_access_key, auth_string)).strip
-      end
 
       def initialize(options = {})
         requires!(options, :login, :password)
@@ -289,14 +285,34 @@ module ActiveMerchant
       end
 
       def sign(http_verb, uri, options)
-        opts = build_basic_api_query(options)
         string_to_sign = "#{http_verb.to_s.upcase}\n"
         string_to_sign += "#{uri.host}\n"
-        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}\n"
+        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}"
         string_to_sign += build_query(options)
-        
+
         # remove trailing newline created by encode64
         escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
+      end
+
+      def amazon_request?(uri, body)
+        if @options[:base_url]
+          base_url = "#{uri.scheme}://#{@options[:base_url]}"
+        else
+          base_url = "#{uri.scheme}://#{uri.host}"
+        end
+        return_path_and_params = uri.to_s.gsub(base_url, '')
+
+        signature_match = body.match(/&?Signature=([a-zA-Z0-9\%]+)/)
+        body = body.gsub(signature_match[0], '')
+        signature = signature_match[1]
+
+        string_to_sign = "POST\n"
+        string_to_sign += "#{base_url}\n"
+        string_to_sign += "#{return_path_and_params}\n"
+        string_to_sign += body
+
+        calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
+        calculated_signature == signature
       end
 
       def md5_content(content)

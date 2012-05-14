@@ -88,6 +88,13 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal expected_signature, service.sign(:POST, uri, options)
   end
 
+  def test_verify_amazon_response
+    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :base_url => "www.vendor.com/mwsApp1")
+    callback_url  = URI.parse("https://www.vendor.com/mwsApp1/orders/listRecentOrders.jsp?sessionId=123")
+    response_body = "AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&Marketplace=ATVPDKIKX0DER&Merchant=A047950713KM6AGKQCBRD&SignatureMethod=HmacSHA256&SignatureVersion=2&Signature=b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa%2FolfnWg%3D"
+    assert service.amazon_request?(callback_url, response_body)
+  end
+
   def test_build_address
     expected_items = {
       "DestinationAddress.Name" => @address[:name].gsub(' ', '%20'),
