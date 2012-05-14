@@ -89,10 +89,10 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_verify_amazon_response
-    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :base_url => "www.vendor.com/mwsApp1")
-    callback_url  = URI.parse("https://www.vendor.com/mwsApp1/orders/listRecentOrders.jsp?sessionId=123")
-    response_body = "AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&Marketplace=ATVPDKIKX0DER&Merchant=A047950713KM6AGKQCBRD&SignatureMethod=HmacSHA256&SignatureVersion=2&Signature=b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa%2FolfnWg%3D"
-    assert service.amazon_request?(callback_url, response_body)
+    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa")
+    string_signed_by_amazon = "POST\nhttps://www.vendor.com/mwsApp1\n/orders/listRecentOrders.jsp?sessionId=123"
+    string_signed_by_amazon += "\nAWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&Marketplace=ATVPDKIKX0DER&Merchant=A047950713KM6AGKQCBRD&SignatureMethod=HmacSHA256&SignatureVersion=2"
+    assert service.amazon_request?(string_signed_by_amazon, "b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa%2FolfnWg%3D")
   end
 
   def test_build_address
@@ -106,6 +106,15 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20')
     }
     assert_equal expected_items, @service.build_address(@address)
+  end
+
+  def test_integrated_registration_url_creation
+    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :app_id => "1014f5ad-c359-4e86-8e50-bb8f8e431a9")
+    options = {
+      "returnPathAndParameters" => "/orders/listRecentOrders.jsp?sessionId=123"
+    }
+    expected_registration_url = "#{AmazonMarketplaceWebService::REGISTRATION_URI.to_s}?AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&SignatureMethod=HmacSHA256&SignatureVersion=2&id=1014f5ad-c359-4e86-8e50-bb8f8e431a9&returnPathAndParameters=%2Forders%2FlistRecentOrders.jsp%3FsessionId%3D123&Signature=zpZyHd8rMf5gg5rpO5ri5RGUi0kks03ZkhAtPm4npVk%3D"
+    assert_equal expected_registration_url, service.registration_url(options)
   end
 
   def test_build_items

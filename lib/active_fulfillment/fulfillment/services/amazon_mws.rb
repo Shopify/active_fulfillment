@@ -9,6 +9,8 @@ module ActiveMerchant
 
       APPLICATION_IDENTIFIER = "active_merchant_mws/0.01 (Language=ruby)"
 
+      REGISTRATION_URI = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html")
+
       SIGNATURE_VERSION = 2
       SIGNATURE_METHOD  = "SHA256"
       VERSION = "2010-10-01"
@@ -106,7 +108,6 @@ module ActiveMerchant
       def initialize(options = {})
         requires!(options, :login, :password)
         @seller_id = options[:seller_id]
-        options
         super
       end
 
@@ -287,32 +288,28 @@ module ActiveMerchant
       def sign(http_verb, uri, options)
         string_to_sign = "#{http_verb.to_s.upcase}\n"
         string_to_sign += "#{uri.host}\n"
-        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}"
+        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}\n"
         string_to_sign += build_query(options)
 
         # remove trailing newline created by encode64
         escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
       end
 
-      def amazon_request?(uri, body)
-        if @options[:base_url]
-          base_url = "#{uri.scheme}://#{@options[:base_url]}"
-        else
-          base_url = "#{uri.scheme}://#{uri.host}"
-        end
-        return_path_and_params = uri.to_s.gsub(base_url, '')
+      def amazon_request?(signed_string, expected_signature)
+        calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], signed_string)).chomp)
+        calculated_signature == expected_signature
+      end
 
-        signature_match = body.match(/&?Signature=([a-zA-Z0-9\%]+)/)
-        body = body.gsub(signature_match[0], '')
-        signature = signature_match[1]
-
-        string_to_sign = "POST\n"
-        string_to_sign += "#{base_url}\n"
-        string_to_sign += "#{return_path_and_params}\n"
-        string_to_sign += body
-
-        calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
-        calculated_signature == signature
+      def registration_url(options)
+        opts = {
+          "returnPathAndParameters" => options["returnPathAndParameters"],
+          "id" => @options[:app_id],
+          "AWSAccessKeyId" => @options[:login],
+          "SignatureMethod" => "Hmac#{SIGNATURE_METHOD}",
+          "SignatureVersion" => SIGNATURE_VERSION
+        }
+        signature = sign(:get, REGISTRATION_URI, opts)
+        "#{REGISTRATION_URI.to_s}?#{build_query(opts)}&Signature=#{signature}"
       end
 
       def md5_content(content)
