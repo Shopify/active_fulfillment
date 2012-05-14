@@ -108,6 +108,16 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal expected_items, @service.build_address(@address)
   end
 
+  def test_integrated_registration_url_creation
+    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :app_id => "1014f5ad-c359-4e86-8e50-bb8f8e431a9")
+    uri = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html")
+    options = {
+      "returnPathAndParameters" => "/orders/listRecentOrders.jsp?sessionId=123"
+    }
+    expected_registration_url = "https://sellercentral.amazon.com/gp/mws/registration/register.html?AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&SignatureMethod=HmacSHA256&SignatureVersion=2&id=1014f5ad-c359-4e86-8e50-bb8f8e431a9&returnPathAndParameters=%2Forders%2FlistRecentOrders.jsp%3FsessionId%3D123&Signature=zpZyHd8rMf5gg5rpO5ri5RGUi0kks03ZkhAtPm4npVk%3D"
+    assert_equal expected_registration_url, service.registration_url(uri, options)
+  end
+
   def test_build_items
     expected_items = {
       "Items.member.1.DisplayableComment" => "Awesome",

@@ -106,7 +106,6 @@ module ActiveMerchant
       def initialize(options = {})
         requires!(options, :login, :password)
         @seller_id = options[:seller_id]
-        options
         super
       end
 
@@ -287,7 +286,7 @@ module ActiveMerchant
       def sign(http_verb, uri, options)
         string_to_sign = "#{http_verb.to_s.upcase}\n"
         string_to_sign += "#{uri.host}\n"
-        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}"
+        string_to_sign += uri.path.length <= 0 ? "/\n" : "#{uri.path}\n"
         string_to_sign += build_query(options)
 
         # remove trailing newline created by encode64
@@ -313,6 +312,18 @@ module ActiveMerchant
 
         calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
         calculated_signature == signature
+      end
+
+      def registration_url(uri, options)
+        opts = {
+          "returnPathAndParameters" => options["returnPathAndParameters"],
+          "id" => @options[:app_id],
+          "AWSAccessKeyId" => @options[:login],
+          "SignatureMethod" => "Hmac#{SIGNATURE_METHOD}",
+          "SignatureVersion" => SIGNATURE_VERSION
+        }
+        signature = sign(:get, uri, opts)
+        "#{uri.to_s}?#{build_query(opts)}&Signature=#{signature}"
       end
 
       def md5_content(content)
