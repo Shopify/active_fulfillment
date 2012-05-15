@@ -295,25 +295,9 @@ module ActiveMerchant
         escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
       end
 
-      def amazon_request?(uri, body)
-        if @options[:base_url]
-          base_url = "#{uri.scheme}://#{@options[:base_url]}"
-        else
-          base_url = "#{uri.scheme}://#{uri.host}"
-        end
-        return_path_and_params = uri.to_s.gsub(base_url, '')
-
-        signature_match = body.match(/&?Signature=([a-zA-Z0-9\%]+)/)
-        body = body.gsub(signature_match[0], '')
-        signature = signature_match[1]
-
-        string_to_sign = "POST\n"
-        string_to_sign += "#{base_url}\n"
-        string_to_sign += "#{return_path_and_params}\n"
-        string_to_sign += body
-
-        calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
-        calculated_signature == signature
+      def amazon_request?(signed_string, expected_signature)
+        calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], signed_string)).chomp)
+        calculated_signature == expected_signature
       end
 
       def registration_url(options)
