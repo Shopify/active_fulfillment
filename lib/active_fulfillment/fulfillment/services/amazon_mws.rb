@@ -9,6 +9,8 @@ module ActiveMerchant
 
       APPLICATION_IDENTIFIER = "active_merchant_mws/0.01 (Language=ruby)"
 
+      REGISTRATION_URI = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html")
+
       SIGNATURE_VERSION = 2
       SIGNATURE_METHOD  = "SHA256"
       VERSION = "2010-10-01"
@@ -314,7 +316,7 @@ module ActiveMerchant
         calculated_signature == signature
       end
 
-      def registration_url(uri, options)
+      def registration_url(options)
         opts = {
           "returnPathAndParameters" => options["returnPathAndParameters"],
           "id" => @options[:app_id],
@@ -322,8 +324,8 @@ module ActiveMerchant
           "SignatureMethod" => "Hmac#{SIGNATURE_METHOD}",
           "SignatureVersion" => SIGNATURE_VERSION
         }
-        signature = sign(:get, uri, opts)
-        "#{uri.to_s}?#{build_query(opts)}&Signature=#{signature}"
+        signature = sign(:get, REGISTRATION_URI, opts)
+        "#{REGISTRATION_URI.to_s}?#{build_query(opts)}&Signature=#{signature}"
       end
 
       def md5_content(content)
