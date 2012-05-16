@@ -276,6 +276,7 @@ module ActiveMerchant
         response[:status] = FAILURE
         response[:faultcode] = error_code ? error_code.text : ""
         response[:faultstring] = error_message ? error_message.text : ""
+        response[:response_message] = error_message ? error_message.text : ""
         response[:response_comment] = "#{response[:faultcode]}: #{response[:faultstring]}"
         response
       rescue REXML::ParseException => e
@@ -346,7 +347,7 @@ module ActiveMerchant
           :SellerFulfillmentOrderId => order_id.to_s,
           :DisplayableOrderId => order_id.to_s,
           :DisplayableOrderComment => options[:comment],
-          :DisplayableOrderDateTime => options[:order_date],
+          :DisplayableOrderDateTime => options[:order_date].utc.iso8601,
           :ShippingSpeedCategory => options[:shipping_method]
         }
         request = build_basic_api_query(params.merge(options))
