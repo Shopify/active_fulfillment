@@ -7,7 +7,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
 
     @options = {
       :shipping_method => 'Standard',
-      :order_date => Time.now.utc.yesterday.iso8601,
+      :order_date => Time.now.utc.yesterday,
       :comment => "Delayed due to tornadoes"
     }
 
