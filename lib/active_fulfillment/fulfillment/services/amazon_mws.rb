@@ -56,7 +56,8 @@ module ActiveMerchant
           :city => "DestinationAddress.City",
           :state => "DestinationAddress.StateOrProvinceCode",
           :country => "DestinationAddress.CountryCode",
-          :zip => "DestinationAddress.PostalCode"
+          :zip => "DestinationAddress.PostalCode",
+          :phone => "DestinationAddress.PhoneNumber"
         },
         :line_items => {
           :comment => "Items.member.%d.DisplayableComment",
@@ -400,8 +401,13 @@ module ActiveMerchant
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
         ary = address.map{ |key, value|
-          [escape(LOOKUPS[:destination_address][key]), escape(value)]
+          if value.length > 0
+            [escape(LOOKUPS[:destination_address][key]), escape(value)]
+          else
+            nil
+          end
         }
+        ary.reject(&:nil?)
         Hash[ary]
       end
 

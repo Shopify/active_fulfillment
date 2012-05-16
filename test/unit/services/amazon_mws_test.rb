@@ -20,7 +20,8 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       :city => 'Beverly Hills',
       :state => 'CA',
       :country => 'US',
-      :zip => '90210'
+      :zip => '90210',
+      :phone => "(555)555-5555"
     }
     
     @line_items = [
@@ -103,8 +104,24 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "DestinationAddress.City" => @address[:city].gsub(' ', '%20'),
       "DestinationAddress.StateOrProvinceCode" => @address[:state].gsub(' ', '%20'),
       "DestinationAddress.CountryCode" => @address[:country].gsub(' ', '%20'),
-      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20')
+      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20'),
+      "DestinationAddress.PhoneNumber" => CGI.escape(@address[:phone])
     }
+    assert_equal expected_items, @service.build_address(@address)
+  end
+
+  def test_build_address_with_missing_fields
+    expected_items = {
+      "DestinationAddress.Name" => @address[:name].gsub(' ', '%20'),
+      "DestinationAddress.Line1" => @address[:address1].gsub(' ', '%20'),
+      "DestinationAddress.City" => @address[:city].gsub(' ', '%20'),
+      "DestinationAddress.StateOrProvinceCode" => @address[:state].gsub(' ', '%20'),
+      "DestinationAddress.CountryCode" => @address[:country].gsub(' ', '%20'),
+      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20'),
+      "DestinationAddress.PhoneNumber" => CGI.escape(@address[:phone])
+    }
+    @address[:address2] = ""
+
     assert_equal expected_items, @service.build_address(@address)
   end
 
