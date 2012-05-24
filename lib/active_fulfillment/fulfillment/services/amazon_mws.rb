@@ -236,13 +236,7 @@ module ActiveMerchant
       end
 
       def parse_fulfillment_response(op, document)
-        response = {}
-        action = OPERATIONS[:outbound][op]
-        node = REXML::XPath.first(document, "//#{action}Response")
-
-        response[:response_status]  = SUCCESS
-        response[:response_comment] = MESSAGES[op][SUCCESS]
-        response
+        { :response_status => SUCCESS, :response_comment => MESSAGES[op][SUCCESS] }
       end
 
       def parse_inventory_response(document)
@@ -401,15 +395,8 @@ module ActiveMerchant
 
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
-        ary = address.map{ |key, value|
-          if value.length > 0
-            [escape(LOOKUPS[:destination_address][key]), escape(value)]
-          else
-            nil
-          end
-        }
-        ary.reject(&:nil?)
-        Hash[ary]
+        ary = address.map{ |key, value| [escape(LOOKUPS[:destination_address][key]), escape(value)] if value.length > 0 }
+        Hash[ary.compact]
       end
 
       def build_items(line_items)

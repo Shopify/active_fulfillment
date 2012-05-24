@@ -302,12 +302,6 @@ traffic.</Text>
     XML
   end
 
-  def invalid_create_response
-    <<-XML
-
-    XML
-  end
-
   def response_from_404
     '<html><head><title>Apache Tomcat</title></head><body>That was not found</body></html>'
   end
