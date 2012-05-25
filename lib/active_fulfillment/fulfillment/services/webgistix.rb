@@ -28,7 +28,9 @@ module ActiveMerchant
       def self.shipping_methods
         [ 
           ["UPS Ground Shipping", "Ground"],
+          ["UPS Ground", "Ground"],
           ["UPS Standard Shipping (Canada Only)", "Standard"],
+          ["UPS Standard Shipping (CA & MX Only)", "Standard"],
           ["UPS 3-Business Day", "3-Day Select"],
           ["UPS 2-Business Day", "2nd Day Air"],
           ["UPS 2-Business Day AM", "2nd Day Air AM"],
