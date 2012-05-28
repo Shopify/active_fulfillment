@@ -120,7 +120,7 @@ module ActiveMerchant
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})
-        requires!(options, :order_date, :comment, :shipping_method)
+        requires!(options, :order_date, :shipping_method)
         commit :post, :outbound, :create, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
 
@@ -339,10 +339,11 @@ module ActiveMerchant
           :Action => OPERATIONS[:outbound][:create],
           :SellerFulfillmentOrderId => order_id.to_s,
           :DisplayableOrderId => order_id.to_s,
-          :DisplayableOrderComment => options[:comment],
           :DisplayableOrderDateTime => options[:order_date].utc.iso8601,
           :ShippingSpeedCategory => options[:shipping_method]
         }
+        params[:DisplayableOrderComment] = options[:comment] if options[:comment]
+        
         request = build_basic_api_query(params.merge(options))
         request = request.merge build_address(shipping_address)
         request = request.merge build_items(line_items)
