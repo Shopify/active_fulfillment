@@ -159,11 +159,6 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal "MalformedInput: timestamp must follow ISO8601", response.params['response_comment']
   end
 
-  def test_missing_order_comment
-    @options.delete(:comment)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
-  end
-
   def test_missing_order_date
     @options.delete(:order_date)
     assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
