@@ -69,7 +69,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
   end
 
   def test_list_inventory
-    response = @service.fetch_stock_levels(:start_time => Time.new('2010-01-01'))
+    response = @service.fetch_stock_levels(:start_time => Time.parse('2010-01-01'))
     assert response.success?
     assert_equal 0, response.stock_levels['SETTLERS']
   end
