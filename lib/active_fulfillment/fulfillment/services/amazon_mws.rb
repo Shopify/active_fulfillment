@@ -245,7 +245,7 @@ module ActiveMerchant
         document.each_element('//InventorySupplyList/member') do |node|
           params = node.elements.to_a.each_with_object({}) { |elem, hash| hash[elem.name] = elem.text }
 
-          response[:stock_levels][params['SellerSKU']] = params['TotalSupplyQuantity'].to_i
+          response[:stock_levels][params['SellerSKU']] = params['InStockSupplyQuantity'].to_i
         end
         
         next_token = REXML::XPath.first(document, '//NextToken')
