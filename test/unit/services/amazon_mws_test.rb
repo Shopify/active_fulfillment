@@ -213,12 +213,10 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_that_generated_requests_do_not_double_escape_spaces
-    result = @service.fulfill("12345", @address, @line_items, @options)
-    assert !result.include?('%2520')
-  end
+    fulfillment_request = @service.send(:build_fulfillment_request, "12345", @address, @line_items, @options)
+    result = @service.build_full_query(:post, URI.parse("http://example.com/someservice/2011"), fulfillment_request)
 
-  def test_a_fabulous_thing
-    fail("shit is failing yo")
+    assert !result.include?('%2520')
   end
 
   def test_fetch_tracking_numbers_ignores_not_found

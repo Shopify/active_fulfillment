@@ -174,10 +174,14 @@ module ActiveMerchant
         false
       end
 
+      def build_full_query(verb, uri, params)
+        signature = sign(verb, uri, params)
+        build_query(params) + "&Signature=#{signature}"
+      end
+
       def commit(verb, service, op, params)
         uri = URI.parse("https://#{endpoint}/#{ACTIONS[service]}/#{VERSION}")
-        signature = sign(verb, uri, params)
-        query = build_query(params) + "&Signature=#{signature}"
+        query = build_full_query(verb, uri, params)
         headers = build_headers(query)
 
         data = ssl_post(uri.to_s, query, headers)
@@ -395,7 +399,7 @@ module ActiveMerchant
 
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
-        ary = address.map{ |key, value| [escape(LOOKUPS[:destination_address][key]), escape(value)] if value.length > 0 }
+        ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if value.length > 0 }
         Hash[ary.compact]
       end
 
@@ -408,13 +412,13 @@ module ActiveMerchant
             entry = value % counter
             case key
             when :sku
-              items[entry] = escape(line_item[:sku] || "SKU-#{counter}")
+              items[entry] = line_item[:sku] || "SKU-#{counter}"
             when :order_id
-              items[entry] = escape(line_item[:sku] || "FULFILLMENT-ITEM-ID-#{counter}")
+              items[entry] = line_item[:sku] || "FULFILLMENT-ITEM-ID-#{counter}"
             when :quantity
-              items[entry] = escape(line_item[:quantity] || 1)
+              items[entry] = line_item[:quantity] || 1
             else
-              items[entry] = escape(line_item[key]) if line_item.include? key
+              items[entry] = line_item[key] if line_item.include? key
             end
           end
           items
