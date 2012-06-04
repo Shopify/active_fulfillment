@@ -98,27 +98,27 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_build_address
     expected_items = {
-      "DestinationAddress.Name" => @address[:name].gsub(' ', '%20'),
-      "DestinationAddress.Line1" => @address[:address1].gsub(' ', '%20'),
-      "DestinationAddress.Line2" => @address[:address2].gsub(' ', '%20'),
-      "DestinationAddress.City" => @address[:city].gsub(' ', '%20'),
-      "DestinationAddress.StateOrProvinceCode" => @address[:state].gsub(' ', '%20'),
-      "DestinationAddress.CountryCode" => @address[:country].gsub(' ', '%20'),
-      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20'),
-      "DestinationAddress.PhoneNumber" => CGI.escape(@address[:phone])
+      "DestinationAddress.Name" => @address[:name],
+      "DestinationAddress.Line1" => @address[:address1],
+      "DestinationAddress.Line2" => @address[:address2],
+      "DestinationAddress.City" => @address[:city],
+      "DestinationAddress.StateOrProvinceCode" => @address[:state],
+      "DestinationAddress.CountryCode" => @address[:country],
+      "DestinationAddress.PostalCode" => @address[:zip],
+      "DestinationAddress.PhoneNumber" => @address[:phone]
     }
     assert_equal expected_items, @service.build_address(@address)
   end
 
   def test_build_address_with_missing_fields
     expected_items = {
-      "DestinationAddress.Name" => @address[:name].gsub(' ', '%20'),
-      "DestinationAddress.Line1" => @address[:address1].gsub(' ', '%20'),
-      "DestinationAddress.City" => @address[:city].gsub(' ', '%20'),
-      "DestinationAddress.StateOrProvinceCode" => @address[:state].gsub(' ', '%20'),
-      "DestinationAddress.CountryCode" => @address[:country].gsub(' ', '%20'),
-      "DestinationAddress.PostalCode" => @address[:zip].gsub(' ', '%20'),
-      "DestinationAddress.PhoneNumber" => CGI.escape(@address[:phone])
+      "DestinationAddress.Name" => @address[:name],
+      "DestinationAddress.Line1" => @address[:address1],
+      "DestinationAddress.City" => @address[:city],
+      "DestinationAddress.StateOrProvinceCode" => @address[:state],
+      "DestinationAddress.CountryCode" => @address[:country],
+      "DestinationAddress.PostalCode" => @address[:zip],
+      "DestinationAddress.PhoneNumber" => @address[:phone]
     }
     @address[:address2] = ""
 
@@ -137,10 +137,12 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   def test_build_items
     expected_items = {
       "Items.member.1.DisplayableComment" => "Awesome",
-      "Items.member.1.Quantity" => "1",
+      "Items.member.1.Quantity" => 1,
       "Items.member.1.SellerFulfillmentOrderItemId" => "SETTLERS1",
       "Items.member.1.SellerSKU" => "SETTLERS1"
     }
+
+    actual_items = @service.build_items(@line_items)
                         
     assert_equal expected_items, @service.build_items(@line_items)
   end
@@ -208,6 +210,13 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert response.success?
     assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
     assert_nil response.tracking_numbers['extern_id_1154539615777']
+  end
+
+  def test_that_generated_requests_do_not_double_escape_spaces
+    fulfillment_request = @service.send(:build_fulfillment_request, "12345", @address, @line_items, @options)
+    result = @service.build_full_query(:post, URI.parse("http://example.com/someservice/2011"), fulfillment_request)
+
+    assert !result.include?('%2520')
   end
 
   def test_fetch_tracking_numbers_ignores_not_found
