@@ -263,6 +263,13 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal response_from_404, response.http_body
   end
 
+  def test_building_address_skips_nil_values
+    @address[:address2] = nil
+    assert_nothing_raised do
+      @service.send(:build_address, @address)
+    end
+  end
+
   private
   def build_mock_response(response, message, code = "200")
     http_response = mock(:code => code, :message => message)
