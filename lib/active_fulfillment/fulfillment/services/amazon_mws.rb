@@ -399,7 +399,7 @@ module ActiveMerchant
 
       def build_address(address)
         requires!(address, :name, :address1, :city, :state, :country, :zip)
-        ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if value.present? }
+        ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if LOOKUPS[:destination_address].include?(key) && value.present? }
         Hash[ary.compact]
       end
 

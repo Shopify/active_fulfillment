@@ -270,6 +270,13 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     end
   end
 
+  def test_building_a_full_query_does_not_cause_query_to_fail
+    @address[:company] = "Powerthirst Inc."
+
+    constructed_address = @service.send(:build_address, @address)
+    assert !constructed_address[nil]
+  end
+
   private
   def build_mock_response(response, message, code = "200")
     http_response = mock(:code => code, :message => message)
