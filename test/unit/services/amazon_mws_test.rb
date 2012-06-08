@@ -201,6 +201,11 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal 5259, response.stock_levels['GN-01-02A']
   end
 
+  def test_get_next_page_builds_query_with_proper_params
+    @service.expects(:build_basic_api_query).with(:NextToken => "abracadabra", :Action => 'ListInventorySupplyByNextToken')
+    @service.send(:build_next_inventory_list_request, "abracadabra")
+  end
+
   def test_fetch_tracking_numbers
     @service.expects(:ssl_post).twice.
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
