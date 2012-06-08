@@ -188,13 +188,17 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_get_inventory_multipage
-    @service.expects(:ssl_post).twice.returns(
-                                              xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'),
-                                              xml_fixture('amazon_mws/inventory_list_inventory_supply')
-                                              )
+    @service.expects(:ssl_post).with() { |uri, query, headers|
+      query.include?('ListInventorySupply') && !query.include?('ListInventorySupplyByNextToken')
+    }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
+    
+    @service.expects(:ssl_post).with() { |uri, query, headers|
+      query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
+    }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
     response = @service.fetch_stock_levels
     assert response.success?
+    
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
     assert_equal 0, response.stock_levels['GN-01-01A']
