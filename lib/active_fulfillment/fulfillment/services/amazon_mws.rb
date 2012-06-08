@@ -385,9 +385,10 @@ module ActiveMerchant
 
       def build_next_inventory_list_request(token)
         params = {
-          :NextToken => token
+          :NextToken => token,
+          :Action => OPERATIONS[:inventory][:list_next]
         }
-        
+
         build_basic_api_query(params)
       end
 
