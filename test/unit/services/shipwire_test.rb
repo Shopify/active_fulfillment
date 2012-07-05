@@ -21,6 +21,7 @@ class ShipwireTest < Test::Unit::TestCase
       :state => 'NC',
       :country => 'US',
       :zip => '23456',
+      :company => 'MyCorp',
       :email    => 'buyer@jadedpallet.com'
     }
     
@@ -148,6 +149,12 @@ class ShipwireTest < Test::Unit::TestCase
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     affiliate_id = REXML::XPath.first(xml, "//AffiliateId")
     assert_equal 'affiliate_id', affiliate_id.text
+  end
+
+  def test_company_name_in_request
+    xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
+    company_node = REXML::XPath.first(xml, "//Company")
+    assert_equal 'MyCorp', company_node.text 
   end
 
   private
