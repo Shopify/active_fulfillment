@@ -142,14 +142,10 @@ module ActiveMerchant
             xml.tag! 'Full', address[:name]
           end
           
-          if address[:company].blank?
-            xml.tag! 'Address1', address[:address1]
-            xml.tag! 'Address2', address[:address2]
-          else
-            xml.tag! 'Address1', address[:company]
-            xml.tag! 'Address2', address[:address1]
-            xml.tag! 'Address3', address[:address2]
-          end
+          xml.tag! 'Address1', address[:address1]
+          xml.tag! 'Address2', address[:address2]
+
+          xml.tag! 'Company', address[:company]
           
           xml.tag! 'City', address[:city]
           xml.tag! 'State', address[:state] unless address[:state].blank?
