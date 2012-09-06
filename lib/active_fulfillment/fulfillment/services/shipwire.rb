@@ -133,6 +133,9 @@ module ActiveMerchant
           Array(line_items).each_with_index do |line_item, index|
             add_item(xml, line_item, index)
           end
+          xml.tag! 'Note' do
+            xml.cdata! options[:note] unless options[:note].blank?
+          end
         end
       end
 
