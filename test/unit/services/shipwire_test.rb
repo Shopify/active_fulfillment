@@ -157,6 +157,19 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal 'MyCorp', company_node.text 
   end
 
+  def test_order_excludes_note_by_default
+    xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
+    note_node = REXML::XPath.first(xml, "//Note").cdatas.first
+    assert_nil note_node
+  end
+
+  def test_order_includes_note_when_present
+    @options[:note] = "A test note"
+    xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
+    note_node = REXML::XPath.first(xml, "//Note").cdatas.first
+    assert_equal "A test note", note_node.to_s
+  end
+
   private
   def successful_empty_tracking_response
     "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<TrackingUpdateResponse><Status>Test</Status><TotalOrders></TotalOrders><TotalShippedOrders></TotalShippedOrders><TotalProducts></TotalProducts><Bookmark></Bookmark></TrackingUpdateResponse>"
