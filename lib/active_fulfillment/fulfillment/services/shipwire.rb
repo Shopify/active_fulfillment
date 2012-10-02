@@ -27,7 +27,7 @@ module ActiveMerchant
                      'UK'  => 'United Kingdom'
                    }
                    
-      INVALID_LOGIN = /Error with Valid Username\/EmailAddress and Password Required/
+      INVALID_LOGIN = /(Error with Valid Username\/EmailAddress and Password Required)|(Could not verify Username\/EmailAddress and Password combination)/
 
       class_attribute :affiliate_id
 
@@ -193,7 +193,7 @@ module ActiveMerchant
         
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
-          response[node.name.underscore.to_sym] = node.text
+          response[node.name.underscore.to_sym] = text_content(node)
         end
         
         response[:success] = response[:status] == '0'
@@ -214,7 +214,7 @@ module ActiveMerchant
             amount = to_check.sum { |a| node.attributes[a].to_i }
             response[:stock_levels][node.attributes['code']] = amount
           else
-            response[node.name.underscore.to_sym] = node.text
+            response[node.name.underscore.to_sym] = text_content(node)
           end
         end
         
@@ -237,7 +237,7 @@ module ActiveMerchant
               response[:tracking_numbers][node.attributes['id']] = tracking_number
             end
           else
-            response[node.name.underscore.to_sym] = node.text
+            response[node.name.underscore.to_sym] = text_content(node)
           end
         end
         
@@ -249,6 +249,12 @@ module ActiveMerchant
       def message_from(string)
         return if string.blank?
         string.gsub("\n", '').squeeze(" ")
+      end
+
+      def text_content(xml_node)
+        text = xml_node.text
+        text = xml_node.cdatas.join if text.blank?
+        text
       end
     end
   end

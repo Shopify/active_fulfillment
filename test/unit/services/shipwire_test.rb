@@ -170,6 +170,11 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal "A test note", note_node.to_s
   end
 
+  def test_error_response_cdata_parsing
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/fulfillment_failure_response'))
+    assert !@shipwire.valid_credentials?
+  end
+
   private
   def successful_empty_tracking_response
     "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<TrackingUpdateResponse><Status>Test</Status><TotalOrders></TotalOrders><TotalShippedOrders></TotalShippedOrders><TotalProducts></TotalProducts><Bookmark></Bookmark></TrackingUpdateResponse>"
