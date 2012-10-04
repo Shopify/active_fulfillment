@@ -217,7 +217,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'extern_id_1154539615777'])
     assert response.success?
-    assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+    assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
     assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
@@ -227,7 +227,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
     assert response.success?
-    assert_equal '93YY00,93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+    assert_equal %w{93YY00 93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
   end
 
   def test_that_generated_requests_do_not_double_escape_spaces
@@ -250,7 +250,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'dafdfafsdafdafasdfa', 'extern_id_1154539615777'])
     assert response.success?
-    assert_equal '93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+    assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
   end
 
   def test_fetch_tracking_numbers_aborts_on_error

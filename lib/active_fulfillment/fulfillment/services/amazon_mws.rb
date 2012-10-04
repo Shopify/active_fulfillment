@@ -227,15 +227,11 @@ module ActiveMerchant
       def parse_tracking_response(document)
         response = {}
         response[:tracking_numbers] = {}
-        order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
-        tracking_numbers = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
 
+        tracking_numbers = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
         if tracking_numbers.present?
-          response[:tracking_numbers][order_id] = ''
-          tracking_numbers.each do |tracking_number|
-            response[:tracking_numbers][order_id] += ',' if response[:tracking_numbers][order_id].length > 0
-            response[:tracking_numbers][order_id] += tracking_number.text.strip
-          end
+          order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+          response[:tracking_numbers][order_id] = tracking_numbers.map{ |t| t.text.strip }
         end
 
         response[:response_status] = SUCCESS

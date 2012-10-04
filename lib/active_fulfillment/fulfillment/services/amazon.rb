@@ -342,7 +342,7 @@ module ActiveMerchant
         track_node = REXML::XPath.first(document, '//ns1:FulfillmentShipmentPackage/ns1:TrackingNumber')
         if track_node
           id_node = REXML::XPath.first(document, '//ns1:MerchantFulfillmentOrderId')
-          response[:tracking_numbers][id_node.text] = track_node.text
+          response[:tracking_numbers][id_node.text] = [track_node.text]
         end
 
         response[:response_status] = SUCCESS

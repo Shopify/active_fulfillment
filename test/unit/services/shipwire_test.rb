@@ -105,8 +105,8 @@ class ShipwireTest < Test::Unit::TestCase
   end
   
   def test_successful_tracking
-    expected = { "2986" => "1ZW682E90326614239",
-                 "2987" => "1ZW682E90326795080" }
+    expected = { "2986" => ["1ZW682E90326614239"],
+                 "2987" => ["1ZW682E90326795080"] }
     
     @shipwire.expects(:ssl_post).returns(successful_tracking_response)
     response = @shipwire.fetch_tracking_numbers(["2986", "2987"])
