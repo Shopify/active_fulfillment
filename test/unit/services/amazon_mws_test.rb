@@ -221,6 +221,15 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
+
+  def test_fetch_multiple_tracking_numbers
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fullfillment_order_with_multiple_tracking_numbers'))
+
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
+    assert response.success?
+    assert_equal '93YY00,93ZZ00', response.tracking_numbers['extern_id_1154539615776']
+  end
+
   def test_that_generated_requests_do_not_double_escape_spaces
     fulfillment_request = @service.send(:build_fulfillment_request, "12345", @address, @line_items, @options)
     result = @service.build_full_query(:post, URI.parse("http://example.com/someservice/2011"), fulfillment_request)
