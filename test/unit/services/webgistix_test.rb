@@ -106,7 +106,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fetch_tracking_numbers(['AB12345', 'XY4567'])
     assert response.success?
     assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
-    assert_equal '1Z8E5A380396682872', response.tracking_numbers['AB12345']
+    assert_equal ['1Z8E5A380396682872'], response.tracking_numbers['AB12345']
     assert_nil response.tracking_numbers['XY4567']
   end
   

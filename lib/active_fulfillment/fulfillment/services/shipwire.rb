@@ -234,7 +234,7 @@ module ActiveMerchant
           if node.name == 'Order'
             if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
               tracking_number = node.elements['TrackingNumber'].text 
-              response[:tracking_numbers][node.attributes['id']] = tracking_number
+              response[:tracking_numbers][node.attributes['id']] = [tracking_number]
             end
           else
             response[node.name.underscore.to_sym] = text_content(node)

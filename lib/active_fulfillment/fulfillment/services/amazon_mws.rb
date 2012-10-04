@@ -228,10 +228,10 @@ module ActiveMerchant
         response = {}
         response[:tracking_numbers] = {}
 
-        tracking_node = REXML::XPath.first(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
-        if tracking_node
-          id_node = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId")
-          response[:tracking_numbers][id_node.text.strip] = tracking_node.text.strip
+        tracking_numbers = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
+        if tracking_numbers.present?
+          order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+          response[:tracking_numbers][order_id] = tracking_numbers.map{ |t| t.text.strip }
         end
 
         response[:response_status] = SUCCESS
