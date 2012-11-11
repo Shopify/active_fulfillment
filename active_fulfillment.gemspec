@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{active_fulfillment}
-  s.version = "1.0.3"
+  s.version = "1.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cody Fauser", "James MacAulay"]
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "lib/active_fulfillment/fulfillment/services.rb",
     "lib/active_fulfillment/fulfillment/services/amazon.rb",
     "lib/active_fulfillment/fulfillment/services/shipwire.rb",
+    "lib/active_fulfillment/fulfillment/services/shipwire_beta.rb",
     "lib/active_fulfillment/fulfillment/services/webgistix.rb",
     "test/fixtures.yml",
     "test/fixtures/xml/amazon/inventory_get_response.xml",
