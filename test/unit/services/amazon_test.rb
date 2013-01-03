@@ -98,7 +98,7 @@ class AmazonTest < Test::Unit::TestCase
       
     response = @service.fetch_tracking_numbers(['TEST-00000001', 'TEST-00000002'])
     assert response.success?
-    assert_equal 'UPS00000001', response.tracking_numbers['TEST-00000001']
+    assert_equal %w{UPS00000001}, response.tracking_numbers['TEST-00000001']
     assert_nil response.tracking_numbers['TEST-00000002']
   end
 
@@ -115,7 +115,7 @@ class AmazonTest < Test::Unit::TestCase
       
     response = @service.fetch_tracking_numbers(['TEST-00000001', '#1337-1', 'TEST-00000002'])
     assert response.success?
-    assert_equal 'UPS00000001', response.tracking_numbers['TEST-00000001']
+    assert_equal %w{UPS00000001}, response.tracking_numbers['TEST-00000001']
   end
 
   def test_fetch_tracking_numbers_aborts_on_error
