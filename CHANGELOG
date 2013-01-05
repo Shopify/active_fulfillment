@@ -1,5 +1,9 @@
 = ActiveFulfillment CHANGELOG
 
+== Version 2.0.0 (Jan 5, 2013)
+
+* API Change on tracking numbers, returns array instead of single string [csaunders]
+
 == Version 1.0.3 (Jan 21, 2010)
 
 * Include "pending" counts in stock levels for Shipwire [wisq]
