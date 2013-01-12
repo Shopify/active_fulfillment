@@ -4,6 +4,8 @@ module ActiveMerchant
   module Fulfillment
     class ShipwireService < Service
 
+      self.ssl_strict = false
+
       SERVICE_URLS = { :fulfillment => 'https://api.shipwire.com/exec/FulfillmentServices.php',
                        :inventory   => 'https://api.shipwire.com/exec/InventoryServices.php',
                        :tracking    => 'https://api.shipwire.com/exec/TrackingServices.php'
