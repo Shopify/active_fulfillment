@@ -1,7 +1,7 @@
 module ActiveMerchant
   module Fulfillment
     class Service
-      
+
       include RequiresParameters
       include PostsData
       
@@ -18,6 +18,31 @@ module ActiveMerchant
       
       def test?
         @options[:test] || Base.mode == :test
+      end
+
+      # API Requirements for Implementors
+      def fulfill(order_id, shipping_address, line_items, options = {})
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
+      def fetch_stock_levels(options = {})
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
+      def fetch_stock_levels(options = {})
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
+      def fetch_tracking_numbers(order_ids, options = {})
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
+      def valid_credentials?
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
+      def test_mode?
+        raise NotImplementedError.new("Subclasses must implement")
       end
       
       private
