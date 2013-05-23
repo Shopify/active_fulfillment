@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
+class AmazonMarketplaceWebServiceTest < ActiveMerchant::Fulfillment::Test
   def setup
     @service = AmazonMarketplaceWebService.new(
                                                :login => 'l',
@@ -163,12 +163,12 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_missing_order_date
     @options.delete(:order_date)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_shipping_method
     @options.delete(:shipping_method)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_get_service_status
@@ -283,9 +283,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_building_address_skips_nil_values
     @address[:address2] = nil
-    assert_nothing_raised do
-      @service.send(:build_address, @address)
-    end
+    @service.send(:build_address, @address)
   end
 
   def test_building_a_full_query_does_not_cause_query_to_fail

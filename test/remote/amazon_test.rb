@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class RemoteAmazonTest < Test::Unit::TestCase
+class RemoteAmazonTest < ActiveMerchant::Fulfillment::Test
   # In order for these tests to work you must have a live account with Amazon.
   # You can sign up at http://amazonservices.com/fulfillment/
   # The SKUs must also exist in your inventory. You do not want the SKUs you
