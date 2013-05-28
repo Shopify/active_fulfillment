@@ -5,6 +5,23 @@ class RemoteShipwireTest < Test::Unit::TestCase
     Base.mode = :test
 
     @shipwire = ShipwireService.new( fixtures(:shipwire) )
+    @tracking = <<-XML
+    <TrackingUpdateResponse>
+    <Status>0</Status>
+    <Order id="40298" shipwireId="1234567890-1234567-1" warehouse="Chicago" shipped="NO" shipper="" shipDate="2011-03-14 11:11:40" delivered="YES" expectedDeliveryDate="2011-03-22 00:00:00" returned="NO" href="https://app.shipwire.com/c/t/xxx1:yyy1" affiliateStatus="canceled" manuallyEdited="NO"/>
+    <Order id="40298" shipwireId="1234567890-1234568-1" warehouse="Philadelphia" shipped="YES" shipper="USPS FC" shipperFullName="USPS First-Class Mail Parcel + Delivery Confirmation" shipDate="2011-03-15 10:40:06" expectedDeliveryDate="2011-03-22 00:00:00" handling="0.00" shipping="4.47" packaging="0.00" total="4.47" returned="YES" returnDate="2011-05-04 17:33:25" returnCondition="GOOD" href="https://app.shipwire.com/c/t/xxx1:yyy2" affiliateStatus="shipwireFulfilled" manuallyEdited="NO">
+    <TrackingNumber carrier="USPS" delivered="YES" deliveryDate="2011-03-21 17:10:00" href="http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793472606087">9400110200793472606087</TrackingNumber>
+    </Order>
+    <Order id="40299" shipwireId="1234567890-1234569-1" warehouse="Chicago" shipped="YES" shipper="USPS FC" shipperFullName="USPS First-Class Mail Parcel + Delivery Confirmation" shipDate="2011-04-08 09:33:10" delivered="NO" expectedDeliveryDate="2011-04-15 00:00:00" handling="0.00" shipping="4.47" packaging="0.00" total="4.47" returned="NO" href="https://app.shipwire.com/c/t/xxx1:yyy3" affiliateStatus="shipwireFulfilled" manuallyEdited="NO">
+    <TrackingNumber carrier="USPS" delivered="NO" href="http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793596422990">9400110200793596422990</TrackingNumber>
+    </Order>
+    <TotalOrders>3</TotalOrders>
+    <TotalShippedOrders>2</TotalShippedOrders>
+    <TotalProducts>8</TotalProducts>
+    <Bookmark>2011-10-22 14:13:16</Bookmark>
+    <ProcessingTime units="ms">19</ProcessingTime>
+    </TrackingUpdateResponse>
+    XML
     
     @options = { 
       :warehouse => 'LAX',
@@ -129,6 +146,14 @@ class RemoteShipwireTest < Test::Unit::TestCase
     assert response.success?    
     assert response.test?
     assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
+  end
+
+  def test_reads_tracking_url
+    response = @shipwire.parse_tracking_response(@tracking)
+    puts "#{response.inspect}"
+    assert response.success?    
+    assert response.test?
+    assert_equal '9400110200793472606087', response.tracking_numbers # no tracking numbers in testing
   end
   
   def test_valid_credentials

@@ -49,6 +49,31 @@ module ActiveMerchant
         super
       end
 
+      def parse_tracking_response(xml)
+        response = {}
+        response[:tracking_numbers] = {}
+        response[:tracking_urls] = {}
+        
+        document = REXML::Document.new(xml)
+        
+        document.root.elements.each do |node|
+          if node.name == 'Order'
+            if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
+              tracking_number = node.elements['TrackingNumber'].text 
+              tracking_url = node.elements['TrackingNumber'].attributes['href']
+              response[:tracking_numbers][node.attributes['id']] = [tracking_number]
+              response[:tracking_urls][node.attributes['id']] = [tracking_url]
+            end
+          else
+            response[node.name.underscore.to_sym] = text_content(node)
+          end
+        end
+        
+        response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
+        response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
+        response
+      end
+
       def fulfill(order_id, shipping_address, line_items, options = {})
         commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
@@ -224,27 +249,7 @@ module ActiveMerchant
         response
       end
       
-      def parse_tracking_response(xml)
-        response = {}
-        response[:tracking_numbers] = {}
-        
-        document = REXML::Document.new(xml)
-        
-        document.root.elements.each do |node|
-          if node.name == 'Order'
-            if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
-              tracking_number = node.elements['TrackingNumber'].text 
-              response[:tracking_numbers][node.attributes['id']] = [tracking_number]
-            end
-          else
-            response[node.name.underscore.to_sym] = text_content(node)
-          end
-        end
-        
-        response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
-        response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
-        response
-      end
+
       
       def message_from(string)
         return if string.blank?
