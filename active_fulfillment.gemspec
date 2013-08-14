@@ -59,7 +59,7 @@ Gem::Specification.new do |s|
     "test/unit/services/webgistix_test.rb"
   ]
 
-  s.add_dependency('activesupport', '>= 2.3.11')
+  s.add_dependency('activesupport', '~> 3.2.9')
   s.add_dependency('builder', '>= 2.0.0')
   s.add_dependency('active_utils', '>= 1.0.1')
 
