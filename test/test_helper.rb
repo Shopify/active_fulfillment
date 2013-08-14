@@ -10,7 +10,7 @@ require 'digest/md5'
 require 'active_fulfillment'
 require 'active_utils'
 
-require 'mocha'
+require 'mocha/setup'
 
 module Test
   module Unit
