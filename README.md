@@ -11,3 +11,23 @@ gem 'active_fulfillment', :git => 'git://github.com/Shopify/active_fulfillment.g
 ```
     
 # Usage
+
+# Contributors
+
+* Adrian Irving-Beer
+* Arthur Nogueira Neves
+* Blake Mesdag
+* Chris Saunders (<http://christophersaunders.ca>)
+* Cody Fauser
+* Denis Odorcic
+* Dennis Theisen
+* James MacAulay
+* Jesse HK
+* Jesse Storimer
+* John Duff
+* John Tajima
+* Jonathan Rudenberg
+* Ryan Romanchuk
+* Simon Eskildsen
+* Tobias Lütke
+* Tom Burns
