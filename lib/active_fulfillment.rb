@@ -20,16 +20,8 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
-                    
-$:.unshift File.dirname(__FILE__)
 
-begin
-  require 'active_support'
-rescue LoadError
-  require 'rubygems'
-  require 'active_support'
-end
-
+require 'active_support'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/time/calculations'
@@ -41,21 +33,14 @@ begin
 rescue LoadError
 end
 
-begin
-  require 'builder'
-rescue LoadError
-  require 'rubygems'
-  require_gem 'builder'
-end
-
-
+require 'builder'
 require 'cgi'
 require 'net/https'
 require 'rexml/document'
 require 'active_utils'
 
+require 'active_fulfillment/fulfillment/version'
 require 'active_fulfillment/fulfillment/base'
 require 'active_fulfillment/fulfillment/response'
 require 'active_fulfillment/fulfillment/service'
 require 'active_fulfillment/fulfillment/services'
-
