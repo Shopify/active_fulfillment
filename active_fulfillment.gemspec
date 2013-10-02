@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Framework and tools for dealing with shipping, tracking and order fulfillment services.}
 
-  s.add_dependency('activesupport', '~> 3.2.9')
+  s.add_dependency('activesupport', '>= 3.2.9')
   s.add_dependency('builder', '>= 2.0.0')
   s.add_dependency('active_utils', '>= 1.0.1')
 
