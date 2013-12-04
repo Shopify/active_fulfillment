@@ -23,6 +23,7 @@
 
 require 'active_support'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/time/calculations'
 require 'active_support/core_ext/date/calculations'
