@@ -112,11 +112,13 @@ class WebgistixTest < Test::Unit::TestCase
 
   def test_multiple_tracking_numbers
     @service.expects(:ssl_post).returns(xml_fixture('webgistix/multiple_tracking_response'))
+    invoice_number = '#8305090.1'
 
-    response = @service.fetch_tracking_numbers(['#8305090.1'])
+    response = @service.fetch_tracking_numbers([invoice_number])
+
     assert response.success?
     assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
-    assert_equal ['345678070437428', '546932544227'], response.tracking_numbers['#8305090.1']
+    assert_equal ['345678070437428', '546932544227'], response.tracking_numbers[invoice_number]
   end
 
   def test_failed_login
