@@ -133,6 +133,19 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal 13, response.tracking_numbers.size
   end
   
+  def test_successful_tracking_with_urls
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_tracking_response_with_tracking_urls'))
+    response = @shipwire.fetch_tracking_numbers(["40289"])
+    assert response.success?
+    assert_equal "1", response.params["total_orders"]
+    assert_equal "Test", response.params["status"]
+    assert_equal "1", response.params["total_shipped_orders"]
+
+    assert_equal ["9400110200793596422990"], response.tracking_numbers["40298"]
+    assert_equal "USPS", response.tracking_company["40298"]
+    assert_equal ["http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793596422990"], response.tracking_urls["40298"]
+  end
+
   def test_valid_credentials
     @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_empty_tracking_response'))
     assert @shipwire.valid_credentials?

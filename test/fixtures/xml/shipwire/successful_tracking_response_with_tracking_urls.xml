@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrackingUpdateResponse>
+    <Status>Test</Status>
+    <Order id="40298"
+           shipwireId="1234567890-1234569-1"
+           warehouse="Chicago"
+           shipped="YES"
+           shipper="USPS FC"
+           shipperFullName="USPS First-Class Mail Parcel + Delivery Confirmation"
+           shipDate="2011-04-08 09:33:10"
+           delivered="NO"
+           expectedDeliveryDate="2011-04-15 00:00:00"
+           handling="0.00"
+           shipping="4.47"
+           packaging="0.00"
+           total="4.47"
+           returned="NO"
+           href="https://app.shipwire.com/c/t/xxx1:yyy3"
+           affiliateStatus="shipwireFulfilled"
+           manuallyEdited="NO">
+        <TrackingNumber carrier="USPS"
+                        delivered="NO"
+                        href="http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793596422990">
+            9400110200793596422990</TrackingNumber>
+    </Order>
+    <TotalOrders>1</TotalOrders>
+    <TotalShippedOrders>1</TotalShippedOrders>
+    <TotalProducts>8</TotalProducts>
+    <Bookmark>2011-10-22 14:13:16</Bookmark>
+    <ProcessingTime units="ms">1192</ProcessingTime>
+</TrackingUpdateResponse>
