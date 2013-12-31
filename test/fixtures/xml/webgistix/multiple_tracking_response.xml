@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Orders>
+  <Shipment>
+    <InvoiceNumber>#8305090.1</InvoiceNumber>
+    <WebgistixOrderNumber>1234512</WebgistixOrderNumber>
+    <Method>FedEx Home Delivery</Method>
+    <DateShipped>2012-12-10 04:55:00 PM</DateShipped>
+    <ShipmentTrackingNumber>345678070437428</ShipmentTrackingNumber>
+    <ShippingCost>12.5000</ShippingCost>
+    <WeightInPounds>7.1</WeightInPounds>
+  </Shipment>
+  <Shipment>
+    <InvoiceNumber>#8305090.1</InvoiceNumber>
+    <WebgistixOrderNumber>1234513</WebgistixOrderNumber>
+    <Method>FedEx 2Day</Method>
+    <DateShipped>2012-12-11 10:12:00 AM</DateShipped>
+    <ShipmentTrackingNumber>546932544227</ShipmentTrackingNumber>
+    <ShippingCost>23.2800</ShippingCost>
+    <WeightInPounds>0.71</WeightInPounds>
+  </Shipment>
+</Orders>
