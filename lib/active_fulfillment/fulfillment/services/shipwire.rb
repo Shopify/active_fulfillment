@@ -225,13 +225,10 @@ module ActiveMerchant
       end
       
       def parse_tracking_response(xml)
-        response = {}
+        response = Hash.new { |hash, key| hash[key] = {} }
         response[:tracking_numbers] = {}
-        response[:tracking_company] = {}
-        response[:tracking_urls] = {}
 
         document = REXML::Document.new(xml)
-        
         document.root.elements.each do |node|
           if node.name == 'Order'
             if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
