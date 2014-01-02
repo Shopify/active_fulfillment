@@ -98,7 +98,8 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_no_tracking_numbers_available
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_empty_tracking_response'))
+    successful_empty_tracking_response = xml_fixture('shipwire/successful_empty_tracking_response')
+    @shipwire.expects(:ssl_post).returns(successful_empty_tracking_response)
     response = @shipwire.fetch_tracking_numbers(['1234'])
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers
@@ -108,7 +109,8 @@ class ShipwireTest < Test::Unit::TestCase
     expected = { "2986" => ["1ZW682E90326614239"],
                  "2987" => ["1ZW682E90326795080"] }
     
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_tracking_response'))
+    successful_tracking_response = xml_fixture('shipwire/successful_tracking_response')
+    @shipwire.expects(:ssl_post).returns(successful_tracking_response)
     response = @shipwire.fetch_tracking_numbers(["2986", "2987"])
     assert response.success?
     assert_equal "3", response.params["total_orders"]
@@ -119,7 +121,8 @@ class ShipwireTest < Test::Unit::TestCase
   end
   
   def test_successful_tracking_with_live_data
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_live_tracking_response'))
+    successful_live_tracking_response = xml_fixture('shipwire/successful_live_tracking_response')
+    @shipwire.expects(:ssl_post).returns(successful_live_tracking_response)
     response = @shipwire.fetch_tracking_numbers([
         '21',   '22',   '23',   '24',   '25',
         '26', '2581', '2576', '2593', '2598',
@@ -134,7 +137,8 @@ class ShipwireTest < Test::Unit::TestCase
   end
   
   def test_successful_tracking_with_urls
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_tracking_response_with_tracking_urls'))
+    successful_tracking_response_with_urls = xml_fixture('shipwire/successful_tracking_response_with_tracking_urls')
+    @shipwire.expects(:ssl_post).returns(successful_tracking_response_with_urls)
     response = @shipwire.fetch_tracking_numbers(["40289"])
     assert response.success?
     assert_equal "1", response.params["total_orders"]
@@ -147,12 +151,14 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_valid_credentials
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/successful_empty_tracking_response'))
+    successful_empty_tracing_response = xml_fixture('shipwire/successful_empty_tracking_response')
+    @shipwire.expects(:ssl_post).returns(successful_empty_tracing_response)
     assert @shipwire.valid_credentials?
   end
   
   def test_invalid_credentials
-    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/invalid_login_response'))
+    invalid_login_response = xml_fixture('shipwire/invalid_login_response')
+    @shipwire.expects(:ssl_post).returns(invalid_login_response)
     assert !@shipwire.valid_credentials?
   end
 
