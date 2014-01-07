@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<TrackingUpdateResponse>
+  <Status>0</Status>
+  <Order id="21" shipped="YES" shipper="5" handling="0.00" shipping="6.58" total="6.58">
+    <TrackingNumber>1Z6296VW0398500001</TrackingNumber>
+  </Order>
+  <Order id="22" shipped="YES" shipper="5" handling="0.00" shipping="8.13" total="8.13">
+    <TrackingNumber>1Z6296VW0390790002</TrackingNumber>
+  </Order>
+  <Order id="23" shipped="YES" shipper="5" handling="0.00" shipping="7.63" total="7.63">
+    <TrackingNumber>1Z6296VW0396490003</TrackingNumber>
+  </Order>
+  <Order id="24" shipped="YES" shipper="5" handling="0.00" shipping="8.97" total="8.97">
+    <TrackingNumber>1Z6296VW0390200004</TrackingNumber>
+  </Order>
+  <Order id="25" shipped="YES" shipper="5" handling="0.00" shipping="8.42" total="8.42">
+    <TrackingNumber>1Z6296VW0393240005</TrackingNumber>
+  </Order>
+  <Order id="26" shipped="YES" shipper="5" handling="0.00" shipping="8.42" total="8.42">
+    <TrackingNumber>1Z6296VW0396400006</TrackingNumber>
+  </Order>
+  <Order id="2581" shipped="YES" shipper="5" handling="0.00" shipping="8.21" total="8.21">
+    <TrackingNumber>1Z6296VW0391160007</TrackingNumber>
+  </Order>
+  <Order id="2576" shipped="YES" shipper="43" handling="0.00" shipping="18.60" total="18.60">
+    <TrackingNumber>CJ3026000018US</TrackingNumber>
+  </Order>
+  <Order id="2593" shipped="YES" shipper="5" handling="0.00" shipping="7.63" total="7.63">
+    <TrackingNumber>1Z6296VW0398660008</TrackingNumber>
+  </Order>
+  <Order id="2598" shipped="YES" shipper="5" handling="0.00" shipping="9.84" total="9.84">
+    <TrackingNumber>1Z6296VW0391610009</TrackingNumber>
+  </Order>
+  <Order id="2610" shipped="YES" shipper="5" handling="0.00" shipping="7.63" total="7.63">
+    <TrackingNumber>1Z6296VW0395650010</TrackingNumber>
+  </Order>
+  <Order id="2611" shipped="YES" shipper="5" handling="0.00" shipping="7.13" total="7.13">
+    <TrackingNumber>1Z6296VW0397050011</TrackingNumber>
+  </Order>
+  <Order id="2613" shipped="YES" shipper="5" handling="0.00" shipping="8.97" total="8.97">
+    <TrackingNumber>1Z6296VW0398970012</TrackingNumber>
+  </Order>
+  <Order id="2616" shipped="NO" shipper="5" handling="0.00" shipping="9.84" total="9.84">
+    <TrackingNumber></TrackingNumber>
+  </Order>
+  <Order id="2631" shipped="NO" shipper="" handling="" shipping="" total="">
+    <TrackingNumber></TrackingNumber>
+  </Order>
+  <TotalOrders>15</TotalOrders>
+  <TotalShippedOrders>13</TotalShippedOrders>
+  <TotalProducts/>
+  <Bookmark/>
+</TrackingUpdateResponse>
