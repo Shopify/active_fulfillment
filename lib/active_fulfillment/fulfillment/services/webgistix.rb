@@ -301,7 +301,11 @@ module ActiveMerchant
           params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
           tracking = params['ShipmentTrackingNumber']
-          response[:tracking_numbers][params['InvoiceNumber']] = [tracking] unless tracking == NOT_SHIPPED
+
+          unless tracking == NOT_SHIPPED
+            response[:tracking_numbers][params['InvoiceNumber']] ||= []
+            response[:tracking_numbers][params['InvoiceNumber']] << tracking
+          end
         end
 
         response

@@ -8,17 +8,17 @@ module ActiveMerchant
                        :inventory   => 'https://api.shipwire.com/exec/InventoryServices.php',
                        :tracking    => 'https://api.shipwire.com/exec/TrackingServices.php'
                      }
-                     
+
       SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
                       :inventory   => 'http://www.shipwire.com/exec/download/InventoryUpdate.dtd',
                       :tracking    => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd'
                     }
-                     
+
       POST_VARS = { :fulfillment => 'OrderListXML',
                     :inventory   => 'InventoryUpdateXML',
                     :tracking    => 'TrackingUpdateXML'
                   }
-  
+
       WAREHOUSES = { 'CHI' => 'Chicago',
                      'LAX' => 'Los Angeles',
                      'REN' => 'Reno',
@@ -26,7 +26,7 @@ module ActiveMerchant
                      'TOR' => 'Toronto',
                      'UK'  => 'United Kingdom'
                    }
-                   
+
       INVALID_LOGIN = /(Error with Valid Username\/EmailAddress and Password Required)|(Could not verify Username\/EmailAddress and Password combination)/
 
       class_attribute :affiliate_id
@@ -40,32 +40,32 @@ module ActiveMerchant
           ['International', 'INTL']
         ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
       end
-                  
+
       # Pass in the login and password for the shipwire account.
       # Optionally pass in the :test => true to force test mode
       def initialize(options = {})
         requires!(options, :login, :password)
-       
+
         super
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})
         commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
-      
+
       def fetch_stock_levels(options = {})
         commit :inventory, build_inventory_request(options)
       end
-      
+
       def fetch_tracking_numbers(order_ids)
         commit :tracking, build_tracking_request(order_ids)
       end
-      
+
       def valid_credentials?
         response = fetch_tracking_numbers([])
         response.message !~ INVALID_LOGIN
       end
-      
+
       def test_mode?
         true
       end
@@ -86,11 +86,11 @@ module ActiveMerchant
         xml.tag! 'OrderList' do
           add_credentials(xml)
           xml.tag! 'Referer', 'Active Fulfillment'
-          add_order(xml, order_id, shipping_address, line_items, options) 
+          add_order(xml, order_id, shipping_address, line_items, options)
         end
         xml.target!
       end
-      
+
       def build_inventory_request(options)
         xml = Builder::XmlMarkup.new :indent => 2
         xml.instruct!
@@ -102,7 +102,7 @@ module ActiveMerchant
           xml.tag! 'IncludeEmpty' if include_empty_stock?
         end
       end
-      
+
       def build_tracking_request(order_ids)
         xml = Builder::XmlMarkup.new
         xml.instruct!
@@ -144,16 +144,16 @@ module ActiveMerchant
           xml.tag! 'Name' do
             xml.tag! 'Full', address[:name]
           end
-          
+
           xml.tag! 'Address1', address[:address1]
           xml.tag! 'Address2', address[:address2]
 
           xml.tag! 'Company', address[:company]
-          
+
           xml.tag! 'City', address[:city]
           xml.tag! 'State', address[:state] unless address[:state].blank?
           xml.tag! 'Country', address[:country]
-          
+
           xml.tag! 'Zip', address[:zip]
           xml.tag! 'Phone', address[:phone] unless address[:phone].blank?
           xml.tag! 'Email', options[:email] unless options[:email].blank?
@@ -170,15 +170,15 @@ module ActiveMerchant
 
       def commit(action, request)
         data = ssl_post(SERVICE_URLS[action], "#{POST_VARS[action]}=#{CGI.escape(request)}")
-        
+
         response = parse_response(action, data)
         Response.new(response[:success], response[:message], response, :test => test?)
       end
-      
+
       def parse_response(action, data)
         case action
         when :fulfillment
-          parse_fulfillment_response(data)        
+          parse_fulfillment_response(data)
         when :inventory
           parse_inventory_response(data)
         when :tracking
@@ -187,24 +187,24 @@ module ActiveMerchant
           raise ArgumentError, "Unknown action #{action}"
         end
       end
-      
+
       def parse_fulfillment_response(xml)
         response = {}
-        
+
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
           response[node.name.underscore.to_sym] = text_content(node)
         end
-        
+
         response[:success] = response[:status] == '0'
-        response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])        
+        response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])
         response
       end
-      
+
       def parse_inventory_response(xml)
         response = {}
         response[:stock_levels] = {}
-        
+
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
           if node.name == 'Product'
@@ -217,35 +217,40 @@ module ActiveMerchant
             response[node.name.underscore.to_sym] = text_content(node)
           end
         end
-        
+
         response[:success] = test? ? response[:status] == 'Test' : response[:status] == '0'
         response[:message] = response[:success] ? "Successfully received the stock levels" : message_from(response[:error_message])
-        
+
         response
       end
-      
+
       def parse_tracking_response(xml)
-        response = {}
+        response = Hash.new { |hash, key| hash[key] = {} }
         response[:tracking_numbers] = {}
-        
+
         document = REXML::Document.new(xml)
-        
         document.root.elements.each do |node|
           if node.name == 'Order'
             if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
-              tracking_number = node.elements['TrackingNumber'].text 
+              tracking_number = node.elements['TrackingNumber'].text.strip
               response[:tracking_numbers][node.attributes['id']] = [tracking_number]
+
+              tracking_company = node.elements['TrackingNumber'].attributes['carrier']
+              response[:tracking_company][node.attributes['id']] = tracking_company.strip if tracking_company
+
+              tracking_url = node.elements['TrackingNumber'].attributes['href']
+              response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url
             end
           else
             response[node.name.underscore.to_sym] = text_content(node)
           end
         end
-        
+
         response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
         response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
         response
       end
-      
+
       def message_from(string)
         return if string.blank?
         string.gsub("\n", '').squeeze(" ")
