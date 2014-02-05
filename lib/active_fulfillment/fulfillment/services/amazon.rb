@@ -48,7 +48,7 @@ module ActiveMerchant
         "xmlns:aws" => "http://security.amazonaws.com/doc/2007-01-01/"
       }
 
-      @@digest = OpenSSL::Digest::Digest.new("sha1")
+      @@digest = OpenSSL::Digest.new("sha1")
       
       OPERATIONS = {
         :outbound => {

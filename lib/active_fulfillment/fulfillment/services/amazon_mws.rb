@@ -312,7 +312,7 @@ module ActiveMerchant
       end
 
       def md5_content(content)
-        Base64.encode64(OpenSSL::Digest::Digest.new('md5', content).digest).chomp
+        Base64.encode64(OpenSSL::Digest.new('md5', content).digest).chomp
       end
 
       def build_query(query_params)
