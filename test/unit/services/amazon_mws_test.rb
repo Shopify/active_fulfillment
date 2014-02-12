@@ -23,6 +23,17 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       :zip => '90210',
       :phone => "(555)555-5555"
     }
+
+    @canadian_address = { 
+      :name => 'Johnny Bouchard',
+      :address1 => '100 Canuck St',
+      :address2 => 'Room 56',
+      :city => 'Ottawa',
+      :state => 'ON',
+      :country => 'CA',
+      :zip => 'h0h0h0',
+      :phone => "(555)555-5555"
+    }
     
     @line_items = [
                    { :sku => 'SETTLERS1',
@@ -108,6 +119,11 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "DestinationAddress.PhoneNumber" => @address[:phone]
     }
     assert_equal expected_items, @service.build_address(@address)
+  end
+
+  def test_build_address_upcases_postal_code
+    address = @service.build_address(@canadian_address)
+    assert_equal address["DestinationAddress.PostalCode"], "H0H0H0" 
   end
 
   def test_build_address_with_missing_fields

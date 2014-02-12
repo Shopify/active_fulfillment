@@ -263,7 +263,7 @@ module ActiveMerchant
           xml.tag! 'City', address[:city]
           xml.tag! 'StateOrProvinceCode', address[:state]
           xml.tag! 'CountryCode', address[:country]
-          xml.tag! 'PostalCode', address[:zip].upcase
+          xml.tag! 'PostalCode', address[:zip]
           xml.tag! 'PhoneNumber', address[:phone]  unless address[:phone].blank?
         end
       end
