@@ -139,7 +139,7 @@ class AmazonTest < Test::Unit::TestCase
     response = @service.fetch_tracking_data(['TEST-00000001'])
     assert response.success?
     assert_equal %w{UPS00000001}, response.tracking_numbers['TEST-00000001']
-    assert_equal({}, response.tracking_companies)
+    assert_equal %W{UPS}, response.tracking_companies['TEST-00000001']
     assert_equal({}, response.tracking_urls)
   end
 

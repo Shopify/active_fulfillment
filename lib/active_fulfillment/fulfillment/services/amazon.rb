@@ -368,6 +368,13 @@ module ActiveMerchant
         response = parse_tracking_number_response(document)
         response[:tracking_companies] = {}
         response[:tracking_urls] = {}
+
+        company_node = REXML::XPath.first(document, '//ns1:FulfillmentShipmentPackage/ns1:CarrierCode')
+        if company_node
+          id_node = REXML::XPath.first(document, '//ns1:MerchantFulfillmentOrderId')
+          response[:tracking_companies][id_node.text] = [company_node.text]
+        end
+
         response
       end
 
