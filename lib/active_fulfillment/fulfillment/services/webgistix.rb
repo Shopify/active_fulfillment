@@ -2,9 +2,10 @@ module ActiveMerchant
   module Fulfillment
     class WebgistixService < Service
       SERVICE_URLS = {
-        :fulfillment => 'https://www.webgistix.com/XML/CreateOrder.asp',
-        :inventory => 'https://www.webgistix.com/XML/GetInventory.asp',
-        :tracking  => 'https://www.webgistix.com/XML/GetTracking.asp'
+        :fulfillment       => 'https://www.webgistix.com/XML/CreateOrder.asp',
+        :inventory         => 'https://www.webgistix.com/XML/GetInventory.asp',
+        :tracking_numbers  => 'https://www.webgistix.com/XML/GetTracking.asp',
+        :tracking_data     => 'https://www.webgistix.com/XML/GetTracking.asp'
       }
       TEST_URLS = SERVICE_URLS.merge({
         :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
@@ -298,7 +299,7 @@ module ActiveMerchant
         response
       end
 
-      def parse_tracking_number_response(document)
+      def parse_tracking_number_response(document, &blk)
         response = parse_errors(document)
         response[:tracking_numbers] = {}
 
@@ -312,14 +313,22 @@ module ActiveMerchant
             response[:tracking_numbers][params['InvoiceNumber']] ||= []
             response[:tracking_numbers][params['InvoiceNumber']] << tracking
           end
+          yield(params, response) if block_given?
         end
 
         response
       end
 
       def parse_tracking_data_response(document)
-        response = parse_tracking_number_response(document)
-        response[:tracking_companies] = {}
+        response = parse_tracking_number_response(document) do |params, response|
+          company = params['Method'].split[0] if params['Method']
+          response[:tracking_companies] ||= {}
+          if ['UPS', 'FedEx', 'USPS'].include? company
+            response[:tracking_companies][params['InvoiceNumber']] ||= []
+            response[:tracking_companies][params['InvoiceNumber']] << company
+          end
+        end
+
         response[:tracking_urls] = {}
         response
       end

@@ -129,7 +129,7 @@ class WebgistixTest < Test::Unit::TestCase
     assert response.success?
     assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal ['1Z8E5A380396682872'], response.tracking_numbers['AB12345']
-    assert_equal({}, response.tracking_companies)
+    assert_equal ['UPS'], response.tracking_companies['AB12345']
     assert_equal({}, response.tracking_urls)
   end
 
