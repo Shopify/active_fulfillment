@@ -4,18 +4,18 @@ module ActiveMerchant
 
       include RequiresParameters
       include PostsData
-      
+
       def initialize(options = {})
         check_test_mode(options)
-        
+
         @options = {}
         @options.update(options)
       end
-      
+
       def test_mode?
         false
       end
-      
+
       def test?
         @options[:test] || Base.mode == :test
       end
@@ -37,6 +37,10 @@ module ActiveMerchant
         raise NotImplementedError.new("Subclasses must implement")
       end
 
+      def fetch_tracking_data(order_ids, options = {})
+        raise NotImplementedError.new("Subclasses must implement")
+      end
+
       def valid_credentials?
         raise NotImplementedError.new("Subclasses must implement")
       end
@@ -44,7 +48,7 @@ module ActiveMerchant
       def test_mode?
         raise NotImplementedError.new("Subclasses must implement")
       end
-      
+
       private
       def check_test_mode(options)
         if options[:test] and not test_mode?
