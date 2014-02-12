@@ -257,6 +257,13 @@ module ActiveMerchant
         response = parse_tracking_number_response(document)
         response[:tracking_companies] = {}
         response[:tracking_urls] = {}
+
+        tracking_companies = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/CarrierCode")
+        if tracking_companies.present?
+          order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+          response[:tracking_companies][order_id] = tracking_companies.map{ |t| t.text.strip }
+        end
+
         response
       end
 

@@ -251,7 +251,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     response = @service.fetch_tracking_data(['extern_id_1154539615776'])
     assert response.success?
     assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
-    assert_equal({}, response.tracking_companies)
+    assert_equal %w{UPS}, response.tracking_companies['extern_id_1154539615776']
     assert_equal({}, response.tracking_urls)
   end
 
