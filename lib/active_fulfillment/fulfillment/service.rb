@@ -34,7 +34,10 @@ module ActiveMerchant
       end
 
       def fetch_tracking_numbers(order_ids, options = {})
-        raise NotImplementedError.new("Subclasses must implement")
+        response = fetch_tracking_data(order_ids, options)
+        response.params.delete('tracking_companies')
+        response.params.delete('tracking_urls')
+        response
       end
 
       def fetch_tracking_data(order_ids, options = {})

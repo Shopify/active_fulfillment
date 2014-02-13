@@ -2,10 +2,9 @@ module ActiveMerchant
   module Fulfillment
     class WebgistixService < Service
       SERVICE_URLS = {
-        :fulfillment       => 'https://www.webgistix.com/XML/CreateOrder.asp',
-        :inventory         => 'https://www.webgistix.com/XML/GetInventory.asp',
-        :tracking_numbers  => 'https://www.webgistix.com/XML/GetTracking.asp',
-        :tracking_data     => 'https://www.webgistix.com/XML/GetTracking.asp'
+        :fulfillment => 'https://www.webgistix.com/XML/CreateOrder.asp',
+        :inventory   => 'https://www.webgistix.com/XML/GetInventory.asp',
+        :tracking    => 'https://www.webgistix.com/XML/GetTracking.asp'
       }
       TEST_URLS = SERVICE_URLS.merge({
         :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
@@ -19,6 +18,8 @@ module ActiveMerchant
 
       INVALID_LOGIN = 'Invalid Credentials'
       NOT_SHIPPED = 'Not Shipped'
+
+      TRACKING_COMPANIES = %w(UPS FedEx USPS)
 
       # If a request is detected as a duplicate only the original data will be
       # used by Webgistix, and the subsequent responses will have a
@@ -81,12 +82,8 @@ module ActiveMerchant
         commit :inventory, build_inventory_request(options)
       end
 
-      def fetch_tracking_numbers(order_ids, options = {})
-        commit :tracking_numbers, build_tracking_request(order_ids, options)
-      end
-
       def fetch_tracking_data(order_ids, options = {})
-        commit :tracking_data, build_tracking_request(order_ids, options)
+        commit :tracking, build_tracking_request(order_ids, options)
       end
 
       def valid_credentials?
@@ -259,10 +256,8 @@ module ActiveMerchant
           parse_fulfillment_response(document)
         when :inventory
           parse_inventory_response(document)
-        when :tracking_numbers
-          parse_tracking_number_response(document)
-        when :tracking_data
-          parse_tracking_data_response(document)
+        when :tracking
+          parse_tracking_response(document)
         else
           raise ArgumentError, "Unknown action #{action}"
         end
@@ -299,9 +294,11 @@ module ActiveMerchant
         response
       end
 
-      def parse_tracking_number_response(document, &blk)
+      def parse_tracking_response(document)
         response = parse_errors(document)
         response[:tracking_numbers] = {}
+        response[:tracking_companies] = {}
+        response[:tracking_urls] = {}
 
         document.root.each_element('//Shipment') do |node|
           # {InvoiceNumber => 'SOME-ID', ShipmentTrackingNumber => 'SOME-TRACKING-NUMBER'}
@@ -313,23 +310,14 @@ module ActiveMerchant
             response[:tracking_numbers][params['InvoiceNumber']] ||= []
             response[:tracking_numbers][params['InvoiceNumber']] << tracking
           end
-          yield(params, response) if block_given?
-        end
 
-        response
-      end
-
-      def parse_tracking_data_response(document)
-        response = parse_tracking_number_response(document) do |params, response|
           company = params['Method'].split[0] if params['Method']
-          response[:tracking_companies] ||= {}
-          if ['UPS', 'FedEx', 'USPS'].include? company
+          if TRACKING_COMPANIES.include? company
             response[:tracking_companies][params['InvoiceNumber']] ||= []
             response[:tracking_companies][params['InvoiceNumber']] << company
           end
         end
 
-        response[:tracking_urls] = {}
         response
       end
 

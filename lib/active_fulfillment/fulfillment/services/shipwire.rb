@@ -4,22 +4,19 @@ module ActiveMerchant
   module Fulfillment
     class ShipwireService < Service
 
-      SERVICE_URLS = { :fulfillment      => 'https://api.shipwire.com/exec/FulfillmentServices.php',
-                       :inventory        => 'https://api.shipwire.com/exec/InventoryServices.php',
-                       :tracking_numbers => 'https://api.shipwire.com/exec/TrackingServices.php',
-                       :tracking_data    => 'https://api.shipwire.com/exec/TrackingServices.php'
+      SERVICE_URLS = { :fulfillment  => 'https://api.shipwire.com/exec/FulfillmentServices.php',
+                       :inventory    => 'https://api.shipwire.com/exec/InventoryServices.php',
+                       :tracking     => 'https://api.shipwire.com/exec/TrackingServices.php'
                      }
 
-      SCHEMA_URLS = { :fulfillment         => 'http://www.shipwire.com/exec/download/OrderList.dtd',
-                      :inventory           => 'http://www.shipwire.com/exec/download/InventoryUpdate.dtd',
-                      :tracking_numbers    => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd',
-                      :tracking_data       => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd'
+      SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
+                      :inventory   => 'http://www.shipwire.com/exec/download/InventoryUpdate.dtd',
+                      :tracking    => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd'
                     }
 
-      POST_VARS = { :fulfillment         => 'OrderListXML',
-                    :inventory           => 'InventoryUpdateXML',
-                    :tracking_numbers    => 'TrackingUpdateXML',
-                    :tracking_data       => 'TrackingUpdateXML'
+      POST_VARS = { :fulfillment => 'OrderListXML',
+                    :inventory   => 'InventoryUpdateXML',
+                    :tracking    => 'TrackingUpdateXML'
                   }
 
       WAREHOUSES = { 'CHI' => 'Chicago',
@@ -60,12 +57,8 @@ module ActiveMerchant
         commit :inventory, build_inventory_request(options)
       end
 
-      def fetch_tracking_numbers(order_ids)
-        commit :tracking_numbers, build_tracking_request(order_ids)
-      end
-
-      def fetch_tracking_data(order_ids)
-        commit :tracking_data, build_tracking_request(order_ids)
+      def fetch_tracking_data(order_ids, options = {})
+        commit :tracking, build_tracking_request(order_ids)
       end
 
       def valid_credentials?
@@ -188,10 +181,8 @@ module ActiveMerchant
           parse_fulfillment_response(data)
         when :inventory
           parse_inventory_response(data)
-        when :tracking_numbers
-          parse_tracking_number_response(data)
-        when :tracking_data
-          parse_tracking_data_response(data)
+        when :tracking
+          parse_tracking_response(data)
         else
           raise ArgumentError, "Unknown action #{action}"
         end
@@ -233,9 +224,11 @@ module ActiveMerchant
         response
       end
 
-      def parse_tracking_number_response(xml, &blk)
-        response = Hash.new { |hash, key| hash[key] = {} }
+      def parse_tracking_response(xml)
+        response = {}
         response[:tracking_numbers] = {}
+        response[:tracking_companies] = {}
+        response[:tracking_urls] = {}
 
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
@@ -243,7 +236,12 @@ module ActiveMerchant
             if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
               tracking_number = node.elements['TrackingNumber'].text.strip
               response[:tracking_numbers][node.attributes['id']] = [tracking_number]
-              yield(node, response) if block_given?
+
+              tracking_company = node.elements['TrackingNumber'].attributes['carrier']
+              response[:tracking_companies][node.attributes['id']] = tracking_company.strip if tracking_company
+
+              tracking_url = node.elements['TrackingNumber'].attributes['href']
+              response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url
             end
           else
             response[node.name.underscore.to_sym] = text_content(node)
@@ -252,20 +250,6 @@ module ActiveMerchant
 
         response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
         response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
-        response
-      end
-
-      def parse_tracking_data_response(xml)
-        response = parse_tracking_number_response(xml) do |node, response|
-          tracking_company = node.elements['TrackingNumber'].attributes['carrier']
-          response[:tracking_companies][node.attributes['id']] = tracking_company if tracking_company
-
-          tracking_url = node.elements['TrackingNumber'].attributes['href']
-          response[:tracking_urls][node.attributes['id']] = [tracking_url] if tracking_url
-        end
-
-        response[:tracking_companies] ||= {}
-        response[:tracking_urls] ||= {}
         response
       end
 

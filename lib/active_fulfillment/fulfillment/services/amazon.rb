@@ -115,20 +115,10 @@ module ActiveMerchant
         end
       end
 
-      def fetch_tracking_numbers(order_ids, options = {})
-        order_ids.inject(nil) do |previous, o_id|
-          response = commit :outbound, :tracking_numbers, build_tracking_request(o_id, options)
-          return response if !response.success?
-
-          response.tracking_numbers.merge!(previous.tracking_numbers) if previous
-          response
-        end
-      end
-
       def fetch_tracking_data(order_ids, options = {})
         order_ids.inject(nil) do |previous, o_id|
-          response = commit :outbound, :tracking_data, build_tracking_request(o_id, options)
-          return response if !response.success?
+          response = commit :outbound, :tracking, build_tracking_request(o_id, options)
+          return response unless response.success?
 
           if previous
             response.tracking_numbers.merge!(previous.tracking_numbers)
@@ -284,7 +274,7 @@ module ActiveMerchant
       def handle_error(e)
         response = parse_error(e.response)
         if response.fetch(:faultstring, "") =~ /Reason: requested order not found./
-          Response.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}})
+          Response.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}, :tracking_companies => {}, :tracking_urls => {}})
         else
           Response.new(false, message_from(response), response)
         end
@@ -308,10 +298,8 @@ module ActiveMerchant
         case service
         when :outbound
           case op
-          when :tracking_numbers
-            parse_tracking_number_response(document)
-          when :tracking_data
-            parse_tracking_data_response(document)
+          when :tracking
+            parse_tracking_response(document)
           else
             parse_fulfillment_response(op, document)
           end
@@ -350,9 +338,11 @@ module ActiveMerchant
         response
       end
 
-      def parse_tracking_number_response(document)
+      def parse_tracking_response(document)
         response = {}
         response[:tracking_numbers] = {}
+        response[:tracking_companies] = {}
+        response[:tracking_urls] = {}
 
         track_node = REXML::XPath.first(document, '//ns1:FulfillmentShipmentPackage/ns1:TrackingNumber')
         if track_node
@@ -360,21 +350,13 @@ module ActiveMerchant
           response[:tracking_numbers][id_node.text] = [track_node.text]
         end
 
-        response[:response_status] = SUCCESS
-        response
-      end
-
-      def parse_tracking_data_response(document)
-        response = parse_tracking_number_response(document)
-        response[:tracking_companies] = {}
-        response[:tracking_urls] = {}
-
         company_node = REXML::XPath.first(document, '//ns1:FulfillmentShipmentPackage/ns1:CarrierCode')
         if company_node
           id_node = REXML::XPath.first(document, '//ns1:MerchantFulfillmentOrderId')
           response[:tracking_companies][id_node.text] = [company_node.text]
         end
 
+        response[:response_status] = SUCCESS
         response
       end
 
