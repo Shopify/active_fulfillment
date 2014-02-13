@@ -4,9 +4,9 @@ module ActiveMerchant
   module Fulfillment
     class ShipwireService < Service
 
-      SERVICE_URLS = { :fulfillment => 'https://api.shipwire.com/exec/FulfillmentServices.php',
-                       :inventory   => 'https://api.shipwire.com/exec/InventoryServices.php',
-                       :tracking    => 'https://api.shipwire.com/exec/TrackingServices.php'
+      SERVICE_URLS = { :fulfillment  => 'https://api.shipwire.com/exec/FulfillmentServices.php',
+                       :inventory    => 'https://api.shipwire.com/exec/InventoryServices.php',
+                       :tracking     => 'https://api.shipwire.com/exec/TrackingServices.php'
                      }
 
       SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
@@ -57,7 +57,7 @@ module ActiveMerchant
         commit :inventory, build_inventory_request(options)
       end
 
-      def fetch_tracking_numbers(order_ids)
+      def fetch_tracking_data(order_ids, options = {})
         commit :tracking, build_tracking_request(order_ids)
       end
 
@@ -225,8 +225,10 @@ module ActiveMerchant
       end
 
       def parse_tracking_response(xml)
-        response = Hash.new { |hash, key| hash[key] = {} }
+        response = {}
         response[:tracking_numbers] = {}
+        response[:tracking_companies] = {}
+        response[:tracking_urls] = {}
 
         document = REXML::Document.new(xml)
         document.root.elements.each do |node|
@@ -236,7 +238,7 @@ module ActiveMerchant
               response[:tracking_numbers][node.attributes['id']] = [tracking_number]
 
               tracking_company = node.elements['TrackingNumber'].attributes['carrier']
-              response[:tracking_company][node.attributes['id']] = tracking_company.strip if tracking_company
+              response[:tracking_companies][node.attributes['id']] = tracking_company.strip if tracking_company
 
               tracking_url = node.elements['TrackingNumber'].attributes['href']
               response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url

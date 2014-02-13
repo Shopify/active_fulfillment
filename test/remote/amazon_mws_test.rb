@@ -20,7 +20,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
       :country => 'US',
       :zip => '90210'
     }
-    
+
     @line_items = [
                    { :sku => 'SETTLERS',
                      :quantity => 1 #,
@@ -50,13 +50,13 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
       :login => 'y',
       :password => 'p',
       :seller_id => 'o')
-    
+
     response = service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
     assert !response.success?
-    
+
     assert_equal "InvalidAccessKeyId: The AWS Access Key Id you provided does not exist in our records.", response.response_comment
   end
-  
+
   def test_list_orders
     response = @service.fetch_current_orders
     assert response.success?
@@ -73,23 +73,30 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
     assert response.success?
     assert_equal 0, response.stock_levels['SETTLERS']
   end
-  
+
+  def test_fetch_tracking_data
+    response = @service.fetch_tracking_data(['123456']) # an actual order
+    assert response.success?
+    assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
+    assert_equal Hash.new, response.tracking_companies
+  end
+
   def test_fetch_tracking_numbers
     response = @service.fetch_tracking_numbers(['123456']) # an actual order
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
   end
-  
+
   def test_fetch_tracking_numbers_ignores_not_found
     response = @service.fetch_tracking_numbers(['1337-1'])
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers
   end
-  
+
   def test_valid_credentials
     assert @service.valid_credentials?
   end
-  
+
   def test_invalid_credentials
     service = AmazonMarketplaceWebService.new(
       :login => 'your@email.com',
@@ -97,7 +104,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
       :seller_id => 'SellerNumber1')
     assert !service.valid_credentials?
   end
-  
+
   def test_get_status_does_not_require_valid_credentials
     service = AmazonMarketplaceWebService.new(
       :login => 'your@email.com',
@@ -105,7 +112,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
     response = service.status
     assert response.success?
   end
-  
+
   def test_get_status
     service = AmazonMarketplaceWebService.new(fixtures(:amazon))
     response = service.status

@@ -20,7 +20,7 @@ module ActiveMerchant
         :status => {
           'Accepted' => 'Success',
           'Failure'  => 'Failed',
-          'Error'    => 'An error occurred'          
+          'Error'    => 'An error occurred'
         },
         :create => {
           'Accepted' => 'Successfully submitted the order',
@@ -31,7 +31,7 @@ module ActiveMerchant
           'Accepted' => 'Successfully submitted request',
           'Failure'  => 'Failed to submit request',
           'Error'    => 'An error occurred while submitting request'
-          
+
         }
       }
 
@@ -98,7 +98,7 @@ module ActiveMerchant
       # Expedited: 2 business days
       # Priority:  1 business day
       def self.shipping_methods
-        [ 
+        [
           [ 'Standard Shipping', 'Standard' ],
           [ 'Expedited Shipping', 'Expedited' ],
           [ 'Priority Shipping', 'Priority' ]
@@ -146,23 +146,18 @@ module ActiveMerchant
         response
       end
 
-      def fetch_tracking_numbers(order_ids, options = {})
+      def fetch_tracking_data(order_ids, options = {})
         order_ids.reduce(nil) do |previous, order_id|
-          response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
+        response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
+        return response if !response.success?
 
-          if !response.success?
-            if response.faultstring.match(/^Requested order \'.+\' not found$/)
-              response = Response.new(true, nil, {
-                                        :status => SUCCESS,
-                                        :tracking_numbers => {}
-                                      })
-            else
-              return response
-            end
-          end
+        if previous
+          response.tracking_numbers.merge!(previous.tracking_numbers)
+          response.tracking_companies.merge!(previous.tracking_companies)
+          response.tracking_urls.merge!(previous.tracking_urls)
+        end
 
-          response.tracking_numbers.merge!(previous.tracking_numbers) if previous
-          response
+        response
         end
       end
 
@@ -188,8 +183,16 @@ module ActiveMerchant
         response = parse_response(service, op, data)
         Response.new(success?(response), message_from(response), response)
       rescue ActiveMerchant::ResponseError => e
+        handle_error(e)
+      end
+
+      def handle_error(e)
         response = parse_error(e.response)
-        Response.new(false, message_from(response), response)
+        if response.fetch(:faultstring, "").match(/^Requested order \'.+\' not found$/)
+          Response.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}, :tracking_companies => {}, :tracking_urls => {}})
+        else
+          Response.new(false, message_from(response), response)
+        end
       end
 
       def success?(response)
@@ -227,11 +230,19 @@ module ActiveMerchant
       def parse_tracking_response(document)
         response = {}
         response[:tracking_numbers] = {}
+        response[:tracking_companies] = {}
+        response[:tracking_urls] = {}
 
         tracking_numbers = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
         if tracking_numbers.present?
           order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
           response[:tracking_numbers][order_id] = tracking_numbers.map{ |t| t.text.strip }
+        end
+
+        tracking_companies = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/CarrierCode")
+        if tracking_companies.present?
+          order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+          response[:tracking_companies][order_id] = tracking_companies.map{ |t| t.text.strip }
         end
 
         response[:response_status] = SUCCESS
@@ -251,10 +262,10 @@ module ActiveMerchant
 
           response[:stock_levels][params['SellerSKU']] = params['InStockSupplyQuantity'].to_i
         end
-        
+
         next_token = REXML::XPath.first(document, '//NextToken')
         response[:next_token] = next_token ? next_token.text : nil
-        
+
         response[:response_status] = SUCCESS
         response
       end
@@ -347,7 +358,7 @@ module ActiveMerchant
           :ShippingSpeedCategory => options[:shipping_method]
         }
         params[:DisplayableOrderComment] = options[:comment] if options[:comment]
-        
+
         request = build_basic_api_query(params.merge(options))
         request = request.merge build_address(shipping_address)
         request = request.merge build_items(line_items)

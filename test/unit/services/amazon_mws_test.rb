@@ -6,14 +6,14 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
                                                :login => 'l',
                                                :password => 'p'
                                                )
-    
-    @options = { 
+
+    @options = {
       :shipping_method => 'Standard',
       :order_date => Time.now.utc.yesterday,
       :comment => "Delayed due to tornados"
     }
-    
-    @address = { 
+
+    @address = {
       :name => 'Johnny Chase',
       :address1 => '100 Information Super Highway',
       :address2 => 'Suite 66',
@@ -24,7 +24,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       :phone => "(555)555-5555"
     }
 
-    @canadian_address = { 
+    @canadian_address = {
       :name => 'Johnny Bouchard',
       :address1 => '100 Canuck St',
       :address2 => 'Room 56',
@@ -34,7 +34,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       :zip => 'h0h0h0',
       :phone => "(555)555-5555"
     }
-    
+
     @line_items = [
                    { :sku => 'SETTLERS1',
                      :quantity => 1,
@@ -88,7 +88,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "Action" => "SubmitFeed",
       "FeedType" => "_POST_INVENTORY_AVAILABILITY_DATA_",
       "Marketplace" => "ATExampleER",
-      "Merchant" => "A1ExampleE6", 
+      "Merchant" => "A1ExampleE6",
       "SignatureMethod" => "HmacSHA256",
       "SignatureVersion" => "2",
       "Timestamp" => "2009-08-20T01:10:27.607Z",
@@ -96,7 +96,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     }
 
     uri = URI.parse("https://#{AmazonMarketplaceWebService::ENDPOINTS[:us]}")
-    
+
     assert_equal expected_signature, service.sign(:POST, uri, options)
   end
 
@@ -123,7 +123,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_build_address_upcases_postal_code
     address = @service.build_address(@canadian_address)
-    assert_equal address["DestinationAddress.PostalCode"], "H0H0H0" 
+    assert_equal address["DestinationAddress.PostalCode"], "H0H0H0"
   end
 
   def test_build_address_with_missing_fields
@@ -159,7 +159,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     }
 
     actual_items = @service.build_items(@line_items)
-                        
+
     assert_equal expected_items, @service.build_items(@line_items)
   end
 
@@ -207,14 +207,14 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     @service.expects(:ssl_post).with() { |uri, query, headers|
       query.include?('ListInventorySupply') && !query.include?('ListInventorySupplyByNextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
-    
+
     @service.expects(:ssl_post).with() { |uri, query, headers|
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
     response = @service.fetch_stock_levels
     assert response.success?
-    
+
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
     assert_equal 0, response.stock_levels['GN-01-01A']
@@ -237,13 +237,22 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
-
   def test_fetch_multiple_tracking_numbers
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fullfillment_order_with_multiple_tracking_numbers'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
     assert response.success?
     assert_equal %w{93YY00 93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
+  end
+
+  def test_fetch_tracking_data
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
+
+    response = @service.fetch_tracking_data(['extern_id_1154539615776'])
+    assert response.success?
+    assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
+    assert_equal %w{UPS}, response.tracking_companies['extern_id_1154539615776']
+    assert_equal({}, response.tracking_urls)
   end
 
   def test_that_generated_requests_do_not_double_escape_spaces

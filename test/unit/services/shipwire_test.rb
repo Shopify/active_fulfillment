@@ -3,18 +3,18 @@ require 'test_helper'
 class ShipwireTest < Test::Unit::TestCase
   def setup
     Base.mode = :test
-    
+
     @shipwire = ShipwireService.new(
                   :login => 'cody@example.com',
                   :password => 'test'
                 )
-    
-    @options = { 
+
+    @options = {
       :warehouse => '01',
       :shipping_method => 'UPS Ground'
     }
-    
-    @address = { 
+
+    @address = {
       :name => 'Fred Brooks',
       :address1 => '1234 Penny Lane',
       :city => 'Jonsetown',
@@ -24,28 +24,28 @@ class ShipwireTest < Test::Unit::TestCase
       :company => 'MyCorp',
       :email    => 'buyer@jadedpallet.com'
     }
-    
+
     @line_items = [ { :sku => '9999', :quantity => 25 } ]
-  end 
-  
+  end
+
   def test_missing_login
     assert_raise(ArgumentError) do
       ShipwireService.new(:password => 'test')
     end
   end
-  
+
   def test_missing_password
     assert_raise(ArgumentError) do
       ShipwireService.new(:login => 'cody')
     end
   end
-  
+
   def test_missing_credentials
     assert_raise(ArgumentError) do
       ShipwireService.new(:password => 'test')
     end
   end
-  
+
   def test_credentials_present
     assert_nothing_raised do
       ShipwireService.new(
@@ -54,7 +54,7 @@ class ShipwireTest < Test::Unit::TestCase
       )
     end
   end
-  
+
   def test_country_format
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     country_node = REXML::XPath.first(xml, "//Country")
@@ -104,11 +104,11 @@ class ShipwireTest < Test::Unit::TestCase
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers
   end
-  
+
   def test_successful_tracking
     expected = { "2986" => ["1ZW682E90326614239"],
                  "2987" => ["1ZW682E90326795080"] }
-    
+
     successful_tracking_response = xml_fixture('shipwire/successful_tracking_response')
     @shipwire.expects(:ssl_post).returns(successful_tracking_response)
     response = @shipwire.fetch_tracking_numbers(["2986", "2987"])
@@ -116,10 +116,10 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal "3", response.params["total_orders"]
     assert_equal "Test", response.params["status"]
     assert_equal "2", response.params["total_shipped_orders"]
-    
+
     assert_equal expected, response.tracking_numbers
   end
-  
+
   def test_successful_tracking_with_live_data
     successful_live_tracking_response = xml_fixture('shipwire/successful_live_tracking_response')
     @shipwire.expects(:ssl_post).returns(successful_live_tracking_response)
@@ -132,21 +132,21 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal "15", response.params["total_orders"]
     assert_equal "0", response.params["status"]
     assert_equal "13", response.params["total_shipped_orders"]
-    
+
     assert_equal 13, response.tracking_numbers.size
   end
-  
+
   def test_successful_tracking_with_urls
     successful_tracking_response_with_urls = xml_fixture('shipwire/successful_tracking_response_with_tracking_urls')
     @shipwire.expects(:ssl_post).returns(successful_tracking_response_with_urls)
-    response = @shipwire.fetch_tracking_numbers(["40289"])
+    response = @shipwire.fetch_tracking_data(["40289"])
     assert response.success?
     assert_equal "1", response.params["total_orders"]
     assert_equal "Test", response.params["status"]
     assert_equal "1", response.params["total_shipped_orders"]
 
     assert_equal ["9400110200793596422990"], response.tracking_numbers["40298"]
-    assert_equal "USPS", response.tracking_company["40298"]
+    assert_equal "USPS", response.tracking_companies["40298"]
     assert_equal ["http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793596422990"], response.tracking_urls["40298"]
   end
 
@@ -155,7 +155,7 @@ class ShipwireTest < Test::Unit::TestCase
     @shipwire.expects(:ssl_post).returns(successful_empty_tracing_response)
     assert @shipwire.valid_credentials?
   end
-  
+
   def test_invalid_credentials
     invalid_login_response = xml_fixture('shipwire/invalid_login_response')
     @shipwire.expects(:ssl_post).returns(invalid_login_response)
@@ -173,7 +173,7 @@ class ShipwireTest < Test::Unit::TestCase
   def test_company_name_in_request
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     company_node = REXML::XPath.first(xml, "//Company")
-    assert_equal 'MyCorp', company_node.text 
+    assert_equal 'MyCorp', company_node.text
   end
 
   def test_order_excludes_note_by_default
