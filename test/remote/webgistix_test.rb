@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class RemoteWebgistixTest < Test::Unit::TestCase
+class RemoteWebgistixTest < ActiveMerchant::Fulfillment::Test
   def setup
     Base.mode = :test
 

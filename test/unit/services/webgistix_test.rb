@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class WebgistixTest < Test::Unit::TestCase
+class WebgistixTest < ActiveMerchant::Fulfillment::Test
    def setup
      Base.mode = :test
 
@@ -30,30 +30,28 @@ class WebgistixTest < Test::Unit::TestCase
   end
 
   def test_missing_login
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       WebgistixService.new(:password => 'test')
     end
   end
 
   def test_missing_password
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       WebgistixService.new(:login => 'cody')
     end
   end
 
   def test_missing_credentials
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       WebgistixService.new(:password => 'test')
     end
   end
 
   def test_credentials_present
-    assert_nothing_raised do
-      WebgistixService.new(
-        :login    => 'cody',
-        :password => 'test'
+    assert WebgistixService.new(
+      :login    => 'cody',
+      :password => 'test'
       )
-    end
   end
 
   def test_successful_fulfillment

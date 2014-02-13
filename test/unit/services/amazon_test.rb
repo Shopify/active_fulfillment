@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class AmazonTest < Test::Unit::TestCase
+class AmazonTest < ActiveMerchant::Fulfillment::Test
    def setup
      @service = AmazonService.new(
                   :login => 'l',
@@ -46,17 +46,17 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_missing_order_comment
     @options.delete(:comment)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_order_date
     @options.delete(:order_date)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_shipping_method
     @options.delete(:shipping_method)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_get_inventory

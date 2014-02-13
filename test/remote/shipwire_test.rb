@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class RemoteShipwireTest < Test::Unit::TestCase
+class RemoteShipwireTest < ActiveMerchant::Fulfillment::Test
   def setup
     Base.mode = :test
 
@@ -94,7 +94,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
 
     assert response.success?
     assert response.test?
-    assert_not_nil response.params['transaction_id']
+    assert response.params['transaction_id'], 'transaction_id should not be nil'
     assert_equal "1", response.params['total_orders']
     assert_equal "0", response.params['total_items']
     assert_equal "0", response.params['status']

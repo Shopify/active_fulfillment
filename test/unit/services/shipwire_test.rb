@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ShipwireTest < Test::Unit::TestCase
+class ShipwireTest < ActiveMerchant::Fulfillment::Test
   def setup
     Base.mode = :test
 
@@ -29,30 +29,28 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_missing_login
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       ShipwireService.new(:password => 'test')
     end
   end
 
   def test_missing_password
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       ShipwireService.new(:login => 'cody')
     end
   end
 
   def test_missing_credentials
-    assert_raise(ArgumentError) do
+    assert_raises(ArgumentError) do
       ShipwireService.new(:password => 'test')
     end
   end
 
   def test_credentials_present
-    assert_nothing_raised do
-      ShipwireService.new(
-        :login    => 'cody',
-        :password => 'test'
+    assert ShipwireService.new(
+      :login    => 'cody',
+      :password => 'test'
       )
-    end
   end
 
   def test_country_format

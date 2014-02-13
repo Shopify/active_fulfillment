@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
+class RemoteAmazonMarketplaceWebservicesTest < ActiveMerchant::Fulfillment::Test
 
   def setup
     @service = AmazonMarketplaceWebService.new( fixtures(:amazon_mws) )
