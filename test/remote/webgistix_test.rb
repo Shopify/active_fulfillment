@@ -75,7 +75,7 @@ class RemoteWebgistixTest < Test::Unit::TestCase
   end
 
   def test_fetch_tracking_data
-    response = @service.fetch_tracking_numbers([
+    response = @service.fetch_tracking_data([
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?
