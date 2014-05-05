@@ -410,7 +410,8 @@ module ActiveMerchant
       end
 
       def build_address(address)
-        requires!(address, :name, :address1, :city, :state, :country, :zip)
+        requires!(address, :name, :address1, :city, :country, :zip)
+        address[:state] ||= "N/A"
         address[:zip].upcase!
         ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if LOOKUPS[:destination_address].include?(key) && value.present? }
         Hash[ary.compact]
