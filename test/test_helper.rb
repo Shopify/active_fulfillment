@@ -5,7 +5,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'digest/md5'
 require 'active_fulfillment'
 require 'active_utils'
@@ -14,7 +14,7 @@ require 'mocha/setup'
 
 module Test
   module Unit
-    class TestCase
+    class TestCase < MiniTest::Unit::TestCase
       include ActiveMerchant::Fulfillment
       
       LOCAL_CREDENTIALS = ENV['HOME'] + '/.active_merchant/fixtures.yml' unless defined?(LOCAL_CREDENTIALS)
@@ -47,6 +47,18 @@ module Test
         
         hash.symbolize_keys!
         hash.each{|k,v| symbolize_keys(v)}
+      end
+
+      def assert_raise(error)
+        begin
+          yield
+        rescue => e
+          flunk "Expected #{error} but nothing raised" if e.class != error
+        end
+      end
+
+      def assert_nothing_raised
+        yield
       end
     end
   end
