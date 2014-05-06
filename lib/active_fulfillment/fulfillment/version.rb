@@ -1,6 +1,6 @@
 # encoding: utf-8
 module ActiveMerchant
   module Fulfillment
-    VERSION = "2.1.1"
+    VERSION = "2.1.2"
   end
 end
