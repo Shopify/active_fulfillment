@@ -141,6 +141,22 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal expected_items, @service.build_address(@address)
   end
 
+  def test_build_address_without_state_succeeds
+    expected_items = {
+      "DestinationAddress.Name" => @address[:name],
+      "DestinationAddress.Line1" => @address[:address1],
+      "DestinationAddress.Line2" => @address[:address2],
+      "DestinationAddress.City" => @address[:city],
+      "DestinationAddress.StateOrProvinceCode" => "N/A",
+      "DestinationAddress.CountryCode" => @address[:country],
+      "DestinationAddress.PostalCode" => @address[:zip],
+      "DestinationAddress.PhoneNumber" => @address[:phone]
+    }
+    @address.delete(:state)
+
+    assert_equal expected_items, @service.build_address(@address)
+  end
+
   def test_integrated_registration_url_creation
     service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :app_id => "1014f5ad-c359-4e86-8e50-bb8f8e431a9")
     options = {
