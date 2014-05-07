@@ -238,7 +238,7 @@ module ActiveMerchant
               response[:tracking_numbers][node.attributes['id']] = [tracking_number]
 
               tracking_company = node.elements['TrackingNumber'].attributes['carrier']
-              response[:tracking_companies][node.attributes['id']] = tracking_company.strip if tracking_company
+              response[:tracking_companies][node.attributes['id']] = [tracking_company.strip] if tracking_company
 
               tracking_url = node.elements['TrackingNumber'].attributes['href']
               response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url
@@ -266,5 +266,3 @@ module ActiveMerchant
     end
   end
 end
-
-

@@ -146,7 +146,7 @@ class ShipwireTest < Test::Unit::TestCase
     assert_equal "1", response.params["total_shipped_orders"]
 
     assert_equal ["9400110200793596422990"], response.tracking_numbers["40298"]
-    assert_equal "USPS", response.tracking_companies["40298"]
+    assert_equal ["USPS"], response.tracking_companies["40298"]
     assert_equal ["http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=9400110200793596422990"], response.tracking_urls["40298"]
   end
 
