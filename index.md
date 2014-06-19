@@ -1,3 +1,7 @@
+---
+layout: index
+---
+
 # Active Fulfillment 
 Active Merchant library for integration with order fulfillment services. 
 

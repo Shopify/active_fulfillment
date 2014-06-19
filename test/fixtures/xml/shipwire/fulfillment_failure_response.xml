@@ -1,7 +1,0 @@
-<!DOCTYPE SubmitOrderResponse SYSTEM "http://www.shipwire.com/exec/download/SubmitOrderResponse.dtd">
-<SubmitOrderResponse>
-  <Status>Error</Status>
-  <ErrorMessage>
-    <![CDATA[Could not verify Username/EmailAddress and Password combination]]>
-</ErrorMessage>
-</SubmitOrderResponse>
