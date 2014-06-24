@@ -21,16 +21,23 @@ module ActiveMerchant
       private
 
       def build_fulfillment_request(order_id, shipping_address, line_items, options)
-        {
-          client_ref: order_id,
-          ShippingContact: format_address(shipping_address),
-          BillingContact: format_address(shipping_address),
-          items: format_line_items(line_items)
+        data = {
+          order: {
+            client_ref: order_id,
+            ShippingContact: format_address(shipping_address),
+            BillingContact: format_address(shipping_address),
+            items: format_line_items(line_items)
+          }
         }
+        data[:allow_preorder] = options[:allow_preorder] unless options[:allow_preorder].blank?
+        data[:update_stock] = options[:update_stock] unless options[:update_stock].blank?
+        data[:order][:po_number] = options[:po_number] unless options[:po_number].blank?
+        data[:order][:date_placed] = options[:date_placed] unless options[:po_number].blank?
+        return data
       end
 
-      def commit(action, data)
-        request = {api_key: @options[:key], test: true, order: data}
+      def commit(action, request)
+        request = request.merge({api_key: @options[:key], test: true})
         data = ssl_post(SERVICE_URLS[action], JSON.generate(request))
         response = parse_response(action, data)
         Response.new(response["success"], "message", response)
