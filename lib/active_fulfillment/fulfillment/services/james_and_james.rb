@@ -6,7 +6,8 @@ module ActiveMerchant
     class JamesAndJamesService < Service
 
       SERVICE_URLS = {
-        fulfillment: 'https://test.sixworks.co.uk/api/1/'
+        fulfillment: 'https://form.sixworks.co.uk/api/1/',
+        inventory: 'https://form.sixworks.co.uk/api/1/stock'
       }
 
       def initialize(options = {})
@@ -16,6 +17,10 @@ module ActiveMerchant
 
       def fulfill(order_id, shipping_address, line_items, options = {})
         commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
+      end
+
+      def fetch_stock_levels(options = {})
+        get :inventory, build_inventory_request(options)
       end
 
       private
@@ -36,11 +41,22 @@ module ActiveMerchant
         return data
       end
 
+      def build_inventory_request(options)
+        {}
+      end
+
       def commit(action, request)
         request = request.merge({api_key: @options[:key], test: true})
         data = ssl_post(SERVICE_URLS[action], JSON.generate(request))
         response = parse_response(action, data)
-        Response.new(response["success"], "message", response)
+        Response.new(response["success"], "message", response, test: response["test"])
+      end
+
+      def get(action, request)
+        request = request.merge({api_key: @options[:key], test: true})
+        data = ssl_get(SERVICE_URLS[action] + "?" + request.to_query)
+        response = parse_response(action, data)
+        Response.new(response["success"], "message", response, test: response["test"])
       end
 
       def parse_response(action, json)

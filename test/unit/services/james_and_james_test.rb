@@ -41,7 +41,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
-    # assert response.test?
+    assert response.test?
     # assert_equal JamesAndJamesService::SUCCESS_MESSAGE, response.message
     # assert_equal '619669', response.params['order_id']
   end
@@ -61,7 +61,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
-    # assert response.test?
+    assert response.test?
     # assert_equal WebgistixService::FAILURE_MESSAGE, response.message
     # assert_nil response.params['order_id']
     #
@@ -69,16 +69,15 @@ class JamesAndJamesTest < Test::Unit::TestCase
     # assert_equal 'Unknown ItemID:  testitem', response.params['error_1']
     # assert_equal 'Unknown ItemID:  WX-01-1000', response.params['error_2']
   end
-#
-#   def test_stock_levels
-#     @service.expects(:ssl_post).returns(inventory_response)
-#
-#     response = @service.fetch_stock_levels
-#     assert response.success?
-#     assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
-#     assert_equal 202, response.stock_levels['GN-00-01A']
-#     assert_equal 199, response.stock_levels['GN-00-02A']
-#   end
+
+  def test_stock_levels
+    @service.expects(:ssl_get).returns(inventory_response)
+
+    response = @service.fetch_stock_levels
+    assert response.success?
+    assert_equal 99, response.stock['AAA']
+    assert_equal 9, response.stock['BBB']
+  end
 #
 #   def test_tracking_numbers
 #     @service.expects(:ssl_post).returns(xml_fixture('webgistix/tracking_response'))
@@ -164,11 +163,11 @@ class JamesAndJamesTest < Test::Unit::TestCase
   private
 
   def minimal_successful_response
-    '{"success": true}'
+    '{"success": true, "test": true}'
   end
 
   def successful_response
-    '{"success": true, "valid": true}'
+    '{"success": true, "valid": true, "test": true}'
   end
 
 #   def invalid_login_response
@@ -177,19 +176,16 @@ class JamesAndJamesTest < Test::Unit::TestCase
 #
   def failure_response
     # TODO Add example errors
-    '{"success": false}'
+    '{"success": false, "test": true}'
   end
 #
 #   def garbage_response
 #     '<font face="Arial" size=2>/XML/shippingTest.asp</font><font face="Arial" size=2>, line 39</font>'
 #   end
 #
-#   def inventory_response
-#     '<InventoryXML>' +
-#       '<Item><ItemID>GN-00-01A</ItemID><ItemQty>202</ItemQty></Item>' +
-#       '<Item><ItemID>GN-00-02A</ItemID><ItemQty>199</ItemQty></Item>' +
-#       '</InventoryXML>'
-#   end
+  def inventory_response
+    '{"success": true, "stock": {"AAA": 99, "BBB": 9}, "test": true}'
+  end
 #
 #   def duplicate_response
 #     '<Completed><Success>Duplicate</Success></Completed>'
