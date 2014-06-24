@@ -16,6 +16,7 @@ module ActiveMerchant
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})
+        requires!(options, :billing_address)
         commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
       end
 
@@ -30,7 +31,7 @@ module ActiveMerchant
           order: {
             client_ref: order_id,
             ShippingContact: format_address(shipping_address),
-            BillingContact: format_address(shipping_address),
+            BillingContact: format_address(options[:billing_address]),
             items: format_line_items(line_items)
           }
         }

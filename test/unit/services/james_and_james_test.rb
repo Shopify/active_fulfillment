@@ -39,6 +39,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
   def test_successful_fulfillment
     @service.expects(:ssl_post).returns(successful_response)
 
+    @options[:billing_address] = @address
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
     assert response.test?
@@ -59,6 +60,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
   def test_failed_fulfillment
     @service.expects(:ssl_post).returns(failure_response)
 
+    @options[:billing_address] = @address
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
