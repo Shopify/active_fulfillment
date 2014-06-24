@@ -4,7 +4,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
   def setup
     Base.mode = :test
 
-    @service = JamesAndJamesService.new(key: "XXX")
+    @service = JamesAndJamesService.new(subdomain: "client", key: "secret")
 
     @options = {
       :shipping_method => 'UPS Ground'
@@ -32,7 +32,7 @@ class JamesAndJamesTest < Test::Unit::TestCase
 
   def test_credentials_present
     assert_nothing_raised do
-      JamesAndJamesService.new(key: 'XXX')
+      JamesAndJamesService.new(subdomain: "client", key: "secret")
     end
   end
 

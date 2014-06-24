@@ -6,12 +6,12 @@ module ActiveMerchant
     class JamesAndJamesService < Service
 
       SERVICE_URLS = {
-        fulfillment: 'https://form.sixworks.co.uk/api/1/',
-        inventory: 'https://form.sixworks.co.uk/api/1/stock'
+        fulfillment: 'https://%{subdomain}.sixworks.co.uk/api/1/',
+        inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
       }
 
       def initialize(options = {})
-        requires!(options, :key)
+        requires!(options, :subdomain, :key)
         super
       end
 
@@ -47,14 +47,14 @@ module ActiveMerchant
 
       def commit(action, request)
         request = request.merge({api_key: @options[:key], test: true})
-        data = ssl_post(SERVICE_URLS[action], JSON.generate(request))
+        data = ssl_post(SERVICE_URLS[action] % {subdomain: @options[:subdomain]}, JSON.generate(request))
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
       end
 
       def get(action, request)
         request = request.merge({api_key: @options[:key], test: true})
-        data = ssl_get(SERVICE_URLS[action] + "?" + request.to_query)
+        data = ssl_get(SERVICE_URLS[action] % {subdomain: @options[:subdomain]} + "?" + request.to_query)
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
       end
