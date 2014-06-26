@@ -4,8 +4,6 @@ layout: index
 
 # Active Fulfillment
 
-Active Merchant library for integration with order fulfillment services. 
-
 [![Build Status](https://travis-ci.org/Shopify/active_fulfillment.png?branch=master)](https://travis-ci.org/Shopify/active_fulfillment)
 
 ## Installation
