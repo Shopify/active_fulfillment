@@ -29,7 +29,7 @@ New features and patches will have a better chance of getting merged if you incl
 * [Cody Fauser](http://codefauser.com), [@codyfauser](https://twitter.com/codyfauser)
 * [Denis Odorcic](http://denisodorcic.net), [@denisodorcic](https://twitter.com/denisodorcic)
 * [Dennis Theisen](http://soleone.wordpress.com), [@soleone](https://twitter.com/Soleone)
-* James MacAulay, [@jamesmacaulay](https://twitter.com/jamesmacaulay)
+* [James MacAulay](http://jmacaulay.net), [@jamesmacaulay](https://twitter.com/jamesmacaulay)
 * Jesse HK
 * [Jesse Storimer](http://jstorimer.com), [@jstorimer](https://twitter.com/jstorimer)
 * John Duff, [@johnduff](https://twitter.com/johnduff)
@@ -39,3 +39,7 @@ New features and patches will have a better chance of getting merged if you incl
 * Simon Eskildsen
 * [Tobias Lütke](http://about.me/tobiaslutke), [@tobi](https://twitter.com/tobi)
 * [Tom Burns](http://soundcloud.com/gravitronic), [@gravitronic](https://twitter.com/gravitronic)
+
+## License
+
+Unless otherwise noted, all code is released under the [MIT-LICENSE](http://opensource.org/licenses/MIT).
