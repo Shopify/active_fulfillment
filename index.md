@@ -38,4 +38,4 @@ New features and patches will have a better chance of getting merged if you incl
 
 ## License
 
-Unless otherwise noted, all code is released under the [MIT-LICENSE](http://opensource.org/licenses/MIT).
+Copyright (c) 2008 Shopify. Released under the [MIT-LICENSE](http://opensource.org/licenses/MIT).
