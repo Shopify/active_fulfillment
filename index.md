@@ -2,8 +2,6 @@
 layout: index
 ---
 
-# Active Fulfillment
-
 [![Build Status](https://travis-ci.org/Shopify/active_fulfillment.png?branch=master)](https://travis-ci.org/Shopify/active_fulfillment)
 
 ## Installation
