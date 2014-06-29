@@ -75,7 +75,7 @@ module ActiveMerchant
         data[:company] = address[:company] unless address[:company].blank?
         data[:email] = address[:email] unless address[:email].blank?
         data[:address_contd] = address[:address2] unless address[:address2].blank?
-        data[:country] = address[:state] unless address[:state].blank?
+        data[:county] = address[:state] unless address[:state].blank?
         return data
       end
 
