@@ -39,6 +39,10 @@ module ActiveMerchant
         data[:update_stock] = options[:update_stock] unless options[:update_stock].blank?
         data[:order][:po_number] = options[:po_number] unless options[:po_number].blank?
         data[:order][:date_placed] = options[:date_placed] unless options[:po_number].blank?
+        data[:order][:postage_speed] = options[:postage_speed] unless options[:postage_speed].blank?
+        data[:order][:postage_cost] = options[:postage_cost] unless options[:postage_cost].blank?
+        data[:order][:days_before_bbe] = options[:days_before_bbe] unless options[:days_before_bbe].blank?
+        data[:order][:callback_url] = options[:callback_url] unless options[:callback_url].blank?
         return data
       end
 
