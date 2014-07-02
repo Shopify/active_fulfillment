@@ -24,6 +24,10 @@ module ActiveMerchant
         get :inventory, build_inventory_request(options)
       end
 
+      def test_mode?
+        true
+      end
+
       private
 
       def build_fulfillment_request(order_id, shipping_address, line_items, options)
