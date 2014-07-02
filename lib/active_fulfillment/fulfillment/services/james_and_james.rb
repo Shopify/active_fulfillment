@@ -51,7 +51,7 @@ module ActiveMerchant
       end
 
       def commit(action, request)
-        request = request.merge({api_key: @options[:key], test: true})
+        request = request.merge({api_key: @options[:key], test: test? })
         data = ssl_post(SERVICE_URLS[action] % {subdomain: @options[:subdomain]}, JSON.generate(request))
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
