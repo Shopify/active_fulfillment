@@ -139,6 +139,8 @@ module ActiveMerchant
         while token = response.params['next_token'] do
           next_page = commit :post, :inventory, :list_next, build_next_inventory_list_request(token)
 
+          # if we fail during the stock-level-via-token gathering, fail the whole request
+          return next_page if next_page.params['response_status'] != SUCCESS
           next_page.stock_levels.merge!(response.stock_levels)
           response = next_page
         end

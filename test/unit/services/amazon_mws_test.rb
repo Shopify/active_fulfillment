@@ -237,6 +237,22 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     assert_equal 5259, response.stock_levels['GN-01-02A']
   end
 
+  def test_get_inventory_multipage_missing_stock
+
+    @service.expects(:ssl_post).with() { |uri, query, headers|
+      query.include?('ListInventorySupply') && !query.include?('ListInventorySupplyByNextToken')
+    }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
+
+    # force missing stock by returning token'd ssl_post with a 503 error
+    http_response = build_mock_response(response_from_503, "", 503)
+    @service.expects(:ssl_post).with() { |uri, query, headers|
+      query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
+    }.raises(ActiveMerchant::ResponseError.new(http_response))
+
+    response = @service.fetch_stock_levels
+    assert !response.success?
+  end
+
   def test_get_next_page_builds_query_with_proper_params
     @service.expects(:build_basic_api_query).with(:NextToken => "abracadabra", :Action => 'ListInventorySupplyByNextToken')
     @service.send(:build_next_inventory_list_request, "abracadabra")
@@ -381,6 +397,10 @@ traffic.</Text>
 
   def response_from_404
     '<html><head><title>Apache Tomcat</title></head><body>That was not found</body></html>'
+  end
+
+  def response_from_503
+    '<html><head><title>Apache</title></head><body>Service Unavailable</body></html>'
   end
 
   def invalid_params_response
