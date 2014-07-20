@@ -72,15 +72,17 @@ module ActiveMerchant
           response_data = ActiveSupport::JSON.decode(response)
           response_data[root.underscore] || response_data
         when 'xml'
-          response_hash = Hash.from_xml(response)
           response_data = {}
-          response_hash[root][type].each do |item|
-            response_data[item[key]] = yield item[value]
+          document = REXML::Document.new(response)
+          document.elements[root].each do |node|
+            if node.name == type
+              response_data[node.elements[key].text] = node.elements[value].text
+            end
           end
           response_data
         end
 
-      rescue MultiJson::DecodeError, Nokogiri::XML::SyntaxError
+      rescue ActiveSupport::JSON.parse_error, REXML::ParseException
         {}
       end
 
