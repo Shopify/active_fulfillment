@@ -45,7 +45,7 @@ module ActiveMerchant
 
       def send_app_request(action, data)
         uri = request_uri(action, data)
-        #Rails.logger.info "[" + @name.upcase + " APP] Post #{uri}"
+        logger.info "[" + @name.upcase + " APP] Post #{uri}"
 
         response = nil
         realtime = Benchmark.realtime do
@@ -55,13 +55,13 @@ module ActiveMerchant
             end
           # this line needs to change because this is shopify specific constants
           rescue *(NetHTTPExceptions + [Net::HTTP::SSLError, ActiveMerchant::ConnectionError, ActiveMerchant::ResponseError]) => e
-            Rails.logger.warn "[#{self}] Error while contacting fulfillment service error =\"#{e.message}\""
+            logger.warn "[#{self}] Error while contacting fulfillment service error =\"#{e.message}\""
           end
         end
 
-        #line = "[" + @name.upcase + "APP] Response from #{uri} --> "
-        #line << "#{response} #{"%.4fs" % realtime}"
-        #Rails.logger.info line
+        line = "[" + @name.upcase + "APP] Response from #{uri} --> "
+        line << "#{response} #{"%.4fs" % realtime}"
+        logger.info line
 
         response
       end
