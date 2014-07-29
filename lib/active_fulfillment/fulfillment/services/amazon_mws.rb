@@ -415,7 +415,7 @@ module ActiveMerchant
         requires!(address, :name, :address1, :city, :country, :zip)
         address[:state] ||= "N/A"
         address[:zip].upcase!
-        address[:name] = "#{address[:company]} - #{address[:name]}" unless address[:company].blank?
+        address[:name] = "#{address[:company]} - #{address[:name]}" if address[:company].present?
         ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if LOOKUPS[:destination_address].include?(key) && value.present? }
         Hash[ary.compact]
       end
