@@ -24,6 +24,18 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       :phone => "(555)555-5555"
     }
 
+    @commercial_address = {
+      :name => 'Johnny Buy',
+      :company => 'Shopify',
+      :address1 => '100 Information Super Highway',
+      :address2 => 'Suite 66',
+      :city => 'Beverly Hills',
+      :state => 'CA',
+      :country => 'US',
+      :zip => '90210',
+      :phone => "(555)555-5555"
+    }
+
     @canadian_address = {
       :name => 'Johnny Bouchard',
       :address1 => '100 Canuck St',
@@ -119,6 +131,20 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "DestinationAddress.PhoneNumber" => @address[:phone]
     }
     assert_equal expected_items, @service.build_address(@address)
+  end
+
+  def test_build_address_attaches_company_name_to_name
+    expected_items = {
+      "DestinationAddress.Name" => "#{@commercial_address[:company]} - #{@commercial_address[:name]}",
+      "DestinationAddress.Line1" => @commercial_address[:address1],
+      "DestinationAddress.Line2" => @commercial_address[:address2],
+      "DestinationAddress.City" => @commercial_address[:city],
+      "DestinationAddress.StateOrProvinceCode" => @commercial_address[:state],
+      "DestinationAddress.CountryCode" => @commercial_address[:country],
+      "DestinationAddress.PostalCode" => @commercial_address[:zip],
+      "DestinationAddress.PhoneNumber" => @commercial_address[:phone]
+    }
+    assert_equal expected_items, @service.build_address(@commercial_address)
   end
 
   def test_build_address_upcases_postal_code
