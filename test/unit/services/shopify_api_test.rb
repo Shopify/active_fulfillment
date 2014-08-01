@@ -26,6 +26,20 @@ class ShopifyAPITest < Test::Unit::TestCase
     end
   end
 
+  def test_response_from_failed_stock_request
+    mock_app_request('fetch_stock', anything, nil)
+    response = @service.fetch_stock_levels()
+    refute response.success?
+    assert_equal "Unable to fetch remote stock levels", response.message
+  end
+
+  def test_response_from_failed_tracking_request
+    mock_app_request('fetch_tracking_numbers', anything, nil)
+    response = @service.fetch_tracking_numbers([1,2])
+    refute response.success?
+    assert_equal "Unable to fetch remote tracking numbers [1, 2]", response.message
+  end
+
   def test_response_with_invalid_json_is_parsed_to_empty_hash
     bad_json = '{a: 9, 0}'
     mock_app_request('fetch_stock', anything, bad_json)

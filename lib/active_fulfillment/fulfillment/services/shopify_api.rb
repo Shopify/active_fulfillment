@@ -16,22 +16,24 @@ module ActiveMerchant
 
       def fetch_stock_levels(options = {})
         response = send_app_request('fetch_stock', options.slice(:sku))
-        # this should return an unsucessful response
-        #raise FulfillmentError, "Unable to fetch remote stock levels" unless response
-        stock_levels = parse_response(response, 'StockLevels', 'Product', 'Sku', 'Quantity') { |p| p.to_i }
-
-        Response.new(true, "API stock levels", {:stock_levels => stock_levels})
+        if response
+          stock_levels = parse_response(response, 'StockLevels', 'Product', 'Sku', 'Quantity') { |p| p.to_i }
+          Response.new(true, "API stock levels", {:stock_levels => stock_levels})
+        else
+          Response.new(false, "Unable to fetch remote stock levels")
+        end
       end
 
       def fetch_tracking_data(order_ids, options = {})
         response = send_app_request('fetch_tracking_numbers', {:order_ids => order_ids})
-        # this should return an unsucessful response
-        #raise FulfillmentError, "Unable to fetch remote tracking numbers #{order_ids.inspect}" unless response
-        tracking_numbers = parse_response(response, 'TrackingNumbers', 'Order', 'ID', 'Tracking') { |o| o }
-
-        Response.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
+        if response
+          tracking_numbers = parse_response(response, 'TrackingNumbers', 'Order', 'ID', 'Tracking') { |o| o }
+          Response.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
                                                     :tracking_companies => {},
                                                     :tracking_urls => {}})
+        else
+          Response.new(false, "Unable to fetch remote tracking numbers #{order_ids.inspect}")
+        end
       end
 
       private
