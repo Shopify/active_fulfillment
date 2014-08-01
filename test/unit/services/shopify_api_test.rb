@@ -32,6 +32,12 @@ class ShopifyAPITest < Test::Unit::TestCase
     assert_equal({}, @service.fetch_stock_levels().stock_levels)
   end
 
+  def test_response_with_valid_but_incorrect_json_is_parsed_to_empty_hash
+    incorrect_json = '[]'
+    mock_app_request('fetch_stock', anything, incorrect_json)
+    assert_equal({}, @service.fetch_stock_levels().stock_levels)
+  end
+
   def test_response_with_invalid_xml_is_parsed_to_empty_hash
     service = build_service(format: 'xml')
     bad_xml = '<A><B></C></A>'

@@ -70,6 +70,7 @@ module ActiveMerchant
         case @format
         when 'json'
           response_data = ActiveSupport::JSON.decode(response)
+          return {} unless response_data.is_a?(Hash)
           response_data[root.underscore] || response_data
         when 'xml'
           response_data = {}
