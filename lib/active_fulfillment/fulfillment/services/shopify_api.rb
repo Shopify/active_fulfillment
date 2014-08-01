@@ -2,6 +2,30 @@ module ActiveMerchant
   module Fulfillment
     class ShopifyAPIService < Service
 
+      RESCUABLE_CONNECTION_ERRORS = [
+        Net::ReadTimeout,
+        Net::OpenTimeout,
+        TimeoutError,
+        Errno::ETIMEDOUT,
+        Timeout::Error,
+        IOError,
+        EOFError,
+        SocketError,
+        Errno::ECONNRESET,
+        Errno::ECONNABORTED,
+        Errno::EPIPE,
+        Errno::ECONNREFUSED,
+        Errno::EAGAIN,
+        Errno::EHOSTUNREACH,
+        Errno::ENETUNREACH,
+        Resolv::ResolvError,
+        Net::HTTPBadResponse,
+        Net::HTTPHeaderSyntaxError,
+        Net::ProtocolError,
+        ActiveMerchant::ConnectionError,
+        ActiveMerchant::ResponseError
+      ]
+
       def initialize(options={})
         @format = options[:format]
         @domain = options[:domain]
@@ -55,8 +79,7 @@ module ActiveMerchant
             Timeout.timeout(20.seconds) do
               response = ssl_get(uri, headers(data.to_param))
             end
-          # this line needs to change because this is shopify specific constants
-          rescue *(NetHTTPExceptions + [Net::HTTP::SSLError, ActiveMerchant::ConnectionError, ActiveMerchant::ResponseError]) => e
+          rescue *(RESCUABLE_CONNECTION_ERRORS) => e
             logger.warn "[#{self}] Error while contacting fulfillment service error =\"#{e.message}\""
           end
         end
