@@ -2,26 +2,22 @@ require 'test_helper'
 
 class ShopifyAPITest < Test::Unit::TestCase
 
-  # mock Shopify API permission
-  class ApiPermission
-  end
-
   def setup
     @service = build_service()
   end
 
   def test_request_uri_is_correct_when_no_sku_passed
     Timecop.freeze do
-      uri = @service.send(:request_uri, 'fetch_stock', {})
       timestamp = Time.now.utc.to_i
+      uri = @service.send(:request_uri, 'fetch_stock', {timestamp: timestamp, shop: 'www.snowdevil.ca'})
       assert_equal "http://supershopifyapptwin.com/fetch_stock.json?shop=www.snowdevil.ca&timestamp=#{timestamp}", uri.to_s
     end
   end
 
   def test_request_uri_is_correct_when_sku_is_passed
     Timecop.freeze do
-      uri = @service.send(:request_uri, 'fetch_stock', {sku: "123"})
       timestamp = Time.now.utc.to_i
+      uri = @service.send(:request_uri, 'fetch_stock', {sku: '123', timestamp: timestamp, shop: 'www.snowdevil.ca'})
       assert_equal "http://supershopifyapptwin.com/fetch_stock.json?shop=www.snowdevil.ca&sku=123&timestamp=#{timestamp}", uri.to_s
     end
   end
@@ -121,16 +117,14 @@ class ShopifyAPITest < Test::Unit::TestCase
   private
 
   def mock_app_request(action, input, output)
-    ShopifyAPIService.any_instance.expects(:send_app_request).with(action, input).returns(output)
+    ShopifyAPIService.any_instance.expects(:send_app_request).with(action, nil, input).returns(output)
   end
 
   def build_service(options = {})
     options.reverse_merge!({
-      domain: 'www.snowdevil.ca',
+      name: "fulfillment_app",
       callback_url: 'http://supershopifyapptwin.com',
-      format: 'json',
-      api_permission: ApiPermission.new,
-      name: "fulfillment_app"
+      format: 'json'
     })
     ShopifyAPIService.new(options)
   end

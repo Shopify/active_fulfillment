@@ -26,12 +26,10 @@ module ActiveMerchant
         ActiveMerchant::ResponseError
       ]
 
-      def initialize(options={})
-        @format = options[:format]
-        @domain = options[:domain]
-        @callback_url = options[:callback_url]
-        @api_permission = options[:api_permission]
+      def initialize(options = {})
         @name = options[:name]
+        @callback_url = options[:callback_url]
+        @format = options[:format]
       end
 
       def fulfill(order_id, shipping_address, line_items, options = {})
@@ -39,7 +37,7 @@ module ActiveMerchant
       end
 
       def fetch_stock_levels(options = {})
-        response = send_app_request('fetch_stock', options.slice(:sku))
+        response = send_app_request('fetch_stock', options.delete(:headers), options)
         if response
           stock_levels = parse_response(response, 'StockLevels', 'Product', 'Sku', 'Quantity') { |p| p.to_i }
           Response.new(true, "API stock levels", {:stock_levels => stock_levels})
@@ -49,7 +47,8 @@ module ActiveMerchant
       end
 
       def fetch_tracking_data(order_ids, options = {})
-        response = send_app_request('fetch_tracking_numbers', {:order_ids => order_ids})
+        options.merge!({:order_ids => order_ids})
+        response = send_app_request('fetch_tracking_numbers', options.delete(:headers), options)
         if response
           tracking_numbers = parse_response(response, 'TrackingNumbers', 'Order', 'ID', 'Tracking') { |o| o }
           Response.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
@@ -63,21 +62,19 @@ module ActiveMerchant
       private
 
       def request_uri(action, data)
-        data['timestamp'] = Time.now.utc.to_i
-        data['shop'] = @domain
-
         URI.parse "#{@callback_url}/#{action}.#{@format}?#{data.to_param}"
       end
 
-      def send_app_request(action, data)
+      def send_app_request(action, headers, data)
         uri = request_uri(action, data)
+
         logger.info "[" + @name.upcase + " APP] Post #{uri}"
 
         response = nil
         realtime = Benchmark.realtime do
           begin
             Timeout.timeout(20.seconds) do
-              response = ssl_get(uri, headers(data.to_param))
+              response = ssl_get(uri, headers)
             end
           rescue *(RESCUABLE_CONNECTION_ERRORS) => e
             logger.warn "[#{self}] Error while contacting fulfillment service error =\"#{e.message}\""
@@ -120,15 +117,6 @@ module ActiveMerchant
           payload.to_xml(:root => root)
         end
       end
-
-      def headers(data)
-        {
-          'X-Shopify-Shop-Domain' => @domain,
-          'X-Shopify-Hmac-SHA256' => @api_permission.api_client.hmac(data),
-          'Content-Type'          => "application/#{@format}"
-        }
-      end
-
     end
   end
 end
