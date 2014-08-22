@@ -79,7 +79,7 @@ module ActiveMerchant
           address: address[:address1],
           city: address[:city],
           country: address[:country],
-          postcode: address[:zip] || "-"
+          postcode: address[:zip].blank? ? "-" : address[:zip]
         }
         data[:company] = address[:company] unless address[:company].blank?
         data[:email] = address[:email] unless address[:email].blank?
