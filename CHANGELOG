@@ -1,6 +1,6 @@
 = ActiveFulfillment CHANGELOG
 
-== Version 2.1.6
+== Version 2.1.7
 
 * Add shopify_api service
 * Drop Ruby 1.9.3 support
