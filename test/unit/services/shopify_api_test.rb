@@ -4,6 +4,7 @@ class ShopifyAPITest < Test::Unit::TestCase
 
   def setup
     @service = build_service()
+    @service.logger = stub(:info => nil, :debug => nil, :warn => nil, :error => nil)
   end
 
   def test_request_uri_is_correct_when_no_sku_passed
@@ -105,14 +106,11 @@ class ShopifyAPITest < Test::Unit::TestCase
     assert_equal expected, @service.fetch_tracking_data([1,2]).tracking_numbers
   end
 
-  # def test_send_app_request_rescues_response_errors
-  #   response = stub(code: "404", message: "Not Found")
-  #   @service.expects(:ssl_get).raises(ActiveMerchant::ResponseError, response)
-
-  #   assert_raises(FulfillmentError) do
-  #     @service.fetch_stock_levels().stock_levels
-  #   end
-  # end
+  def test_send_app_request_rescues_response_errors
+    response = stub(code: "404", message: "Not Found")
+    @service.expects(:ssl_get).raises(ActiveMerchant::ResponseError, response)
+    refute @service.fetch_stock_levels().success?
+  end
 
   private
 
