@@ -5,6 +5,8 @@ module ActiveMerchant
       include RequiresParameters
       include PostsData
 
+      attr_accessor :logger
+
       def initialize(options = {})
         check_test_mode(options)
 
@@ -20,12 +22,12 @@ module ActiveMerchant
         @options[:test] || Base.mode == :test
       end
 
-      # API Requirements for Implementors
-      def fulfill(order_id, shipping_address, line_items, options = {})
-        raise NotImplementedError.new("Subclasses must implement")
+      def valid_credentials?
+        true
       end
 
-      def fetch_stock_levels(options = {})
+      # API Requirements for Implementors
+      def fulfill(order_id, shipping_address, line_items, options = {})
         raise NotImplementedError.new("Subclasses must implement")
       end
 
@@ -44,15 +46,8 @@ module ActiveMerchant
         raise NotImplementedError.new("Subclasses must implement")
       end
 
-      def valid_credentials?
-        raise NotImplementedError.new("Subclasses must implement")
-      end
-
-      def test_mode?
-        raise NotImplementedError.new("Subclasses must implement")
-      end
-
       private
+
       def check_test_mode(options)
         if options[:test] and not test_mode?
           raise ArgumentError, 'Test mode is not supported by this gateway'

@@ -1,5 +1,10 @@
 = ActiveFulfillment CHANGELOG
 
+== Version 2.1.6
+
+* Add shopify_api service
+* Drop Ruby 1.9.3 support
+
 == Version 2.1.0
 
 * Added fetch_tracking_data methods which returns tracking_companies and tracking_urls if available in addition to tracking_numbers for each service

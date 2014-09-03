@@ -25,7 +25,9 @@ Gem::Specification.new do |s|
   s.add_dependency('active_utils', '~> 2.2.0')
 
   s.add_development_dependency('rake')
+  s.add_development_dependency('byebug')
   s.add_development_dependency('mocha')
   s.add_development_dependency('minitest')
+  s.add_development_dependency('timecop')
   s.add_development_dependency('rdoc', '>= 2.4.2')
 end
