@@ -112,6 +112,11 @@ class ShopifyAPITest < Test::Unit::TestCase
     refute @service.fetch_stock_levels().success?
   end
 
+  def test_send_app_request_rescues_invalid_response_errors
+    @service.expects(:ssl_get).raises(ActiveMerchant::InvalidResponseError.new("error html"))
+    refute @service.fetch_stock_levels().success?
+  end
+
   private
 
   def mock_app_request(action, input, output)

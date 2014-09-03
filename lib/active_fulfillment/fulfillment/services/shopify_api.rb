@@ -23,7 +23,8 @@ module ActiveMerchant
         Net::HTTPHeaderSyntaxError,
         Net::ProtocolError,
         ActiveMerchant::ConnectionError,
-        ActiveMerchant::ResponseError
+        ActiveMerchant::ResponseError,
+        ActiveMerchant::InvalidResponseError
       ]
 
       def initialize(options = {})
