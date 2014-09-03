@@ -52,8 +52,8 @@ module ActiveMerchant
         if response
           tracking_numbers = parse_response(response, 'TrackingNumbers', 'Order', 'ID', 'Tracking') { |o| o }
           Response.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
-                                                    :tracking_companies => {},
-                                                    :tracking_urls => {}})
+                                                      :tracking_companies => {},
+                                                      :tracking_urls => {}})
         else
           Response.new(false, "Unable to fetch remote tracking numbers #{order_ids.inspect}")
         end
