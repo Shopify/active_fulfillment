@@ -4,7 +4,6 @@ class ShopifyAPITest < Test::Unit::TestCase
 
   def setup
     @service = build_service()
-    @service.logger = stub(:info => nil, :debug => nil, :warn => nil, :error => nil)
   end
 
   def test_request_uri_is_correct_when_no_sku_passed

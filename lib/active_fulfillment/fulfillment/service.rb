@@ -5,7 +5,7 @@ module ActiveMerchant
       include RequiresParameters
       include PostsData
 
-      attr_accessor :logger
+      cattr_accessor :logger
 
       def initialize(options = {})
         check_test_mode(options)

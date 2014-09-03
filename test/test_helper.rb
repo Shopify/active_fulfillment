@@ -13,6 +13,9 @@ require 'timecop'
 
 require 'mocha/setup'
 
+require 'logger'
+ActiveMerchant::Fulfillment::Service.logger = Logger.new(nil)
+
 module Test
   module Unit
     class TestCase < MiniTest::Unit::TestCase
