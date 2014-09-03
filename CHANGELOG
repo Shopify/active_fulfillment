@@ -3,6 +3,7 @@
 == Version 2.1.6
 
 * Add shopify_api service
+* Drop Ruby 1.9.3 support
 
 == Version 2.1.0
 
