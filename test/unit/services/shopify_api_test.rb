@@ -68,9 +68,13 @@ class ShopifyAPITest < Test::Unit::TestCase
     service = build_service(format: 'xml')
     xml = '<TrackingNumbers><Order><ID>123</ID><Tracking>abc</Tracking></Order><Order><ID>456</ID><Tracking>def</Tracking></Order></TrackingNumbers>'
     expected = {'123' => 'abc', '456' => 'def'}
+    request_params = {order_ids: [1, 2, 4], order_names: [1, 2, 4]}
 
-    mock_app_request('fetch_tracking_numbers', anything, xml)
+    mock_app_request('fetch_tracking_numbers', request_params, xml)
     assert_equal expected, service.fetch_tracking_data([1,2,4]).tracking_numbers
+
+    after_deprecation = Time.now.to_date >= ShopifyAPIService::OrderIdCutoffDate
+    flunk "The request params should no longer include 'order_ids'" if after_deprecation
   end
 
   def test_parse_stock_level_response_parses_json_with_root_correctly
