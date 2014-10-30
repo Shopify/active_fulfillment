@@ -2,8 +2,6 @@ module ActiveMerchant
   module Fulfillment
     class ShopifyAPIService < Service
 
-      class DeprecationError < StandardError; end
-
       OrderIdCutoffDate = Date.iso8601("2015-03-01")
 
       RESCUABLE_CONNECTION_ERRORS = [
@@ -52,8 +50,6 @@ module ActiveMerchant
       end
 
       def fetch_tracking_data(order_numbers, options = {})
-        raise DeprecationError, "order_ids should no longer be included in API requests" if Time.now.to_date >= OrderIdCutoffDate && ENV['active_fulfillment_test']
-
         options.merge!({:order_ids => order_numbers, :order_names => order_numbers})
         response = send_app_request('fetch_tracking_numbers', options.delete(:headers), options)
         if response

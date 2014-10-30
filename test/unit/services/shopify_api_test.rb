@@ -64,17 +64,6 @@ class ShopifyAPITest < Test::Unit::TestCase
     assert_equal expected, service.fetch_stock_levels().stock_levels
   end
 
-  def test_tracking_data_request_deprecation_when_order_ids_included_and_past_deprecation_date
-    Timecop.freeze(ShopifyAPIService::OrderIdCutoffDate) do
-      assert_raises ShopifyAPIService::DeprecationError do
-        service = build_service(format: 'xml')
-        xml = '<TrackingNumbers><Order><ID>123</ID><Tracking>abc</Tracking></Order><Order><ID>456</ID><Tracking>def</Tracking></Order></TrackingNumbers>'
-        service.stubs(:send_app_request).with('fetch_tracking_numbers', nil, {order_ids: [1, 2, 4], order_names: [1, 2, 4]}).returns(xml)
-        service.fetch_tracking_data([1, 2, 4]).tracking_numbers
-      end
-    end
-  end
-
   def test_parse_tracking_data_response_parses_xml_correctly
     service = build_service(format: 'xml')
     xml = '<TrackingNumbers><Order><ID>123</ID><Tracking>abc</Tracking></Order><Order><ID>456</ID><Tracking>def</Tracking></Order></TrackingNumbers>'
@@ -83,6 +72,9 @@ class ShopifyAPITest < Test::Unit::TestCase
 
     mock_app_request('fetch_tracking_numbers', request_params, xml)
     assert_equal expected, service.fetch_tracking_data([1,2,4]).tracking_numbers
+
+    after_deprecation = Time.now.to_date >= ShopifyAPIService::OrderIdCutoffDate
+    flunk "The request params should no longer include 'order_ids'" if after_deprecation
   end
 
   def test_parse_stock_level_response_parses_json_with_root_correctly

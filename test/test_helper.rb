@@ -15,7 +15,6 @@ require 'mocha/setup'
 
 require 'logger'
 ActiveMerchant::Fulfillment::Service.logger = Logger.new(nil)
-ENV['active_fulfillment_test'] = '1'
 
 module Test
   module Unit
