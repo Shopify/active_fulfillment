@@ -1,5 +1,4 @@
 require 'json'
-require 'cgi'
 
 module ActiveMerchant
   module Fulfillment
@@ -58,7 +57,7 @@ module ActiveMerchant
       def commit(action, request)
         request = request.merge({api_key: @options[:key], test: test? })
         data = ssl_post(SERVICE_URLS[action] % {subdomain: @options[:subdomain]}, JSON.generate(request))
-        response = parse_response(action, data)
+        response = parse_response(data)
         Response.new(response["success"], "message", response, test: response["test"])
       rescue ActiveMerchant::ResponseError => e
         handle_error(e)
@@ -69,7 +68,7 @@ module ActiveMerchant
       def get(action, request)
         request = request.merge({api_key: @options[:key], test: test? })
         data = ssl_get(SERVICE_URLS[action] % {subdomain: @options[:subdomain]} + "?" + request.to_query)
-        response = parse_response(action, data)
+        response = parse_response(data)
         Response.new(response["success"], "message", response, test: response["test"])
       rescue ActiveMerchant::ResponseError => e
         handle_error(e)
@@ -77,7 +76,7 @@ module ActiveMerchant
         Response.new(false, e.message)
       end
 
-      def parse_response(action, json)
+      def parse_response(json)
         JSON.parse(json)
       end
 
