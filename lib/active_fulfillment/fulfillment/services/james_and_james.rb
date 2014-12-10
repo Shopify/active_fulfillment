@@ -60,6 +60,8 @@ module ActiveMerchant
         data = ssl_post(SERVICE_URLS[action] % {subdomain: @options[:subdomain]}, JSON.generate(request))
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
+      rescue ActiveMerchant::ResponseError => e
+        handle_error(e)
       end
 
       def get(action, request)
@@ -67,10 +69,24 @@ module ActiveMerchant
         data = ssl_get(SERVICE_URLS[action] % {subdomain: @options[:subdomain]} + "?" + request.to_query)
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
+      rescue ActiveMerchant::ResponseError => e
+        handle_error(e)
       end
 
       def parse_response(action, json)
         JSON.parse(json)
+      end
+
+      def handle_error(e)
+        response = parse_error(e.response)
+        Response.new(false, response[:http_message], response)
+      end
+
+      def parse_error(http_response)
+        response = {}
+        response[:http_code] = http_response.code
+        response[:http_message] = http_response.message
+        response
       end
 
       def format_address(address)
