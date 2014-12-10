@@ -65,7 +65,7 @@ module ActiveMerchant
       end
 
       def get(action, request)
-        request = request.merge({api_key: @options[:key], test: true})
+        request = request.merge({api_key: @options[:key], test: test? })
         data = ssl_get(SERVICE_URLS[action] % {subdomain: @options[:subdomain]} + "?" + request.to_query)
         response = parse_response(action, data)
         Response.new(response["success"], "message", response, test: response["test"])
