@@ -62,6 +62,8 @@ module ActiveMerchant
         Response.new(response["success"], "message", response, test: response["test"])
       rescue ActiveMerchant::ResponseError => e
         handle_error(e)
+      rescue JSON::ParserError => e
+        Response.new(false, e.message)
       end
 
       def get(action, request)
@@ -71,6 +73,8 @@ module ActiveMerchant
         Response.new(response["success"], "message", response, test: response["test"])
       rescue ActiveMerchant::ResponseError => e
         handle_error(e)
+      rescue JSON::ParserError => e
+        Response.new(false, e.message)
       end
 
       def parse_response(action, json)
