@@ -213,7 +213,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_invalid_arguments
     http_response = build_mock_response(invalid_params_response, "", 500)
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
     assert_equal "MalformedInput: timestamp must follow ISO8601", response.params['response_comment']
@@ -273,7 +273,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     http_response = build_mock_response(response_from_503, "", 503)
     @service.expects(:ssl_post).with() { |uri, query, headers|
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
-    }.raises(ActiveMerchant::ResponseError.new(http_response))
+    }.raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fetch_stock_levels
     assert !response.success?
@@ -328,7 +328,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).times(3).
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
-      raises(ActiveMerchant::ResponseError.new(response)).
+      raises(ActiveUtils::ResponseError.new(response)).
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order_2'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'dafdfafsdafdafasdfa', 'extern_id_1154539615777'])
@@ -344,7 +344,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).twice.
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
-      raises(ActiveMerchant::ResponseError.new(response))
+      raises(ActiveUtils::ResponseError.new(response))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'ERROR', 'extern_id_1154539615777'])
     assert !response.success?
@@ -353,7 +353,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fulfill('987654321', @address, @line_items, @options)
     assert !response.success?

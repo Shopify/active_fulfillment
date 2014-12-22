@@ -111,12 +111,12 @@ class ShopifyAPITest < Test::Unit::TestCase
 
   def test_send_app_request_rescues_response_errors
     response = stub(code: "404", message: "Not Found")
-    @service.expects(:ssl_get).raises(ActiveMerchant::ResponseError, response)
+    @service.expects(:ssl_get).raises(ActiveUtils::ResponseError, response)
     refute @service.fetch_stock_levels().success?
   end
 
   def test_send_app_request_rescues_invalid_response_errors
-    @service.expects(:ssl_get).raises(ActiveMerchant::InvalidResponseError.new("error html"))
+    @service.expects(:ssl_get).raises(ActiveUtils::InvalidResponseError.new("error html"))
     refute @service.fetch_stock_levels().success?
   end
 

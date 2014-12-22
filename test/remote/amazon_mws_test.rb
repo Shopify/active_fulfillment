@@ -30,7 +30,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
   end
 
   def test_successful_order_submission
-    response = @service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = @service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert response.success?
     assert !response.test?
   end
@@ -41,7 +41,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
                        :quantity => 2
                      })
 
-    response = @service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = @service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert response.success?
   end
 
@@ -51,7 +51,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
       :password => 'p',
       :seller_id => 'o')
 
-    response = service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert !response.success?
 
     assert_equal "InvalidAccessKeyId: The AWS Access Key Id you provided does not exist in our records.", response.response_comment

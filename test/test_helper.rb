@@ -14,12 +14,12 @@ require 'timecop'
 require 'mocha/setup'
 
 require 'logger'
-ActiveMerchant::Fulfillment::Service.logger = Logger.new(nil)
+ActiveFulfillment::Service.logger = Logger.new(nil)
 
 module Test
   module Unit
-    class TestCase < MiniTest::Unit::TestCase
-      include ActiveMerchant::Fulfillment
+    class TestCase < Minitest::Test
+      include ActiveFulfillment
 
       LOCAL_CREDENTIALS = ENV['HOME'] + '/.active_merchant/fixtures.yml' unless defined?(LOCAL_CREDENTIALS)
       DEFAULT_CREDENTIALS = File.dirname(__FILE__) + '/fixtures.yml' unless defined?(DEFAULT_CREDENTIALS)

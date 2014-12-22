@@ -167,7 +167,7 @@ class WebgistixTest < Test::Unit::TestCase
 
   def test_duplicate_response_is_treated_as_success
     response = stub(:code => 200, :body => duplicate_response, :message => '')
-    Net::HTTP.any_instance.stubs(:post).raises(ActiveMerchant::ConnectionError).returns(response)
+    Net::HTTP.any_instance.stubs(:post).raises(ActiveUtils::ConnectionError).returns(response)
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?

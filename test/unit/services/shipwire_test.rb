@@ -163,7 +163,7 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_affiliate_id
-    ActiveMerchant::Fulfillment::ShipwireService.affiliate_id = 'affiliate_id'
+    ActiveFulfillment::ShipwireService.affiliate_id = 'affiliate_id'
 
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     affiliate_id = REXML::XPath.first(xml, "//AffiliateId")
