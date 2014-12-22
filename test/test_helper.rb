@@ -18,7 +18,7 @@ ActiveMerchant::Fulfillment::Service.logger = Logger.new(nil)
 
 module Test
   module Unit
-    class TestCase < MiniTest::Unit::TestCase
+    class TestCase < Minitest::Test
       include ActiveMerchant::Fulfillment
 
       LOCAL_CREDENTIALS = ENV['HOME'] + '/.active_merchant/fixtures.yml' unless defined?(LOCAL_CREDENTIALS)
