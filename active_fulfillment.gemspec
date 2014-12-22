@@ -2,7 +2,7 @@
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
-require 'active_fulfillment/fulfillment/version'
+require 'active_fulfillment/version'
 
 Gem::Specification.new do |s|
   s.name = %q{active_fulfillment}
