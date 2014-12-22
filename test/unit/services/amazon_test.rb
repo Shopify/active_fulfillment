@@ -38,7 +38,7 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_invalid_arguments
     http_response = build_mock_response(invalid_create_response, "", "500")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
     assert_equal "aws:Client.MissingParameter The request must contain the parameter Item.", response.params['response_comment']
@@ -110,7 +110,7 @@ class AmazonTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).times(3).
       returns(xml_fixture('amazon/tracking_response_1')).
-      raises(ActiveMerchant::ResponseError.new(response)).
+      raises(ActiveUtils::ResponseError.new(response)).
       returns(xml_fixture('amazon/tracking_response_2'))
 
     response = @service.fetch_tracking_numbers(['TEST-00000001', '#1337-1', 'TEST-00000002'])
@@ -126,7 +126,7 @@ class AmazonTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).twice.
       returns(xml_fixture('amazon/tracking_response_1')).
-      raises(ActiveMerchant::ResponseError.new(response))
+      raises(ActiveUtils::ResponseError.new(response))
 
     response = @service.fetch_tracking_numbers(['TEST-00000001', 'ERROR', 'TEST-00000002'])
     assert !response.success?
@@ -145,7 +145,7 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
@@ -157,7 +157,7 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_soap_fault
     http_response = build_mock_response(invalid_create_response, "500", "")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
@@ -173,7 +173,7 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_invalid_credentials
     http_response = build_mock_response(invalid_login_response, "500", "")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
     assert !@service.valid_credentials?
   end
 

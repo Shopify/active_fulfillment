@@ -33,7 +33,7 @@ class RemoteAmazonTest < Test::Unit::TestCase
   end
 
   def test_successful_order_submission
-    response = @service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = @service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert response.success?
     assert !response.test?
   end
@@ -45,7 +45,7 @@ class RemoteAmazonTest < Test::Unit::TestCase
        }
     )
 
-    response = @service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = @service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert response.success?
   end
 
@@ -54,7 +54,7 @@ class RemoteAmazonTest < Test::Unit::TestCase
       :login => 'y',
       :password => 'p')
 
-    response = service.fulfill(ActiveMerchant::Utils.generate_unique_id, @address, @line_items, @options)
+    response = service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
     assert !response.success?
     assert_equal "aws:Client.InvalidClientTokenId The AWS Access Key Id you provided does not exist in our records.", response.message
   end
