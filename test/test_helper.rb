@@ -1,9 +1,4 @@
-#!/usr/bin/env ruby
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-
-require 'rubygems'
-require 'bundler'
-Bundler.setup
+require 'bundler/setup'
 
 require 'minitest/autorun'
 require 'digest/md5'
