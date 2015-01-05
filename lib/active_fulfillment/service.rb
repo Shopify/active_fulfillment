@@ -4,7 +4,7 @@ module ActiveFulfillment
     include ActiveUtils::RequiresParameters
     include ActiveUtils::PostsData
 
-    cattr_accessor :logger
+    class_attribute :logger
 
     def initialize(options = {})
       check_test_mode(options)
