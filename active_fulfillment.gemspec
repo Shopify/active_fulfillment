@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.authors = ["Cody Fauser", "James MacAulay"]
   s.email = %q{cody@shopify.com}
 
-  s.files       = Dir.glob("{lib}/**/*") + %w(CHANGELOG)
-  s.test_files  = Dir.glob("{test}/**/*")
+  s.files       = Dir.glob("{lib}/**/*") + %w(CHANGELOG.md)
+  s.test_files  = Dir.glob("{test}/**/*.rb")
 
   s.homepage = %q{http://github.com/shopify/active_fulfillment}
   s.require_paths = ["lib"]
@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', '>= 3.2.9')
   s.add_dependency('builder', '>= 2.0.0')
-  s.add_dependency('active_utils', '~> 3.0.0.pre1')
+  s.add_dependency('active_utils', '~> 3.0.0.pre2')
 
   s.add_development_dependency('rake')
   s.add_development_dependency('byebug')
