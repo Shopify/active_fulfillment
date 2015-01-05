@@ -62,7 +62,7 @@ module ActiveFulfillment
         ["USPS Express Mail International", "Express Mail International"],
         ["USPS Parcel Post", "Parcel"],
         ["USPS Media Mail", "Media Mail"]
-      ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
+      ].inject({}){|h, (k,v)| h[k] = v; h}
     end
 
     # Pass in the login and password for the shipwire account.

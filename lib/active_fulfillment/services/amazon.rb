@@ -72,7 +72,7 @@ module ActiveFulfillment
         [ 'Standard Shipping', 'Standard' ],
         [ 'Expedited Shipping', 'Expedited' ],
         [ 'Priority Shipping', 'Priority' ]
-      ].inject(ActiveSupport::OrderedHash.new){|h, (k,v)| h[k] = v; h}
+      ].inject({}){|h, (k,v)| h[k] = v; h}
     end
 
     def self.sign(aws_secret_access_key, auth_string)
