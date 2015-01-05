@@ -1,10 +1,10 @@
 require 'test_helper'
 
-class JamesAndJamesTest < Test::Unit::TestCase
+class JamesAndJamesTest < Minitest::Test
   def setup
-    Base.mode = :test
+    ActiveFulfillment::Base.mode = :test
 
-    @service = JamesAndJamesService.new(subdomain: "client", key: "secret")
+    @service = ActiveFulfillment::JamesAndJamesService.new(subdomain: "client", key: "secret")
 
     @options = {
       :shipping_method => 'UPS Ground'
@@ -25,15 +25,13 @@ class JamesAndJamesTest < Test::Unit::TestCase
   end
 
   def test_missing_key
-    assert_raise(ArgumentError) do
-      JamesAndJamesService.new
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::JamesAndJamesService.new
     end
   end
 
   def test_credentials_present
-    assert_nothing_raised do
-      JamesAndJamesService.new(subdomain: "client", key: "secret")
-    end
+    assert ActiveFulfillment::JamesAndJamesService.new(subdomain: "client", key: "secret")
   end
 
   def test_successful_fulfillment

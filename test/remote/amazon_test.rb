@@ -1,13 +1,15 @@
 require 'test_helper'
 
-class RemoteAmazonTest < Test::Unit::TestCase
+class RemoteAmazonTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
+
   # In order for these tests to work you must have a live account with Amazon.
   # You can sign up at http://amazonservices.com/fulfillment/
   # The SKUs must also exist in your inventory. You do not want the SKUs you
   # use for testing to actually have inventory in the Amazon warehouse, or else
   # the shipments will actually be fulfillable
   def setup
-    @service = AmazonService.new( fixtures(:amazon) )
+    @service = ActiveFulfillment::AmazonService.new(fixtures(:amazon))
 
     @options = {
       :shipping_method => 'Standard',
@@ -50,12 +52,12 @@ class RemoteAmazonTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials_during_fulfillment
-    service = AmazonService.new(
+    service = ActiveFulfillment::AmazonService.new(
       :login => 'y',
       :password => 'p')
 
     response = service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
-    assert !response.success?
+    refute response.success?
     assert_equal "aws:Client.InvalidClientTokenId The AWS Access Key Id you provided does not exist in our records.", response.message
   end
 
@@ -100,14 +102,14 @@ class RemoteAmazonTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials
-    service = AmazonService.new(
+    service = ActiveFulfillment::AmazonService.new(
       :login => 'your@email.com',
       :password => 'password')
     assert !service.valid_credentials?
   end
 
   def test_get_status_fails
-    service = AmazonService.new(
+    service = ActiveFulfillment::AmazonService.new(
       :login => 'your@email.com',
       :password => 'password')
     response = service.status
@@ -116,7 +118,7 @@ class RemoteAmazonTest < Test::Unit::TestCase
   end
 
   def test_get_status
-    service = AmazonService.new(fixtures(:amazon))
+    service = ActiveFulfillment::AmazonService.new(fixtures(:amazon))
     response = service.status
     assert response.success?
   end

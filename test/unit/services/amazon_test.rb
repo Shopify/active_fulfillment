@@ -1,19 +1,21 @@
 require 'test_helper'
 
-class AmazonTest < Test::Unit::TestCase
-   def setup
-     @service = AmazonService.new(
+class AmazonTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
+
+  def setup
+    @service = ActiveFulfillment::AmazonService.new(
                   :login => 'l',
                   :password => 'p'
                 )
 
-     @options = {
+    @options = {
        :shipping_method => 'Standard',
        :order_date => Time.now.utc.yesterday,
        :comment => "Delayed due to tornados"
-     }
+    }
 
-     @address = { :name => 'Johnny Chase',
+    @address = { :name => 'Johnny Chase',
                   :address1 => '100 Information Super Highway',
                   :address2 => 'Suite 66',
                   :city => 'Beverly Hills',
@@ -22,12 +24,12 @@ class AmazonTest < Test::Unit::TestCase
                   :zip => '90210'
                  }
 
-     @line_items = [
+    @line_items = [
        { :sku => 'SETTLERS1',
          :quantity => 1,
          :comment => 'Awesome'
        }
-     ]
+    ]
   end
 
   def test_successful_fulfillment
@@ -46,17 +48,17 @@ class AmazonTest < Test::Unit::TestCase
 
   def test_missing_order_comment
     @options.delete(:comment)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_order_date
     @options.delete(:order_date)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_shipping_method
     @options.delete(:shipping_method)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_get_inventory

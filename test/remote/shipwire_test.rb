@@ -1,10 +1,12 @@
 require 'test_helper'
 
-class RemoteShipwireTest < Test::Unit::TestCase
-  def setup
-    Base.mode = :test
+class RemoteShipwireTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
-    @shipwire = ShipwireService.new( fixtures(:shipwire) )
+  def setup
+    ActiveFulfillment::Base.mode = :test
+
+    @shipwire = ActiveFulfillment::ShipwireService.new(fixtures(:shipwire))
 
     @options = {
       :warehouse => 'LAX',
@@ -37,19 +39,17 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials_during_fulfillment
-    shipwire = ShipwireService.new(
+    shipwire = ActiveFulfillment::ShipwireService.new(
       :login => 'your@email.com',
       :password => 'password')
 
-    response = shipwire.fulfill('123456', @us_address, @line_items, @options)
-    assert !response.success?
-    assert response.test?
-    assert_equal 'Error', response.params['status']
-    assert_equal "Could not verify Username/EmailAddress and Password combination", response.message
+    assert_raises(ActiveUtils::ResponseError, 'Failed with 401 Authorization Required') do
+      shipwire.fulfill(SecureRandom.uuid, @us_address, @line_items, @options)
+    end
   end
 
   def test_successful_order_submission_to_us
-    response = @shipwire.fulfill('123456', @us_address, @line_items, @options)
+    response = @shipwire.fulfill(SecureRandom.uuid, @us_address, @line_items, @options)
     assert response.success?
     assert response.test?
     assert response.params['transaction_id']
@@ -60,7 +60,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
 
   def test_successful_order_submission_to_uk
-    response = @shipwire.fulfill('123456', @uk_address, @line_items, @options)
+    response = @shipwire.fulfill(SecureRandom.uuid, @uk_address, @line_items, @options)
     assert response.success?
     assert response.test?
     assert response.params['transaction_id']
@@ -73,7 +73,7 @@ class RemoteShipwireTest < Test::Unit::TestCase
   def test_order_multiple_line_items
     @line_items.push({ :sku => 'AF0002', :quantity => 25 })
 
-    response = @shipwire.fulfill('123456', @us_address, @line_items, @options)
+    response = @shipwire.fulfill(SecureRandom.uuid, @us_address, @line_items, @options)
     assert response.success?
     assert response.test?
     assert response.params['transaction_id']
@@ -84,32 +84,32 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
 
   def test_no_sku_is_sent_with_fulfillment
-      options = {
-        :shipping_method => 'UPS Ground'
-      }
+    options = {
+      :shipping_method => 'UPS Ground'
+    }
 
     line_items = [ { :quantity => 1, :description => 'Libtech Snowboard' } ]
 
-    response = @shipwire.fulfill('123456', @us_address, line_items, options)
+    response = @shipwire.fulfill(SecureRandom.uuid, @us_address, line_items, options)
 
     assert response.success?
     assert response.test?
-    assert_not_nil response.params['transaction_id']
+    refute response.params['transaction_id'].blank?
     assert_equal "1", response.params['total_orders']
-    assert_equal "0", response.params['total_items']
+    assert_equal "1", response.params['total_items']
     assert_equal "0", response.params['status']
     assert_equal 'Successfully submitted the order', response.message
   end
 
   def test_invalid_credentials_during_inventory
-    shipwire = ShipwireService.new(
+    shipwire = ActiveFulfillment::ShipwireService.new(
                  :login => 'your@email.com',
                  :password => 'password'
                )
 
     response = shipwire.fetch_stock_levels
 
-    assert !response.success?
+    refute response.success?
     assert response.test?
     assert_equal 'Error', response.params['status']
     assert_equal "Error with Valid Username/EmailAddress and Password Required. There is an error in XML document.", response.message
@@ -128,15 +128,15 @@ class RemoteShipwireTest < Test::Unit::TestCase
     response = @shipwire.fetch_tracking_data(['123456'])
     assert response.success?
     assert response.test?
-    assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
-    assert_equal Hash.new, response.tracking_companies
+    assert_instance_of Hash, response.tracking_numbers # {"40298"=>["9400110200793596422990"]}
+    assert_instance_of Hash, response.tracking_companies # {"40298"=>["USPS"]}
   end
 
   def test_fetch_tracking_numbers
     response = @shipwire.fetch_tracking_numbers(['123456'])
     assert response.success?
     assert response.test?
-    assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
+    assert_instance_of Hash, response.tracking_numbers # {"40298"=>["9400110200793596422990"]}
   end
 
   def test_valid_credentials
@@ -144,10 +144,10 @@ class RemoteShipwireTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials
-    service = ShipwireService.new(
+    service = ActiveFulfillment::ShipwireService.new(
                 :login => 'your@email.com',
                 :password => 'password'
               )
-    assert !service.valid_credentials?
+    refute service.valid_credentials?
   end
 end

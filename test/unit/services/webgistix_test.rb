@@ -1,19 +1,21 @@
 require 'test_helper'
 
-class WebgistixTest < Test::Unit::TestCase
-   def setup
-     Base.mode = :test
+class WebgistixTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
-      @service = WebgistixService.new(
+  def setup
+    ActiveFulfillment::Base.mode = :test
+
+    @service = ActiveFulfillment::WebgistixService.new(
                    :login => 'cody@example.com',
                    :password => 'test'
                   )
 
-      @options = {
-        :shipping_method => 'UPS Ground'
-      }
+    @options = {
+      :shipping_method => 'UPS Ground'
+    }
 
-      @address = { :name => 'Fred Brooks',
+    @address = { :name => 'Fred Brooks',
                    :address1 => '1234 Penny Lane',
                    :city => 'Jonsetown',
                    :state => 'NC',
@@ -22,38 +24,36 @@ class WebgistixTest < Test::Unit::TestCase
                    :email    => 'buyer@jadedpallet.com'
                  }
 
-      @line_items = [
-        { :sku => '9999',
-          :quantity => 25
-        }
-      ]
+    @line_items = [
+      { :sku => '9999',
+        :quantity => 25
+      }
+    ]
   end
 
   def test_missing_login
-    assert_raise(ArgumentError) do
-      WebgistixService.new(:password => 'test')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::WebgistixService.new(:password => 'test')
     end
   end
 
   def test_missing_password
-    assert_raise(ArgumentError) do
-      WebgistixService.new(:login => 'cody')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::WebgistixService.new(:login => 'cody')
     end
   end
 
   def test_missing_credentials
-    assert_raise(ArgumentError) do
-      WebgistixService.new(:password => 'test')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::WebgistixService.new(:password => 'test')
     end
   end
 
   def test_credentials_present
-    assert_nothing_raised do
-      WebgistixService.new(
-        :login    => 'cody',
-        :password => 'test'
-      )
-    end
+    assert ActiveFulfillment::WebgistixService.new(
+      :login    => 'cody',
+      :password => 'test'
+    )
   end
 
   def test_successful_fulfillment
@@ -62,7 +62,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
     assert response.test?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal '619669', response.params['order_id']
   end
 
@@ -72,7 +72,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
     assert response.test?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_nil response.params['order_id']
   end
 
@@ -82,7 +82,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
-    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::FAILURE_MESSAGE, response.message
     assert_nil response.params['order_id']
 
     assert_equal 'No Address Line 1', response.params['error_0']
@@ -95,7 +95,7 @@ class WebgistixTest < Test::Unit::TestCase
 
     response = @service.fetch_stock_levels
     assert response.success?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
   end
@@ -105,7 +105,7 @@ class WebgistixTest < Test::Unit::TestCase
 
     response = @service.fetch_tracking_numbers(['AB12345', 'XY4567'])
     assert response.success?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal ['1Z8E5A380396682872'], response.tracking_numbers['AB12345']
     assert_nil response.tracking_numbers['XY4567']
   end
@@ -117,7 +117,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fetch_tracking_numbers([invoice_number])
 
     assert response.success?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal ['345678070437428', '546932544227'], response.tracking_numbers[invoice_number]
   end
 
@@ -127,7 +127,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fetch_tracking_data(['AB12345', 'XY4567'])
 
     assert response.success?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal ['1Z8E5A380396682872'], response.tracking_numbers['AB12345']
     assert_equal ['UPS'], response.tracking_companies['AB12345']
     assert_equal({}, response.tracking_urls)
@@ -151,7 +151,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
     assert response.test?
-    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::FAILURE_MESSAGE, response.message
     assert_nil response.params['order_id']
   end
 
@@ -172,7 +172,7 @@ class WebgistixTest < Test::Unit::TestCase
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
     assert response.test?
-    assert_equal WebgistixService::DUPLICATE_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::DUPLICATE_MESSAGE, response.message
     assert response.params['duplicate']
     assert_nil response.params['order_id']
   end

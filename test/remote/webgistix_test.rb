@@ -1,10 +1,12 @@
 require 'test_helper'
 
-class RemoteWebgistixTest < Test::Unit::TestCase
-  def setup
-    Base.mode = :test
+class RemoteWebgistixTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
-    @service = WebgistixService.new( fixtures(:webgistix) )
+  def setup
+    ActiveFulfillment::Base.mode = :test
+
+    @service = ActiveFulfillment::WebgistixService.new(fixtures(:webgistix))
 
     @options = {
       :shipping_method => 'Ground',
@@ -28,40 +30,37 @@ class RemoteWebgistixTest < Test::Unit::TestCase
   end
 
   def test_successful_order_submission
-    response = @service.fulfill('123456', @address, @line_items, @options)
+    response = @service.fulfill(SecureRandom.uuid, @address, @line_items, @options)
     assert response.success?
     assert response.test?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
   end
 
   def test_order_multiple_line_items
-    @line_items.push(
-      { :sku => 'WX-01-1020',
-        :quantity => 3
-       }
-    )
+    @line_items.push(:sku => 'WX-01-1020', :quantity => 3)
 
-    response = @service.fulfill('123456', @address, @line_items, @options)
+    response = @service.fulfill(SecureRandom.uuid, @address, @line_items, @options)
     assert response.success?
     assert response.test?
-    assert_equal WebgistixService::SUCCESS_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
   end
 
   def test_invalid_sku_during_fulfillment
     line_items = [ { :sku => 'invalid', :quantity => 1 } ]
-    response = @service.fulfill('123456', @address, line_items, @options)
-    assert !response.success?
+    response = @service.fulfill(SecureRandom.uuid, @address, line_items, @options)
+    refute response.success?
     assert response.test?
-    assert_equal WebgistixService::FAILURE_MESSAGE, response.message
+    assert_equal ActiveFulfillment::WebgistixService::FAILURE_MESSAGE, response.message
   end
 
   def test_invalid_credentials_during_fulfillment
-    service = WebgistixService.new(
+    service = ActiveFulfillment::WebgistixService.new(
       :login => 'your@email.com',
-      :password => 'password')
+      :password => 'password'
+    )
 
-    response = service.fulfill('123456', @address, @line_items, @options)
-    assert !response.success?
+    response = service.fulfill(SecureRandom.uuid, @address, @line_items, @options)
+    refute response.success?
     assert response.test?
     assert_equal "Invalid Credentials", response.message
   end
@@ -88,6 +87,7 @@ class RemoteWebgistixTest < Test::Unit::TestCase
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?
+    p response
     assert_equal ['4209073191018052136352154'], response.tracking_numbers['1254658']
     assert_equal ['9101805213907472080032'],    response.tracking_numbers['Flat Rate Test Order 4']
     assert_nil response.tracking_numbers['FAItest123'] # 'Not Shipped'
@@ -98,10 +98,10 @@ class RemoteWebgistixTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials
-    service = WebgistixService.new(
+    service = ActiveFulfillment::WebgistixService.new(
       :login => 'your@email.com',
       :password => 'password')
 
-    assert !service.valid_credentials?
+    refute service.valid_credentials?
   end
 end

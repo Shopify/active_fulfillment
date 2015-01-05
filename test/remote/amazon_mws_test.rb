@@ -1,9 +1,10 @@
 require 'test_helper'
 
-class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
+class RemoteAmazonMarketplaceWebservicesTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
   def setup
-    @service = AmazonMarketplaceWebService.new( fixtures(:amazon_mws) )
+    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(fixtures(:amazon_mws))
 
     @options = {
       :shipping_method => 'Standard',
@@ -31,8 +32,9 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
 
   def test_successful_order_submission
     response = @service.fulfill(ActiveUtils::Utils.generate_unique_id, @address, @line_items, @options)
+    p response
     assert response.success?
-    assert !response.test?
+    refute response.test?
   end
 
   def test_order_multiple_line_items
@@ -46,7 +48,7 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials_during_fulfillment
-    service = AmazonMarketplaceWebService.new(
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(
       :login => 'y',
       :password => 'p',
       :seller_id => 'o')
@@ -98,23 +100,25 @@ class RemoteAmazonMarketplaceWebservicesTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials
-    service = AmazonMarketplaceWebService.new(
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(
       :login => 'your@email.com',
-      :password => 'password',
+      :password => 'wrong',
       :seller_id => 'SellerNumber1')
-    assert !service.valid_credentials?
-  end
-
-  def test_get_status_does_not_require_valid_credentials
-    service = AmazonMarketplaceWebService.new(
-      :login => 'your@email.com',
-      :password => 'password')
-    response = service.status
-    assert response.success?
+    refute service.valid_credentials?
   end
 
   def test_get_status
-    service = AmazonMarketplaceWebService.new(fixtures(:amazon))
+    response = @service.status
+    assert response.success?
+  end
+
+  def test_get_status_does_not_require_valid_credentials
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(
+      :login => 'your@email.com',
+      :password => 'wrong',
+      :seller_id => 'SellerNumber1'
+    )
+
     response = service.status
     assert response.success?
   end
