@@ -1,8 +1,10 @@
 require 'test_helper'
 
-class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
+class AmazonMarketplaceWebServiceTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
+
   def setup
-    @service = AmazonMarketplaceWebService.new(
+    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(
                                                :login => 'l',
                                                :password => 'p'
                                                )
@@ -56,12 +58,12 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_get_default_fulfillment_gateway
-    assert_equal AmazonMarketplaceWebService::ENDPOINTS[:us], @service.endpoint
+    assert_equal ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS[:us], @service.endpoint
   end
 
   def test_create_service_with_different_fulfillment_gateway
-    service = AmazonMarketplaceWebService.new(:login => 'l', :password => 'p', :endpoint => :jp)
-    assert_equal AmazonMarketplaceWebService::ENDPOINTS[:jp], service.endpoint
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => 'l', :password => 'p', :endpoint => :jp)
+    assert_equal ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS[:jp], service.endpoint
   end
 
   def test_build_basic_api_query
@@ -74,9 +76,9 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     opts = @service.build_basic_api_query(options)
     assert_equal expected_keys.sort, opts.keys.map(&:to_s).sort
     assert_equal "l", opts["AWSAccessKeyId"]
-    assert_equal AmazonMarketplaceWebService::SIGNATURE_VERSION, opts["SignatureVersion"]
-    assert_equal "Hmac#{AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts["SignatureMethod"]
-    assert_equal AmazonMarketplaceWebService::VERSION, opts["Version"]
+    assert_equal ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_VERSION, opts["SignatureVersion"]
+    assert_equal "Hmac#{ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts["SignatureMethod"]
+    assert_equal ActiveFulfillment::AmazonMarketplaceWebService::VERSION, opts["Version"]
   end
 
   def test_build_inventory_list_request
@@ -93,7 +95,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_create_signature
-    service = AmazonMarketplaceWebService.new(:login => "0PExampleR2", :password => "sekrets")
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => "0PExampleR2", :password => "sekrets")
     expected_signature = "39XxH6iKLysjjDmWZSkyr2z8iSxfECHBYE1Pd0Qqpwo%3D"
     options = {
       "AWSAccessKeyId" => "0PExampleR2",
@@ -107,13 +109,13 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
       "Version" => "2009-01-01"
     }
 
-    uri = URI.parse("https://#{AmazonMarketplaceWebService::ENDPOINTS[:us]}")
+    uri = URI.parse("https://#{ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS[:us]}")
 
     assert_equal expected_signature, service.sign(:POST, uri, options)
   end
 
   def test_verify_amazon_response
-    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa")
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa")
     string_signed_by_amazon = "POST\nhttps://www.vendor.com/mwsApp1\n/orders/listRecentOrders.jsp?sessionId=123"
     string_signed_by_amazon += "\nAWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&Marketplace=ATVPDKIKX0DER&Merchant=A047950713KM6AGKQCBRD&SignatureMethod=HmacSHA256&SignatureVersion=2"
     assert service.amazon_request?(string_signed_by_amazon, "b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa%2FolfnWg%3D")
@@ -184,11 +186,11 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
   end
 
   def test_integrated_registration_url_creation
-    service = AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :app_id => "1014f5ad-c359-4e86-8e50-bb8f8e431a9")
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa", :app_id => "1014f5ad-c359-4e86-8e50-bb8f8e431a9")
     options = {
       "returnPathAndParameters" => "/orders/listRecentOrders.jsp?sessionId=123"
     }
-    expected_registration_url = "#{AmazonMarketplaceWebService::REGISTRATION_URI.to_s}?AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&SignatureMethod=HmacSHA256&SignatureVersion=2&id=1014f5ad-c359-4e86-8e50-bb8f8e431a9&returnPathAndParameters=%2Forders%2FlistRecentOrders.jsp%3FsessionId%3D123&Signature=zpZyHd8rMf5gg5rpO5ri5RGUi0kks03ZkhAtPm4npVk%3D"
+    expected_registration_url = "#{ActiveFulfillment::AmazonMarketplaceWebService::REGISTRATION_URI.to_s}?AWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&SignatureMethod=HmacSHA256&SignatureVersion=2&id=1014f5ad-c359-4e86-8e50-bb8f8e431a9&returnPathAndParameters=%2Forders%2FlistRecentOrders.jsp%3FsessionId%3D123&Signature=zpZyHd8rMf5gg5rpO5ri5RGUi0kks03ZkhAtPm4npVk%3D"
     assert_equal expected_registration_url, service.registration_url(options)
   end
 
@@ -213,7 +215,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_invalid_arguments
     http_response = build_mock_response(invalid_params_response, "", 500)
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
     assert_equal "MalformedInput: timestamp must follow ISO8601", response.params['response_comment']
@@ -221,12 +223,12 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_missing_order_date
     @options.delete(:order_date)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_missing_shipping_method
     @options.delete(:shipping_method)
-    assert_raise(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
+    assert_raises(ArgumentError) { @service.fulfill('12345678', @address, @line_items, @options) }
   end
 
   def test_get_service_status
@@ -273,7 +275,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
     http_response = build_mock_response(response_from_503, "", 503)
     @service.expects(:ssl_post).with() { |uri, query, headers|
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
-    }.raises(ActiveMerchant::ResponseError.new(http_response))
+    }.raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fetch_stock_levels
     assert !response.success?
@@ -328,7 +330,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).times(3).
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
-      raises(ActiveMerchant::ResponseError.new(response)).
+      raises(ActiveUtils::ResponseError.new(response)).
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order_2'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'dafdfafsdafdafasdfa', 'extern_id_1154539615777'])
@@ -344,7 +346,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
     @service.expects(:ssl_post).twice.
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
-      raises(ActiveMerchant::ResponseError.new(response))
+      raises(ActiveUtils::ResponseError.new(response))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'ERROR', 'extern_id_1154539615777'])
     assert !response.success?
@@ -353,7 +355,7 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")
-    @service.expects(:ssl_post).raises(ActiveMerchant::ResponseError.new(http_response))
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fulfill('987654321', @address, @line_items, @options)
     assert !response.success?
@@ -366,9 +368,8 @@ class AmazonMarketplaceWebServiceTest < Test::Unit::TestCase
 
   def test_building_address_skips_nil_values
     @address[:address2] = nil
-    assert_nothing_raised do
-      @service.send(:build_address, @address)
-    end
+    hash = @service.send(:build_address, @address)
+    refute hash.key?("DestinationAddress.Line2")
   end
 
   def test_building_a_full_query_does_not_cause_query_to_fail

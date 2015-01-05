@@ -1,10 +1,12 @@
 require 'test_helper'
 
-class ShipwireTest < Test::Unit::TestCase
-  def setup
-    Base.mode = :test
+class ShipwireTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
-    @shipwire = ShipwireService.new(
+  def setup
+    ActiveFulfillment::Base.mode = :test
+
+    @shipwire = ActiveFulfillment::ShipwireService.new(
                   :login => 'cody@example.com',
                   :password => 'test'
                 )
@@ -29,30 +31,28 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_missing_login
-    assert_raise(ArgumentError) do
-      ShipwireService.new(:password => 'test')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::ShipwireService.new(:password => 'test')
     end
   end
 
   def test_missing_password
-    assert_raise(ArgumentError) do
-      ShipwireService.new(:login => 'cody')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::ShipwireService.new(:login => 'cody')
     end
   end
 
   def test_missing_credentials
-    assert_raise(ArgumentError) do
-      ShipwireService.new(:password => 'test')
+    assert_raises(ArgumentError) do
+      ActiveFulfillment::ShipwireService.new(:password => 'test')
     end
   end
 
   def test_credentials_present
-    assert_nothing_raised do
-      ShipwireService.new(
-        :login    => 'cody',
-        :password => 'test'
-      )
-    end
+    assert ActiveFulfillment::ShipwireService.new(
+      :login    => 'cody',
+      :password => 'test'
+    )
   end
 
   def test_country_format
@@ -72,7 +72,7 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_stock_levels_include_pending_when_set
-    @shipwire = ShipwireService.new(
+    @shipwire = ActiveFulfillment::ShipwireService.new(
                   :login => 'cody@example.com',
                   :password => 'test',
                   :include_pending_stock => true
@@ -88,7 +88,7 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_inventory_request_with_include_empty_tag
-     @shipwire = ShipwireService.new(
+     @shipwire = ActiveFulfillment::ShipwireService.new(
                   :login => 'cody@example.com',
                   :password => 'test',
                   :include_empty_stock => true
@@ -163,7 +163,7 @@ class ShipwireTest < Test::Unit::TestCase
   end
 
   def test_affiliate_id
-    ActiveMerchant::Fulfillment::ShipwireService.affiliate_id = 'affiliate_id'
+    ActiveFulfillment::ShipwireService.affiliate_id = 'affiliate_id'
 
     xml = REXML::Document.new(@shipwire.send(:build_fulfillment_request, '123456', @address, @line_items, @options))
     affiliate_id = REXML::XPath.first(xml, "//AffiliateId")

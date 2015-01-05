@@ -1,10 +1,12 @@
 require 'test_helper'
 
-class RemoteJamesAndJamesTest < Test::Unit::TestCase
-  def setup
-    Base.mode = :test
+class RemoteJamesAndJamesTest < Minitest::Test
+  include ActiveFulfillment::Test::Fixtures
 
-    @service = JamesAndJamesService.new( fixtures(:james_and_james) )
+  def setup
+    ActiveFulfillment::Base.mode = :test
+
+    @service = ActiveFulfillment::JamesAndJamesService.new(fixtures(:james_and_james))
 
     @options = {
       shipping_method: 'Ground',
@@ -58,10 +60,10 @@ class RemoteJamesAndJamesTest < Test::Unit::TestCase
   end
 
   def test_invalid_credentials_during_fulfillment
-    service = JamesAndJamesService.new(subdomain: 'test', key: 'test')
+    service = ActiveFulfillment::JamesAndJamesService.new(subdomain: 'test', key: 'test')
     @options[:billing_address] = @address
     response = service.fulfill('123456', @address, @line_items, @options)
-    assert !response.success?
+    refute response.success?
     assert_equal "Not Found", response.message
   end
 

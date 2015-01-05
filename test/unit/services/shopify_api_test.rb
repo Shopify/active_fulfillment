@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ShopifyAPITest < Test::Unit::TestCase
+class ShopifyAPITest < Minitest::Test
 
   def setup
     @service = build_service()
@@ -73,7 +73,7 @@ class ShopifyAPITest < Test::Unit::TestCase
     mock_app_request('fetch_tracking_numbers', request_params, xml)
     assert_equal expected, service.fetch_tracking_data([1,2,4]).tracking_numbers
 
-    after_deprecation = Time.now.to_date >= ShopifyAPIService::OrderIdCutoffDate
+    after_deprecation = Time.now.to_date >= ActiveFulfillment::ShopifyAPIService::OrderIdCutoffDate
     flunk "The request params should no longer include 'order_ids'" if after_deprecation
   end
 
@@ -111,19 +111,19 @@ class ShopifyAPITest < Test::Unit::TestCase
 
   def test_send_app_request_rescues_response_errors
     response = stub(code: "404", message: "Not Found")
-    @service.expects(:ssl_get).raises(ActiveMerchant::ResponseError, response)
-    refute @service.fetch_stock_levels().success?
+    @service.expects(:ssl_get).raises(ActiveUtils::ResponseError, response)
+    refute @service.fetch_stock_levels.success?
   end
 
   def test_send_app_request_rescues_invalid_response_errors
-    @service.expects(:ssl_get).raises(ActiveMerchant::InvalidResponseError.new("error html"))
-    refute @service.fetch_stock_levels().success?
+    @service.expects(:ssl_get).raises(ActiveUtils::InvalidResponseError.new("error html"))
+    refute @service.fetch_stock_levels.success?
   end
 
   private
 
   def mock_app_request(action, input, output)
-    ShopifyAPIService.any_instance.expects(:send_app_request).with(action, nil, input).returns(output)
+    ActiveFulfillment::ShopifyAPIService.any_instance.expects(:send_app_request).with(action, nil, input).returns(output)
   end
 
   def build_service(options = {})
@@ -132,6 +132,6 @@ class ShopifyAPITest < Test::Unit::TestCase
       callback_url: 'http://supershopifyapptwin.com',
       format: 'json'
     })
-    ShopifyAPIService.new(options)
+    ActiveFulfillment::ShopifyAPIService.new(options)
   end
 end

@@ -1,19 +1,23 @@
-# Active Fulfillment 
-Active Merchant library for integration with order fulfillment services. 
+# ActiveFulfillment [![Build Status](https://travis-ci.org/Shopify/active_fulfillment.png?branch=master)](https://travis-ci.org/Shopify/active_fulfillment)
 
-[![Build Status](https://travis-ci.org/Shopify/active_fulfillment.png?branch=master)](https://travis-ci.org/Shopify/active_fulfillment)
+Library for integration with order fulfillment services.
 
-# Installation
+## Installation
 
 Add to your gem file
 ```
 gem 'active_fulfillment', :git => 'git://github.com/Shopify/active_fulfillment.git'
 ```
 
-# Contributing
+## Usage
+
+> TODO
+
+
+## Contributing
 
 Contributions are encouraged of course! The basic Fulfillment Service API can be seen in
-[active_fulfillment/fulfillment/service.rb](https://github.com/Shopify/active_fulfillment/blob/master/lib/active_fulfillment/fulfillment/service.rb).
+[active_fulfillment/service.rb](https://github.com/Shopify/active_fulfillment/blob/master/lib/active_fulfillment/service.rb).
 
 New features and patches will have a better chance of getting merged if you include a strong
 set of tests for your patch or feature.
@@ -21,9 +25,8 @@ set of tests for your patch or feature.
 It is also encouraged to try to keep your functions as concise as possible to make review easier
 as well as to make testing more straightforward.
 
-# Usage
 
-# Contributors
+### Contributors
 
 * Adrian Irving-Beer
 * Arthur Nogueira Neves
@@ -42,3 +45,4 @@ as well as to make testing more straightforward.
 * Simon Eskildsen
 * Tobias Lütke
 * Tom Burns
+* Willem van Bergen
