@@ -1,7 +1,5 @@
 # encoding: utf-8
-lib = File.expand_path('../lib/', __FILE__)
-$:.unshift lib unless $:.include?(lib)
-
+$LOAD_PATH.push File.expand_path("../lib", __FILE__)
 require 'active_fulfillment/version'
 
 Gem::Specification.new do |s|
@@ -22,12 +20,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', '>= 3.2.9')
   s.add_dependency('builder', '>= 2.0.0')
-  s.add_dependency('active_utils', '~> 3.0.0.pre2')
+  s.add_dependency('active_utils', '~> 3.0')
 
   s.add_development_dependency('rake')
-  s.add_development_dependency('byebug')
-  s.add_development_dependency('mocha')
-  s.add_development_dependency('minitest')
+  s.add_development_dependency('mocha', '~> 1.1')
+  s.add_development_dependency('minitest', '>= 4.7')
   s.add_development_dependency('timecop')
-  s.add_development_dependency('rdoc', '>= 2.4.2')
 end
