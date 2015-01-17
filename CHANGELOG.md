@@ -4,6 +4,7 @@
 
 - Update dependencies
 - Remove old Amazon fulfillment service (use amazon_aws instead)
+- Add contributing guidelines
 
 ### Version 2.1.7
 
