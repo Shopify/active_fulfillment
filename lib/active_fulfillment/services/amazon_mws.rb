@@ -131,7 +131,7 @@ module ActiveFulfillment
       commit :post, :outbound, :status, build_get_current_fulfillment_orders_request
     end
 
-    def fetch_stock_levels(options = {})
+    def fetch_all_stock_levels(options = {})
       options[:skus] = [options.delete(:sku)] if options.include?(:sku)
       response = commit :post, :inventory, :list, build_inventory_list_request(options)
 

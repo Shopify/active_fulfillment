@@ -77,7 +77,11 @@ module ActiveFulfillment
       commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
     end
 
-    def fetch_stock_levels(options = {})
+    def fetch_stock_level(sku, options = {})
+      raise NotImplementedError, "You can only request inventory for all SKUs."
+    end
+
+    def fetch_all_stock_levels(options = {})
       commit :inventory, build_inventory_request(options)
     end
 
