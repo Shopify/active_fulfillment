@@ -44,9 +44,9 @@ module ActiveFulfillment
       response = send_app_request('fetch_stock', options.delete(:headers), options)
       if response
         stock_levels = parse_response(response, 'StockLevels', 'Product', 'Sku', 'Quantity') { |p| p.to_i }
-        Response.new(true, "API stock levels", {:stock_levels => stock_levels})
+        StockLevelsResponse.new(true, "API stock levels", {:stock_levels => stock_levels})
       else
-        Response.new(false, "Unable to fetch remote stock levels")
+        StockLevelsResponse.new(false, "Unable to fetch remote stock levels")
       end
     end
 
@@ -55,11 +55,11 @@ module ActiveFulfillment
       response = send_app_request('fetch_tracking_numbers', options.delete(:headers), options)
       if response
         tracking_numbers = parse_response(response, 'TrackingNumbers', 'Order', 'ID', 'Tracking') { |o| o }
-        Response.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
+        TrackingResponse.new(true, "API tracking_numbers", {:tracking_numbers => tracking_numbers,
                                                     :tracking_companies => {},
                                                     :tracking_urls => {}})
       else
-        Response.new(false, "Unable to fetch remote tracking numbers #{order_numbers.inspect}")
+        TrackingResponse.new(false, "Unable to fetch remote tracking numbers #{order_numbers.inspect}")
       end
     end
 

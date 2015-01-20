@@ -18,8 +18,32 @@ module ActiveFulfillment
     end
 
     private
+
     def method_missing(method, *args)
       @params[method.to_s] || super
+    end
+  end
+
+  class FulfillmentResponse < Response
+  end
+
+  class TrackingResponse < Response
+    def tracking_numbers
+      @params['tracking_numbers']
+    end
+
+    def tracking_urls
+      @params.fetch('tracking_urls', {})
+    end
+
+    def tracking_companies
+      @params.fetch('tracking_companies', {})
+    end
+  end
+
+  class StockLevelsResponse < Response
+    def stock_levels
+      @params['stock_levels']
     end
   end
 

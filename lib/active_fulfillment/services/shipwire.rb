@@ -78,6 +78,7 @@ module ActiveFulfillment
     end
 
     private
+
     def build_fulfillment_request(order_id, shipping_address, line_items, options)
       xml = Builder::XmlMarkup.new :indent => 2
       xml.instruct!
@@ -169,9 +170,7 @@ module ActiveFulfillment
 
     def commit(action, request)
       data = ssl_post(SERVICE_URLS[action], "#{POST_VARS[action]}=#{CGI.escape(request)}")
-
-      response = parse_response(action, data)
-      Response.new(response[:success], response[:message], response, :test => test?)
+      parse_response(action, data)
     end
 
     def parse_response(action, data)
@@ -198,6 +197,8 @@ module ActiveFulfillment
       response[:success] = response[:status] == '0'
       response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])
       response
+
+      FulfillmentResponse.new(response[:success], response[:message], response, :test => test?)
     end
 
     def parse_inventory_response(xml)
@@ -219,8 +220,9 @@ module ActiveFulfillment
 
       response[:success] = test? ? response[:status] == 'Test' : response[:status] == '0'
       response[:message] = response[:success] ? "Successfully received the stock levels" : message_from(response[:error_message])
-
       response
+
+      StockLevelsResponse.new(response[:success], response[:message], response, :test => test?)
     end
 
     def parse_tracking_response(xml)
@@ -250,6 +252,8 @@ module ActiveFulfillment
       response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
       response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
       response
+
+      TrackingResponse.new(response[:success], response[:message], response, :test => test?)
     end
 
     def message_from(string)
