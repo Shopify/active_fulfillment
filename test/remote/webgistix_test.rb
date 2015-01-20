@@ -66,15 +66,15 @@ class RemoteWebgistixTest < Minitest::Test
   end
 
   def test_get_inventory
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert response.test?
     assert_equal 90,  response.stock_levels['WX-01-3022']
     assert_equal 140, response.stock_levels['WX-04-1080']
   end
 
-  def test_fetch_tracking_data
-    response = @service.fetch_tracking_data([
+  def test_fetch_tracking_numbers
+    response = @service.fetch_tracking_numbers([
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?

@@ -18,7 +18,7 @@ module ActiveFulfillment
       commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
     end
 
-    def fetch_stock_levels(options = {})
+    def fetch_all_stock_levels(options = {})
       get :inventory, build_inventory_request(options)
     end
 

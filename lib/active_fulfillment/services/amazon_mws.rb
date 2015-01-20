@@ -147,7 +147,7 @@ module ActiveFulfillment
       response
     end
 
-    def fetch_tracking_data(order_ids, options = {})
+    def fetch_tracking_numbers(order_ids, options = {})
       order_ids.reduce(nil) do |previous, order_id|
       response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
       return response if !response.success?
@@ -163,7 +163,7 @@ module ActiveFulfillment
     end
 
     def valid_credentials?
-      fetch_stock_levels.success?
+      fetch_all_stock_levels.success?
     end
 
     def supports_test_mode?

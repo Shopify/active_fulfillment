@@ -55,7 +55,7 @@ class JamesAndJamesTest < Minitest::Test
   def test_stock_levels
     @service.expects(:ssl_get).returns(inventory_response)
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert_equal 99, response.stock['AAA']
     assert_equal 9, response.stock['BBB']

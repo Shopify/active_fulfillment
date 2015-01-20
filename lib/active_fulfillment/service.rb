@@ -72,7 +72,7 @@ module ActiveFulfillment
     # @return [ActiveFulfillment::StockLevelResponse]
     # @note This should be implemented by concrete subclasses.
     def fetch_stock_levels(skus, options = {})
-      fetch_all_stock_levels(options)
+      raise NotImplementedError, "Subclasses must implement"
     end
 
     # Retrieve stock levels for all SKUs that the fulfillment service stocks.
@@ -107,16 +107,8 @@ module ActiveFulfillment
     #
     # @return [ActiveFulfillment::TrackingDataResponse]
     # @note This should be implemented by concrete subclasses.
-    def fetch_tracking_data(order_ids, options = {})
+    def fetch_tracking_number(order_ids, options = {})
       raise NotImplementedError.new("Subclasses must implement")
-    end
-
-
-    def fetch_tracking_numbers(order_ids, options = {})
-      response = fetch_tracking_data(order_ids, options)
-      response.params.delete('tracking_companies')
-      response.params.delete('tracking_urls')
-      response
     end
 
     private

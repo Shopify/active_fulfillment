@@ -64,7 +64,7 @@ class ShipwireTest < Minitest::Test
   def test_stock_levels_dont_include_pending_by_default
     @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
 
-    response = @shipwire.fetch_stock_levels
+    response = @shipwire.fetch_all_stock_levels
     assert response.success?
     assert_equal 926, response.stock_levels['BlackDog']
     assert_equal -1, response.stock_levels['MoustacheCat']
@@ -79,7 +79,7 @@ class ShipwireTest < Minitest::Test
                 )
     @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
 
-    response = @shipwire.fetch_stock_levels
+    response = @shipwire.fetch_all_stock_levels
     assert response.success?
     assert @shipwire.include_pending_stock?
     assert_equal 926, response.stock_levels['BlackDog']
@@ -139,7 +139,7 @@ class ShipwireTest < Minitest::Test
   def test_successful_tracking_with_urls
     successful_tracking_response_with_urls = xml_fixture('shipwire/successful_tracking_response_with_tracking_urls')
     @shipwire.expects(:ssl_post).returns(successful_tracking_response_with_urls)
-    response = @shipwire.fetch_tracking_data(["40289"])
+    response = @shipwire.fetch_tracking_numbers(["40289"])
     assert response.success?
     assert_equal "1", response.params["total_orders"]
     assert_equal "Test", response.params["status"]

@@ -241,7 +241,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   def test_get_inventory
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
@@ -256,7 +256,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
 
     assert_equal 202, response.stock_levels['GN-00-01A']
@@ -277,7 +277,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.raises(ActiveUtils::ResponseError.new(http_response))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert !response.success?
   end
 
@@ -297,7 +297,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
-  def test_fetch_multiple_tracking_numbers
+  def test_fetch_multiple_tracking_info
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fullfillment_order_with_multiple_tracking_numbers'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
@@ -305,10 +305,10 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal %w{93YY00 93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
   end
 
-  def test_fetch_tracking_data
+  def test_fetch_tracking_numbers_with_extra_info
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
 
-    response = @service.fetch_tracking_data(['extern_id_1154539615776'])
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
     assert response.success?
     assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
     assert_equal %w{UPS}, response.tracking_companies['extern_id_1154539615776']

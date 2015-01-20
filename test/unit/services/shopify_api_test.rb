@@ -24,7 +24,7 @@ class ShopifyAPITest < Minitest::Test
 
   def test_response_from_failed_stock_request
     mock_app_request('fetch_stock', anything, nil)
-    response = @service.fetch_stock_levels()
+    response = @service.fetch_all_stock_levels()
     refute response.success?
     assert_equal "Unable to fetch remote stock levels", response.message
   end
@@ -39,20 +39,20 @@ class ShopifyAPITest < Minitest::Test
   def test_response_with_invalid_json_is_parsed_to_empty_hash
     bad_json = '{a: 9, 0}'
     mock_app_request('fetch_stock', anything, bad_json)
-    assert_equal({}, @service.fetch_stock_levels().stock_levels)
+    assert_equal({}, @service.fetch_all_stock_levels().stock_levels)
   end
 
   def test_response_with_valid_but_incorrect_json_is_parsed_to_empty_hash
     incorrect_json = '[]'
     mock_app_request('fetch_stock', anything, incorrect_json)
-    assert_equal({}, @service.fetch_stock_levels().stock_levels)
+    assert_equal({}, @service.fetch_all_stock_levels().stock_levels)
   end
 
   def test_response_with_invalid_xml_is_parsed_to_empty_hash
     service = build_service(format: 'xml')
     bad_xml = '<A><B></C></A>'
     mock_app_request('fetch_stock', anything, bad_xml)
-    assert_equal({}, service.fetch_stock_levels().stock_levels)
+    assert_equal({}, service.fetch_all_stock_levels().stock_levels)
   end
 
   def test_parse_stock_level_response_parses_xml_correctly
@@ -61,7 +61,7 @@ class ShopifyAPITest < Minitest::Test
     expected = {'sku1' => '1', 'sku2' => '2'}
 
     mock_app_request('fetch_stock', anything, xml)
-    assert_equal expected, service.fetch_stock_levels().stock_levels
+    assert_equal expected, service.fetch_all_stock_levels().stock_levels
   end
 
   def test_parse_tracking_data_response_parses_xml_correctly
@@ -71,7 +71,7 @@ class ShopifyAPITest < Minitest::Test
     request_params = {order_ids: [1, 2, 4], order_names: [1, 2, 4]}
 
     mock_app_request('fetch_tracking_numbers', request_params, xml)
-    assert_equal expected, service.fetch_tracking_data([1,2,4]).tracking_numbers
+    assert_equal expected, service.fetch_tracking_numbers([1,2,4]).tracking_numbers
 
     after_deprecation = Time.now.to_date >= ActiveFulfillment::ShopifyAPIService::OrderIdCutoffDate
     flunk "The request params should no longer include 'order_ids'" if after_deprecation
@@ -82,7 +82,7 @@ class ShopifyAPITest < Minitest::Test
     expected = {'998KIB' => "10"}
 
     mock_app_request('fetch_stock', anything, json)
-    assert_equal expected, @service.fetch_stock_levels().stock_levels
+    assert_equal expected, @service.fetch_all_stock_levels().stock_levels
   end
 
   def test_parse_tracking_data_response_parses_json_with_root_correctly
@@ -90,7 +90,7 @@ class ShopifyAPITest < Minitest::Test
     expected = {'order1' => 'a', 'order2' => 'b'}
 
     mock_app_request('fetch_tracking_numbers', anything, json)
-    assert_equal expected, @service.fetch_tracking_data([1,2]).tracking_numbers
+    assert_equal expected, @service.fetch_tracking_numbers([1,2]).tracking_numbers
   end
 
   def test_parse_stock_level_response_parses_json_without_root_correctly
@@ -98,7 +98,7 @@ class ShopifyAPITest < Minitest::Test
     expected = {'998KIB' => "10"}
 
     mock_app_request('fetch_stock', anything, json)
-    assert_equal expected, @service.fetch_stock_levels().stock_levels
+    assert_equal expected, @service.fetch_all_stock_levels().stock_levels
   end
 
   def test_parse_tracking_data_response_parses_json_without_root_correctly
@@ -106,18 +106,18 @@ class ShopifyAPITest < Minitest::Test
     expected = {'order1' => 'a', 'order2' => 'b'}
 
     mock_app_request('fetch_tracking_numbers', anything, json)
-    assert_equal expected, @service.fetch_tracking_data([1,2]).tracking_numbers
+    assert_equal expected, @service.fetch_tracking_numbers([1,2]).tracking_numbers
   end
 
   def test_send_app_request_rescues_response_errors
     response = stub(code: "404", message: "Not Found")
     @service.expects(:ssl_get).raises(ActiveUtils::ResponseError, response)
-    refute @service.fetch_stock_levels.success?
+    refute @service.fetch_all_stock_levels.success?
   end
 
   def test_send_app_request_rescues_invalid_response_errors
     @service.expects(:ssl_get).raises(ActiveUtils::InvalidResponseError.new("error html"))
-    refute @service.fetch_stock_levels.success?
+    refute @service.fetch_all_stock_levels.success?
   end
 
   private
