@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteJamesAndJamesTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @service = ActiveFulfillment::JamesAndJamesService.new(fixtures(:james_and_james))
+    @service = ActiveFulfillment::JamesAndJamesService.new(credentials(:james_and_james))
 
     @options = {
       shipping_method: 'Ground',

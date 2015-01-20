@@ -1,10 +1,10 @@
 require 'test_helper'
 
 class RemoteAmazonMarketplaceWebservicesTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
-    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(fixtures(:amazon_mws))
+    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(credentials(:amazon_mws))
 
     @options = {
       :shipping_method => 'Standard',

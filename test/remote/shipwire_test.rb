@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteShipwireTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @shipwire = ActiveFulfillment::ShipwireService.new(fixtures(:shipwire))
+    @shipwire = ActiveFulfillment::ShipwireService.new(credentials(:shipwire))
 
     @options = {
       :warehouse => 'LAX',

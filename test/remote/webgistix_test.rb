@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteWebgistixTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @service = ActiveFulfillment::WebgistixService.new(fixtures(:webgistix))
+    @service = ActiveFulfillment::WebgistixService.new(credentials(:webgistix))
 
     @options = {
       :shipping_method => 'Ground',
