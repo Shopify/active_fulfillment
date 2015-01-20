@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<ErrorResponse xmlns="http://mws.amazonaws.com/FulfillmentInventory/2010-10-01/">
+  <Error>
+    <Type>Sender</Type>
+    <Code>MalformedInput</Code>
+    <Message>timestamp must follow ISO8601</Message>
+  </Error>
+  <RequestId>e71f72f5-3df6-4306-bb67-9f55bd9d9665</RequestId>
+</ErrorResponse>
