@@ -57,7 +57,7 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_successful_fulfillment
-    @service.expects(:ssl_post).returns(successful_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/successful_response'))
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
@@ -67,7 +67,7 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_minimal_successful_fulfillment
-    @service.expects(:ssl_post).returns(minimal_successful_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/minimal_successful_response'))
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert response.success?
@@ -77,7 +77,7 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_failed_fulfillment
-    @service.expects(:ssl_post).returns(failure_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/failure_response'))
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
@@ -91,7 +91,7 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_stock_levels
-    @service.expects(:ssl_post).returns(inventory_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/inventory_response'))
 
     response = @service.fetch_all_stock_levels
     assert response.success?
@@ -134,7 +134,7 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_failed_login
-    @service.expects(:ssl_post).returns(invalid_login_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/invalid_login_response'))
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
@@ -146,7 +146,8 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_garbage_response
-    @service.expects(:ssl_post).returns(garbage_response)
+    garbage = '<font face="Arial" size=2>/XML/shippingTest.asp</font><font face="Arial" size=2>, line 39</font>'
+    @service.expects(:ssl_post).returns(garbage)
 
     response = @service.fulfill('123456', @address, @line_items, @options)
     assert !response.success?
@@ -156,17 +157,17 @@ class WebgistixTest < Minitest::Test
   end
 
   def test_valid_credentials
-    @service.expects(:ssl_post).returns(failure_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/failure_response'))
     assert @service.valid_credentials?
   end
 
   def test_invalid_credentials
-    @service.expects(:ssl_post).returns(invalid_login_response)
+    @service.expects(:ssl_post).returns(xml_fixture('webgistix/invalid_login_response'))
     assert !@service.valid_credentials?
   end
 
   def test_duplicate_response_is_treated_as_success
-    response = stub(:code => 200, :body => duplicate_response, :message => '')
+    response = stub(:code => 200, :body => xml_fixture('webgistix/duplicate_response'), :message => '')
     Net::HTTP.any_instance.stubs(:post).raises(ActiveUtils::ConnectionError).returns(response)
 
     response = @service.fulfill('123456', @address, @line_items, @options)
@@ -179,37 +180,5 @@ class WebgistixTest < Minitest::Test
 
   def test_ensure_gateway_uses_safe_retry
     assert @service.retry_safe
-  end
-
-  private
-  def minimal_successful_response
-    '<Completed><Success>True</Success></Completed>'
-  end
-
-  def successful_response
-    '<Completed><Success>True</Success><OrderID>619669</OrderID></Completed>'
-  end
-
-  def invalid_login_response
-    '<Errors><Error>Invalid Credentials</Error></Errors>'
-  end
-
-  def failure_response
-    '<Errors><Error>No Address Line 1</Error><Error>Unknown ItemID:  testitem</Error><Error>Unknown ItemID:  WX-01-1000</Error></Errors>'
-  end
-
-  def garbage_response
-    '<font face="Arial" size=2>/XML/shippingTest.asp</font><font face="Arial" size=2>, line 39</font>'
-  end
-
-  def inventory_response
-    '<InventoryXML>' +
-      '<Item><ItemID>GN-00-01A</ItemID><ItemQty>202</ItemQty></Item>' +
-      '<Item><ItemID>GN-00-02A</ItemID><ItemQty>199</ItemQty></Item>' +
-      '</InventoryXML>'
-  end
-
-  def duplicate_response
-    '<Completed><Success>Duplicate</Success></Completed>'
   end
 end
