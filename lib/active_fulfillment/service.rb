@@ -13,7 +13,7 @@ module ActiveFulfillment
       @options.update(options)
     end
 
-    def test_mode?
+    def supports_test_mode?
       false
     end
 
@@ -102,7 +102,7 @@ module ActiveFulfillment
     private
 
     def check_test_mode(options)
-      if options[:test] and not test_mode?
+      if options[:test] && !supports_test_mode?
         raise ArgumentError, 'Test mode is not supported by this gateway'
       end
     end

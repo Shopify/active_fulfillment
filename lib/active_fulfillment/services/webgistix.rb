@@ -94,7 +94,7 @@ module ActiveFulfillment
       response.message != INVALID_LOGIN
     end
 
-    def test_mode?
+    def supports_test_mode?
       true
     end
 

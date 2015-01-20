@@ -22,7 +22,7 @@ module ActiveFulfillment
       get :inventory, build_inventory_request(options)
     end
 
-    def test_mode?
+    def supports_test_mode?
       true
     end
 

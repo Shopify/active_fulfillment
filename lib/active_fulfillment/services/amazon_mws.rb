@@ -166,7 +166,7 @@ module ActiveFulfillment
       fetch_stock_levels.success?
     end
 
-    def test_mode?
+    def supports_test_mode?
       false
     end
 
