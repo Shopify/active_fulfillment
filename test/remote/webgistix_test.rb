@@ -87,7 +87,6 @@ class RemoteWebgistixTest < Minitest::Test
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?
-    p response
     assert_equal ['4209073191018052136352154'], response.tracking_numbers['1254658']
     assert_equal ['9101805213907472080032'],    response.tracking_numbers['Flat Rate Test Order 4']
     assert_nil response.tracking_numbers['FAItest123'] # 'Not Shipped'
