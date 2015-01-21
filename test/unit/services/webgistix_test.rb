@@ -93,7 +93,7 @@ class WebgistixTest < Minitest::Test
   def test_stock_levels
     @service.expects(:ssl_post).returns(inventory_response)
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message
     assert_equal 202, response.stock_levels['GN-00-01A']
@@ -124,7 +124,7 @@ class WebgistixTest < Minitest::Test
   def test_tracking_data
     @service.expects(:ssl_post).returns(xml_fixture('webgistix/tracking_response'))
 
-    response = @service.fetch_tracking_data(['AB12345', 'XY4567'])
+    response = @service.fetch_tracking_numbers(['AB12345', 'XY4567'])
 
     assert response.success?
     assert_equal ActiveFulfillment::WebgistixService::SUCCESS_MESSAGE, response.message

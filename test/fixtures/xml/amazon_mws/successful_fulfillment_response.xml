@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<CreateFulfillmentOrderResponse xmlns="http://mws.amazonaws.com/FulfillmentOutboundShipment/2010-10-01/">
+  <ResponseMetadata>
+    <RequestId>d95be26c-16cf-4bbc-ab58-dce89fd4ac53</RequestId>
+  </ResponseMetadata>
+</CreateFulfillmentOrderResponse>

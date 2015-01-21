@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteWebgistixTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @service = ActiveFulfillment::WebgistixService.new(fixtures(:webgistix))
+    @service = ActiveFulfillment::WebgistixService.new(credentials(:webgistix))
 
     @options = {
       :shipping_method => 'Ground',
@@ -66,15 +66,15 @@ class RemoteWebgistixTest < Minitest::Test
   end
 
   def test_get_inventory
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert response.test?
     assert_equal 90,  response.stock_levels['WX-01-3022']
     assert_equal 140, response.stock_levels['WX-04-1080']
   end
 
-  def test_fetch_tracking_data
-    response = @service.fetch_tracking_data([
+  def test_fetch_tracking_numbers
+    response = @service.fetch_tracking_numbers([
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?
@@ -87,7 +87,6 @@ class RemoteWebgistixTest < Minitest::Test
       '1254658', 'FAItest123', 'Flat Rate Test Order 4'
     ])
     assert response.success?
-    p response
     assert_equal ['4209073191018052136352154'], response.tracking_numbers['1254658']
     assert_equal ['9101805213907472080032'],    response.tracking_numbers['Flat Rate Test Order 4']
     assert_nil response.tracking_numbers['FAItest123'] # 'Not Shipped'

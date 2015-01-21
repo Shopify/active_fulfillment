@@ -131,7 +131,7 @@ module ActiveFulfillment
       commit :post, :outbound, :status, build_get_current_fulfillment_orders_request
     end
 
-    def fetch_stock_levels(options = {})
+    def fetch_all_stock_levels(options = {})
       options[:skus] = [options.delete(:sku)] if options.include?(:sku)
       response = commit :post, :inventory, :list, build_inventory_list_request(options)
 
@@ -147,7 +147,7 @@ module ActiveFulfillment
       response
     end
 
-    def fetch_tracking_data(order_ids, options = {})
+    def fetch_tracking_numbers(order_ids, options = {})
       order_ids.reduce(nil) do |previous, order_id|
       response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
       return response if !response.success?
@@ -163,10 +163,10 @@ module ActiveFulfillment
     end
 
     def valid_credentials?
-      fetch_stock_levels.success?
+      fetch_all_stock_levels.success?
     end
 
-    def test_mode?
+    def supports_test_mode?
       false
     end
 
@@ -181,19 +181,20 @@ module ActiveFulfillment
       headers = build_headers(query)
 
       data = ssl_post(uri.to_s, query, headers)
-      response = parse_response(service, op, data)
-      Response.new(success?(response), message_from(response), response)
+      parse_response(service, op, data)
     rescue ActiveUtils::ResponseError => e
       handle_error(e)
     end
 
     def handle_error(e)
       response = parse_error(e.response)
+
       if response.fetch(:faultstring, "").match(/^Requested order \'.+\' not found$/)
-        Response.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}, :tracking_companies => {}, :tracking_urls => {}})
-      else
-        Response.new(false, message_from(response), response)
+        return TrackingResponse.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}, :tracking_companies => {}, :tracking_urls => {}})
       end
+
+      # this can't be a generic error
+      Response.new(false, message_from(response), response)
     end
 
     def success?(response)
@@ -248,10 +249,13 @@ module ActiveFulfillment
 
       response[:response_status] = SUCCESS
       response
+
+      TrackingResponse.new(success?(response), message_from(response), response)
     end
 
     def parse_fulfillment_response(op, document)
-      { :response_status => SUCCESS, :response_comment => MESSAGES[op][SUCCESS] }
+      response = { :response_status => SUCCESS, :response_comment => MESSAGES[op][SUCCESS] }
+      FulfillmentResponse.new(success?(response), message_from(response), response)
     end
 
     def parse_inventory_response(document)
@@ -269,6 +273,8 @@ module ActiveFulfillment
 
       response[:response_status] = SUCCESS
       response
+
+      StockLevelsResponse.new(success?(response), message_from(response), response)
     end
 
     def parse_error(http_response)

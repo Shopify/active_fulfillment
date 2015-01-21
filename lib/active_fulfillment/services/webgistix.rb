@@ -77,11 +77,11 @@ module ActiveFulfillment
       commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
     end
 
-    def fetch_stock_levels(options = {})
+    def fetch_all_stock_levels(options = {})
       commit :inventory, build_inventory_request(options)
     end
 
-    def fetch_tracking_data(order_ids, options = {})
+    def fetch_tracking_numbers(order_ids, options = {})
       commit :tracking, build_tracking_request(order_ids, options)
     end
 
@@ -90,7 +90,7 @@ module ActiveFulfillment
       response.message != INVALID_LOGIN
     end
 
-    def test_mode?
+    def supports_test_mode?
       true
     end
 
@@ -223,8 +223,7 @@ module ActiveFulfillment
         'Content-Type' => 'text/xml; charset="utf-8"'
       )
 
-      response = parse_response(action, data)
-      Response.new(success?(response), message_from(response), response, :test => test?)
+      parse_response(action, data)
     end
 
     def success?(response)
@@ -247,7 +246,8 @@ module ActiveFulfillment
       begin
         document = REXML::Document.new("<response>#{xml}</response>")
       rescue REXML::ParseException
-        return {:success => FAILURE}
+        response = {:success => FAILURE}
+        return Response.new(success?(response), message_from(response), response, :test => test?)
       end
 
       case action
@@ -277,6 +277,7 @@ module ActiveFulfillment
       response[:duplicate] = response[:success] == DUPLICATE
 
       response
+      FulfillmentResponse.new(success?(response), message_from(response), response, :test => test?)
     end
 
     def parse_inventory_response(document)
@@ -291,6 +292,7 @@ module ActiveFulfillment
       end
 
       response
+      StockLevelsResponse.new(success?(response), message_from(response), response, :test => test?)
     end
 
     def parse_tracking_response(document)
@@ -318,6 +320,7 @@ module ActiveFulfillment
       end
 
       response
+      TrackingResponse.new(success?(response), message_from(response), response, :test => test?)
     end
 
     def parse_errors(document)

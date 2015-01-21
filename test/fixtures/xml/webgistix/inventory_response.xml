@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<InventoryXML>
+  <Item>
+    <ItemID>GN-00-01A</ItemID>
+    <ItemQty>202</ItemQty>
+  </Item>
+  <Item>
+    <ItemID>GN-00-02A</ItemID>
+    <ItemQty>199</ItemQty>
+  </Item>
+</InventoryXML>

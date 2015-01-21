@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteShipwireTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @shipwire = ActiveFulfillment::ShipwireService.new(fixtures(:shipwire))
+    @shipwire = ActiveFulfillment::ShipwireService.new(credentials(:shipwire))
 
     @options = {
       :warehouse => 'LAX',
@@ -107,7 +107,7 @@ class RemoteShipwireTest < Minitest::Test
                  :password => 'password'
                )
 
-    response = shipwire.fetch_stock_levels
+    response = shipwire.fetch_all_stock_levels
 
     refute response.success?
     assert response.test?
@@ -116,7 +116,7 @@ class RemoteShipwireTest < Minitest::Test
   end
 
   def test_get_inventory
-    response = @shipwire.fetch_stock_levels
+    response = @shipwire.fetch_all_stock_levels
     assert response.success?
     assert response.test?
     assert_equal 14, response.stock_levels["GD802-024"]
@@ -125,7 +125,7 @@ class RemoteShipwireTest < Minitest::Test
   end
 
   def test_fetch_tracking_data
-    response = @shipwire.fetch_tracking_data(['123456'])
+    response = @shipwire.fetch_tracking_numbers(['123456'])
     assert response.success?
     assert response.test?
     assert_instance_of Hash, response.tracking_numbers # {"40298"=>["9400110200793596422990"]}

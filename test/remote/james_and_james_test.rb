@@ -1,12 +1,12 @@
 require 'test_helper'
 
 class RemoteJamesAndJamesTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
     ActiveFulfillment::Base.mode = :test
 
-    @service = ActiveFulfillment::JamesAndJamesService.new(fixtures(:james_and_james))
+    @service = ActiveFulfillment::JamesAndJamesService.new(credentials(:james_and_james))
 
     @options = {
       shipping_method: 'Ground',
@@ -68,7 +68,7 @@ class RemoteJamesAndJamesTest < Minitest::Test
   end
 
   def test_get_inventory
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert response.test?
     assert_equal 99,  response.stock['SBLK8']

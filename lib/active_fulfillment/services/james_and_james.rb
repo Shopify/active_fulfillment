@@ -3,10 +3,8 @@ require 'json'
 module ActiveFulfillment
   class JamesAndJamesService < Service
 
-    SERVICE_URLS = {
-      fulfillment: 'https://%{subdomain}.sixworks.co.uk/api/1/',
-      inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
-    }
+    FULFILLMENT_URL = 'https://%{subdomain}.sixworks.co.uk/api/1/'
+    INVENTORY_URL = 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
 
     def initialize(options = {})
       requires!(options, :subdomain, :key)
@@ -15,14 +13,35 @@ module ActiveFulfillment
 
     def fulfill(order_id, shipping_address, line_items, options = {})
       requires!(options, :billing_address)
-      commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
+      request = build_fulfillment_request(order_id, shipping_address, line_items, options)
+      request = request.merge({api_key: @options[:key], test: test? })
+
+      data = ssl_post(FULFILLMENT_URL % {subdomain: @options[:subdomain]}, JSON.generate(request))
+      response = JSON.parse(data)
+      FulfillmentResponse.new(response["success"], "message", response, test: response["test"])
+
+    rescue ActiveUtils::ResponseError => e
+      response = parse_error(e.response)
+      FulfillmentResponse.new(false, response[:http_message], response)
+    rescue JSON::ParserError => e
+      FulfillmentResponse.new(false, e.message)
     end
 
-    def fetch_stock_levels(options = {})
-      get :inventory, build_inventory_request(options)
+    def fetch_all_stock_levels(options = {})
+      request = {api_key: @options[:key], test: test? }
+
+      data = ssl_get(INVENTORY_URL % {subdomain: @options[:subdomain]} + "?" + request.to_query)
+      response = JSON.parse(data)
+      Response.new(response["success"], "message", response, test: response["test"])
+
+    rescue ActiveUtils::ResponseError => e
+      response = parse_error(e.response)
+      StockLevelsResponse.new(false, response[:http_message], response)
+    rescue JSON::ParserError => e
+      StockLevelsResponse.new(false, e.message)
     end
 
-    def test_mode?
+    def supports_test_mode?
       true
     end
 
@@ -47,41 +66,6 @@ module ActiveFulfillment
       data[:order][:days_before_bbe] = options[:days_before_bbe] unless options[:days_before_bbe].blank?
       data[:order][:callback_url] = options[:callback_url] unless options[:callback_url].blank?
       return data
-    end
-
-    def build_inventory_request(options)
-      {}
-    end
-
-    def commit(action, request)
-      request = request.merge({api_key: @options[:key], test: test? })
-      data = ssl_post(SERVICE_URLS[action] % {subdomain: @options[:subdomain]}, JSON.generate(request))
-      response = parse_response(data)
-      Response.new(response["success"], "message", response, test: response["test"])
-    rescue ActiveUtils::ResponseError => e
-      handle_error(e)
-    rescue JSON::ParserError => e
-      Response.new(false, e.message)
-    end
-
-    def get(action, request)
-      request = request.merge({api_key: @options[:key], test: test? })
-      data = ssl_get(SERVICE_URLS[action] % {subdomain: @options[:subdomain]} + "?" + request.to_query)
-      response = parse_response(data)
-      Response.new(response["success"], "message", response, test: response["test"])
-    rescue ActiveUtils::ResponseError => e
-      handle_error(e)
-    rescue JSON::ParserError => e
-      Response.new(false, e.message)
-    end
-
-    def parse_response(json)
-      JSON.parse(json)
-    end
-
-    def handle_error(e)
-      response = parse_error(e.response)
-      Response.new(false, response[:http_message], response)
     end
 
     def parse_error(http_response)

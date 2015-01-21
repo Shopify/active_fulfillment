@@ -1,10 +1,10 @@
 require 'test_helper'
 
 class RemoteAmazonMarketplaceWebservicesTest < Minitest::Test
-  include ActiveFulfillment::Test::Fixtures
+  include ActiveFulfillment::Test::Credentials
 
   def setup
-    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(fixtures(:amazon_mws))
+    @service = ActiveFulfillment::AmazonMarketplaceWebService.new(credentials(:amazon_mws))
 
     @options = {
       :shipping_method => 'Standard',
@@ -64,19 +64,19 @@ class RemoteAmazonMarketplaceWebservicesTest < Minitest::Test
   end
 
   def test_get_inventory
-    response = @service.fetch_stock_levels(:sku => '2R-JAXZ-P0IB')
+    response = @service.fetch_all_stock_levels(:sku => '2R-JAXZ-P0IB')
     assert response.success?
     assert_equal 0, response.stock_levels['2R-JAXZ-P0IB']
   end
 
   def test_list_inventory
-    response = @service.fetch_stock_levels(:start_time => Time.parse('2010-01-01'))
+    response = @service.fetch_all_stock_levels(:start_time => Time.parse('2010-01-01'))
     assert response.success?
     assert_equal 0, response.stock_levels['SETTLERS']
   end
 
   def test_fetch_tracking_data
-    response = @service.fetch_tracking_data(['123456']) # an actual order
+    response = @service.fetch_tracking_numbers(['123456']) # an actual order
     assert response.success?
     assert_equal Hash.new, response.tracking_numbers # no tracking numbers in testing
     assert_equal Hash.new, response.tracking_companies

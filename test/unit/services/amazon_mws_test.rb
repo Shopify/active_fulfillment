@@ -208,13 +208,13 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_successful_fulfillment
-    @service.expects(:ssl_post).returns(successful_fulfillment_response)
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/successful_fulfillment_response'))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert response.success?
   end
 
   def test_invalid_arguments
-    http_response = build_mock_response(invalid_params_response, "", 500)
+    http_response = build_mock_response(xml_fixture('amazon_mws/invalid_params_response'), "", 500)
     @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert !response.success?
@@ -232,7 +232,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_get_service_status
-    @service.expects(:ssl_post).returns(successful_status_response)
+    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/successful_status_response'))
 
     response = @service.status
     assert response.success?
@@ -241,7 +241,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   def test_get_inventory
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
     assert_equal 202, response.stock_levels['GN-00-01A']
     assert_equal 199, response.stock_levels['GN-00-02A']
@@ -256,7 +256,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert response.success?
 
     assert_equal 202, response.stock_levels['GN-00-01A']
@@ -272,12 +272,12 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
 
     # force missing stock by returning token'd ssl_post with a 503 error
-    http_response = build_mock_response(response_from_503, "", 503)
+    http_response = build_mock_response("Service Unavailable", "", 503)
     @service.expects(:ssl_post).with() { |uri, query, headers|
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.raises(ActiveUtils::ResponseError.new(http_response))
 
-    response = @service.fetch_stock_levels
+    response = @service.fetch_all_stock_levels
     assert !response.success?
   end
 
@@ -297,7 +297,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_nil response.tracking_numbers['extern_id_1154539615777']
   end
 
-  def test_fetch_multiple_tracking_numbers
+  def test_fetch_multiple_tracking_info
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fullfillment_order_with_multiple_tracking_numbers'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
@@ -305,10 +305,10 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal %w{93YY00 93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
   end
 
-  def test_fetch_tracking_data
+  def test_fetch_tracking_numbers_with_extra_info
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
 
-    response = @service.fetch_tracking_data(['extern_id_1154539615776'])
+    response = @service.fetch_tracking_numbers(['extern_id_1154539615776'])
     assert response.success?
     assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
     assert_equal %w{UPS}, response.tracking_companies['extern_id_1154539615776']
@@ -354,7 +354,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_404_error
-    http_response = build_mock_response(response_from_404, "Not Found", "404")
+    http_response = build_mock_response('Not found', "Not Found", "404")
     @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fulfill('987654321', @address, @line_items, @options)
@@ -363,7 +363,6 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal "404: Not Found", response.response_comment
     assert_equal "404", response.http_code
     assert_equal "Not Found", response.http_message
-    assert_equal response_from_404, response.http_body
   end
 
   def test_building_address_skips_nil_values
@@ -384,62 +383,5 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     http_response = mock(:code => code, :message => message)
     http_response.stubs(:body).returns(response)
     http_response
-  end
-
-  def successful_fulfillment_response
-    <<-XML
-<?xml version="1.0"?>
-<CreateFulfillmentOrderResponse
-xmlns="http://mws.amazonaws.com/FulfillmentOutboundShipment/2010-10-01/">
-  <ResponseMetadata>
-    <RequestId>d95be26c-16cf-4bbc-ab58-dce89fd4ac53</RequestId>
-  </ResponseMetadata>
-</CreateFulfillmentOrderResponse>
-    XML
-  end
-
-  def successful_status_response
-    <<-XML
-<?xml version="1.0"?>
-  <GetServiceStatusResponse
-xmlns="http://mws.amazonaws.com/FulfillmentOutboundShipment/2010-10-01/">
-    <GetServiceStatusResult>
-      <Status>GREEN_I</Status>
-      <Timestamp>2010-11-01T21:38:09.676Z</Timestamp>
-      <MessageId>173964729I</MessageId>
-      <Messages>
-        <Message>
-          <Locale>en_US</Locale>
-          <Text>We are experiencing high latency in UK because of heavy
-traffic.</Text>
-        </Message>
-      </Messages>
-    </GetServiceStatusResult>
-    <ResponseMetadata>
-      <RequestId>d80c6c7b-f7c7-4fa7-bdd7-854711cb3bcc</RequestId>
-    </ResponseMetadata>
-  </GetServiceStatusResponse>
-    XML
-  end
-
-  def response_from_404
-    '<html><head><title>Apache Tomcat</title></head><body>That was not found</body></html>'
-  end
-
-  def response_from_503
-    '<html><head><title>Apache</title></head><body>Service Unavailable</body></html>'
-  end
-
-  def invalid_params_response
-    <<-XML
-    <ErrorResponse xmlns="http://mws.amazonaws.com/FulfillmentInventory/2010-10-01/">
-      <Error>
-        <Type>Sender</Type>
-        <Code>MalformedInput</Code>
-        <Message>timestamp must follow ISO8601</Message>
-      </Error>
-      <RequestId>e71f72f5-3df6-4306-bb67-9f55bd9d9665</RequestId>
-    </ErrorResponse>
-    XML
   end
 end
