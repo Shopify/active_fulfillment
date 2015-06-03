@@ -107,6 +107,7 @@ module ActiveFulfillment
     def initialize(options = {})
       requires!(options, :login, :password)
       @seller_id = options[:seller_id]
+      @mws_auth_token = options[:mws_auth_token]
       super
     end
 
@@ -347,6 +348,7 @@ module ActiveFulfillment
       opts["SignatureMethod"] = "Hmac#{SIGNATURE_METHOD}" unless opts["SignatureMethod"]
       opts["SignatureVersion"] = SIGNATURE_VERSION unless opts["SignatureVersion"]
       opts["SellerId"] = @seller_id unless opts["SellerId"] || !@seller_id
+      opts["MWSAuthToken"] = @mws_auth_token unless opts["MWSAuthToken"] || !@mws_auth_token
       opts
     end
 
