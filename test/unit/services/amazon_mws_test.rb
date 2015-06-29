@@ -116,9 +116,16 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_verify_amazon_response
     service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => "AKIAFJPPO5KLY6G4XO7Q", :password => "aaa")
-    string_signed_by_amazon = "POST\nhttps://www.vendor.com/mwsApp1\n/orders/listRecentOrders.jsp?sessionId=123"
-    string_signed_by_amazon += "\nAWSAccessKeyId=AKIAFJPPO5KLY6G4XO7Q&Marketplace=ATVPDKIKX0DER&Merchant=A047950713KM6AGKQCBRD&SignatureMethod=HmacSHA256&SignatureVersion=2"
-    assert service.amazon_request?(string_signed_by_amazon, "b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa%2FolfnWg%3D")
+    post_params = {
+      AWSAccessKeyId: "AKIAFJPPO5KLY6G4XO7Q",
+      Marketplace: "ATVPDKIKX0DER",
+      Merchant: "A047950713KM6AGKQCBRD",
+      SignatureMethod: "HmacSHA256",
+      SignatureVersion: "2",
+      Signature: "b0hxWov1RfBOqNk77UDfNRRZmf3tkdM7vuNa/olfnWg=",
+      SignedString: "This should be ignored."
+    }
+    assert service.amazon_request?("POST", "https://www.vendor.com/mwsApp1", "/orders/listRecentOrders.jsp?sessionId=123", post_params)
   end
 
   def test_build_address

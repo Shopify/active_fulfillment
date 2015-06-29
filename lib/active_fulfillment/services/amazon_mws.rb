@@ -1,6 +1,7 @@
 require 'base64'
 require 'time'
 require 'cgi'
+require 'active_support/core_ext/hash/except'
 
 module ActiveFulfillment
   class AmazonMarketplaceWebService < Service
@@ -307,9 +308,11 @@ module ActiveFulfillment
       escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp)
     end
 
-    def amazon_request?(signed_string, expected_signature)
-      calculated_signature = escape(Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], signed_string)).chomp)
-      calculated_signature == expected_signature
+    def amazon_request?(http_verb, base_url, return_path_and_parameters, post_params)
+      signed_params = build_query(post_params.except(:Signature, :SignedString))
+      string_to_sign = "#{http_verb}\n#{base_url}\n#{return_path_and_parameters}\n#{signed_params}"
+      calculated_signature = Base64.encode64(OpenSSL::HMAC.digest(SIGNATURE_METHOD, @options[:password], string_to_sign)).chomp
+      secure_compare(calculated_signature, post_params[:Signature])
     end
 
     def registration_url(options)
@@ -449,6 +452,18 @@ module ActiveFulfillment
 
     def escape(str)
       CGI.escape(str.to_s).gsub('+', '%20')
+    end
+
+    private
+
+    def secure_compare(a, b)
+      return false unless a.bytesize == b.bytesize
+
+      l = a.unpack "C#{a.bytesize}"
+
+      res = 0
+      b.each_byte { |byte| res |= byte ^ l.shift }
+      res == 0
     end
   end
 end
