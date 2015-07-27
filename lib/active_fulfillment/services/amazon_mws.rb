@@ -183,6 +183,9 @@ module ActiveFulfillment
       headers = build_headers(query)
 
       data = ssl_post(uri.to_s, query, headers)
+      if service == :inventory
+        logger.info "[#{self.class}][inventory] query=#{build_full_query(verb, uri, params.except('AWSAccessKeyId', 'MWSAuthToken'))} response=#{data}"
+      end
       response = parse_response(service, op, data)
       Response.new(success?(response), message_from(response), response)
     rescue ActiveUtils::ResponseError => e

@@ -247,6 +247,12 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_get_inventory
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
+    
+    @service.class.logger.expects(:info).with do |message|
+      assert_match /ListInventorySupplyResult/, message
+      assert /MWSAuthToken/ !~ message
+      assert /AWSAccessKeyId/ !~ message
+    end
 
     response = @service.fetch_stock_levels
     assert response.success?
