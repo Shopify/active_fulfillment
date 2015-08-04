@@ -38,6 +38,18 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       :phone => "(555)555-5555"
     }
 
+    @long_address = {
+      :name => 'Mister Long Name The Third',
+      :company => 'Company Overflow Name Incorporated LLC',
+      :address1 => '100 Information Super Highway',
+      :address2 => 'Suite 66',
+      :city => 'Beverly Hills',
+      :state => 'CA',
+      :country => 'US',
+      :zip => '90210',
+      :phone => "(555)555-5555"
+    }
+
     @canadian_address = {
       :name => 'Johnny Bouchard',
       :address1 => '100 Canuck St',
@@ -156,6 +168,10 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal expected_items, @service.build_address(@commercial_address)
   end
 
+  def test_build_address_truncates_name_to_length
+    assert_equal "Company Overflow Name Incorporated LLC - Mister Lo", @service.build_address(@long_address)["DestinationAddress.Name"]
+  end
+
   def test_build_address_upcases_postal_code
     address = @service.build_address(@canadian_address)
     assert_equal address["DestinationAddress.PostalCode"], "H0H0H0"
@@ -247,7 +263,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_get_inventory
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
-    
+
     @service.class.logger.expects(:info).with do |message|
       assert_match /ListInventorySupplyResult/, message
       assert /MWSAuthToken/ !~ message
