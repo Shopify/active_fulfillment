@@ -421,7 +421,7 @@ module ActiveFulfillment
     def build_address(address)
       requires!(address, :name, :address1, :city, :country, :zip)
       address[:state] ||= "N/A"
-      address[:zip].upcase!
+      address[:zip].upcase! if address[:zip]
       address[:name] = "#{address[:company]} - #{address[:name]}" if address[:company].present?
       address[:name] = address[:name][0...50] if address[:name].present?
       ary = address.map{ |key, value| [LOOKUPS[:destination_address][key], value] if LOOKUPS[:destination_address].include?(key) && value.present? }
