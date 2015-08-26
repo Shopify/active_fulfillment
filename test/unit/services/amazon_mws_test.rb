@@ -154,6 +154,20 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal expected_items, @service.build_address(@address)
   end
 
+  def test_build_address_without_zip
+    expected_items = {
+      "DestinationAddress.Name" => @address[:name],
+      "DestinationAddress.Line1" => @address[:address1],
+      "DestinationAddress.Line2" => @address[:address2],
+      "DestinationAddress.City" => @address[:city],
+      "DestinationAddress.StateOrProvinceCode" => @address[:state],
+      "DestinationAddress.CountryCode" => @address[:country],
+      "DestinationAddress.PhoneNumber" => @address[:phone]
+    }
+    @address[:zip] = nil
+    assert_equal expected_items, @service.build_address(@address)
+  end
+
   def test_build_address_attaches_company_name_to_name
     expected_items = {
       "DestinationAddress.Name" => "#{@commercial_address[:company]} - #{@commercial_address[:name]}",
