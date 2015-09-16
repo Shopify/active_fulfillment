@@ -381,6 +381,22 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal %w{93ZZ00}, response.tracking_numbers['extern_id_1154539615776']
   end
 
+   def test_fetch_tracking_numbers_with_throttle
+    @service.expects(:ssl_post).times(30).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
+    numbers = (1..30).map {|i| "extern_id_#{i}" }
+    @service.expects(:sleep).times(3)
+    response = @service.fetch_tracking_numbers(numbers, {throttle: {interval: 10, sleep_time: 1}})
+    assert response.success?
+  end
+
+  def test_fetch_tracking_numbers_with_throttle_for_not_enough_requests
+    @service.expects(:ssl_post).times(5).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
+    numbers = (1..5).map {|i| "extern_id_#{i}" }
+    response = @service.fetch_tracking_numbers(numbers, {throttle: {interval: 10, sleep_time: 1}})
+    assert response.success?
+    @service.expects(:sleep).never
+  end
+
   def test_fetch_tracking_numbers_aborts_on_error
     response = mock('response')
     response.stubs(:code).returns(500)
