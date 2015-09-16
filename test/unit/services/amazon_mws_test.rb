@@ -392,9 +392,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   def test_fetch_tracking_numbers_with_throttle_for_not_enough_requests
     @service.expects(:ssl_post).times(5).returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order'))
     numbers = (1..5).map {|i| "extern_id_#{i}" }
+    @service.expects(:sleep).never
     response = @service.fetch_tracking_numbers(numbers, {throttle: {interval: 10, sleep_time: 1}})
     assert response.success?
-    @service.expects(:sleep).never
   end
 
   def test_fetch_tracking_numbers_aborts_on_error
