@@ -150,17 +150,20 @@ module ActiveFulfillment
     end
 
     def fetch_tracking_data(order_ids, options = {})
+      index = 0
       order_ids.reduce(nil) do |previous, order_id|
-      response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
-      return response if !response.success?
+        index += 1
+        response = commit :post, :outbound, :tracking, build_tracking_request(order_id, options)
+        return response if !response.success?
 
-      if previous
-        response.tracking_numbers.merge!(previous.tracking_numbers)
-        response.tracking_companies.merge!(previous.tracking_companies)
-        response.tracking_urls.merge!(previous.tracking_urls)
-      end
+        if previous
+          sleep_for_throttle_options(options[:throttle], index)
+          response.tracking_numbers.merge!(previous.tracking_numbers)
+          response.tracking_companies.merge!(previous.tracking_companies)
+          response.tracking_urls.merge!(previous.tracking_urls)
+        end
 
-      response
+        response
       end
     end
 
@@ -459,6 +462,11 @@ module ActiveFulfillment
     end
 
     private
+
+    def sleep_for_throttle_options(throttle_options, index)
+      return unless interval = throttle_options.try(:[], :interval)
+      sleep(throttle_options[:sleep_time]) if (index % interval).zero?
+    end
 
     def secure_compare(a, b)
       return false unless a.bytesize == b.bytesize
