@@ -14,7 +14,7 @@ gem 'active_fulfillment'
 
 ```
 # The authentication options differ per service.
-service = ActiveFulfillment.service('name').initialze(login: 'abc', password: 'def')
+service = ActiveFulfillment.service('name').new(login: 'abc', password: 'def')
 
 # To fulfill an order:
 service.fulfill(order_id, shipping_address, line_items, options = {})
