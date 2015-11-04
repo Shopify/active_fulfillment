@@ -5,8 +5,8 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def setup
     @service = ActiveFulfillment::AmazonMarketplaceWebService.new(
-                                               :login => 'l',
-                                               :password => 'p'
+                                               :login => 'login',
+                                               :password => 'password'
                                                )
 
     @options = {
@@ -87,7 +87,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     expected_keys = ["AWSAccessKeyId", "Action", "FeedType", "Merchant", "SignatureMethod", "SignatureVersion", "Timestamp", "Version"]
     opts = @service.build_basic_api_query(options)
     assert_equal expected_keys.sort, opts.keys.map(&:to_s).sort
-    assert_equal "l", opts["AWSAccessKeyId"]
+    assert_equal "login", opts["AWSAccessKeyId"]
     assert_equal ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_VERSION, opts["SignatureVersion"]
     assert_equal "Hmac#{ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts["SignatureMethod"]
     assert_equal ActiveFulfillment::AmazonMarketplaceWebService::VERSION, opts["Version"]
@@ -279,10 +279,10 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
     @service.class.logger.expects(:info).with do |message|
-      assert_match /ListInventorySupplyResult/, message
-      assert /MWSAuthToken/ !~ message
-      assert /AWSAccessKeyId/ !~ message
-    end
+      assert_match /ListInventorySupply/, message unless message.include?('ListInventorySupplyResult')
+      assert /@service[:login]/ !~ message
+      assert /@service[:password]/ !~ message
+    end.twice
 
     response = @service.fetch_stock_levels
     assert response.success?
@@ -412,6 +412,25 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal 'Something has gone terribly wrong!', response.faultstring
   end
 
+  def test_fetch_tracking_numbers_400
+    response = mock('response')
+    response.stubs(:code).returns(400)
+    response.stubs(:message).returns("Error fetching tracking")
+    response.stubs(:body).returns(xml_fixture('amazon_mws/tracking_response_error'))
+
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(response))
+
+    @service.class.logger.expects(:info).with do |message|
+      assert_match /Something has gone terribly wrong/, message unless message.include?('GetFulfillmentOrder')
+      assert /@service[:login]/ !~ message
+      assert /@service[:password]/ !~ message
+    end.twice
+
+    response = @service.fetch_tracking_data(['extern_id_1154539615776'])
+    assert !response.success?
+    assert_equal 'Something has gone terribly wrong!', response.faultstring
+  end
+
   def test_404_error
     http_response = build_mock_response(response_from_404, "Not Found", "404")
     @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response))
@@ -440,7 +459,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   private
   def build_mock_response(response, message, code = "200")
-    http_response = mock(:code => code, :message => message)
+    http_response = stub(:code => code, :message => message)
     http_response.stubs(:body).returns(response)
     http_response
   end

@@ -184,11 +184,13 @@ module ActiveFulfillment
       uri = URI.parse("https://#{endpoint}/#{ACTIONS[service]}/#{VERSION}")
       query = build_full_query(verb, uri, params)
       headers = build_headers(query)
+      log_query = query
+      [@options[:login], @options[:app_id], @mws_auth_token].each { |key| log_query.gsub!(/#{key}/, '[filtered]') if key.present? }
 
+      logger.info "[#{self.class}][#{op.to_s}] query=#{log_query}"
       data = ssl_post(uri.to_s, query, headers)
-      if service == :inventory
-        logger.info "[#{self.class}][inventory] query=#{build_full_query(verb, uri, params.except('AWSAccessKeyId', 'MWSAuthToken'))} response=#{data}"
-      end
+      logger.info "[#{self.class}][#{op.to_s}] response=#{data}"
+
       response = parse_response(service, op, data)
       Response.new(success?(response), message_from(response), response)
     rescue ActiveUtils::ResponseError => e
@@ -196,6 +198,7 @@ module ActiveFulfillment
     end
 
     def handle_error(e)
+      logger.info "[#{self.class}][ResponseError] response=#{e.response.try(:body)}, message=#{e.message}"
       response = parse_error(e.response)
       if response.fetch(:faultstring, "").match(/^Requested order \'.+\' not found$/)
         Response.new(true, nil, {:status => SUCCESS, :tracking_numbers => {}, :tracking_companies => {}, :tracking_urls => {}})
