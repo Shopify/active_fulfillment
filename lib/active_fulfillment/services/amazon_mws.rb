@@ -184,7 +184,7 @@ module ActiveFulfillment
       uri = URI.parse("https://#{endpoint}/#{ACTIONS[service]}/#{VERSION}")
       query = build_full_query(verb, uri, params)
       headers = build_headers(query)
-      log_query = query
+      log_query = query.dup
       [@options[:login], @options[:app_id], @mws_auth_token].each { |key| log_query.gsub!(/#{key}/, '[filtered]') if key.present? }
 
       logger.info "[#{self.class}][#{op.to_s}] query=#{log_query}"
