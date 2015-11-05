@@ -280,8 +280,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
     @service.class.logger.expects(:info).with do |message|
       assert_match /ListInventorySupply/, message unless message.include?('ListInventorySupplyResult')
-      assert /@service[:login]/ !~ message
-      assert /@service[:password]/ !~ message
+      refute message.include?('login')
+      refute message.include?('password')
+      true
     end.twice
 
     response = @service.fetch_stock_levels
@@ -296,6 +297,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
 
     @service.expects(:ssl_post).with() { |uri, query, headers|
+      assert query.include?('login')
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
@@ -422,8 +424,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
     @service.class.logger.expects(:info).with do |message|
       assert_match /Something has gone terribly wrong/, message unless message.include?('GetFulfillmentOrder')
-      assert /@service[:login]/ !~ message
-      assert /@service[:password]/ !~ message
+      refute message.include?('login')
+      refute message.include?('password')
+      true
     end.twice
 
     response = @service.fetch_tracking_data(['extern_id_1154539615776'])
