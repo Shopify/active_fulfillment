@@ -1,14 +1,23 @@
 language: ruby
 script: bundle exec rake
 sudo: false
+cache: bundler
 
 rvm:
-- "2.0"
-- "2.1"
-- "2.2"
+- 2.0
+- 2.1
+- 2.2.3
 
 gemfile:
 - Gemfile.activesupport32
 - Gemfile.activesupport40
 - Gemfile.activesupport41
 - Gemfile.activesupport42
+- Gemfile.activesupport5
+
+matrix:
+  exclude:
+    - rvm: 2.0
+      gemfile: Gemfile.activesupport5
+    - rvm: 2.1
+      gemfile: Gemfile.activesupport5
