@@ -245,7 +245,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_successful_fulfillment
-    @service.expects(:ssl_post).returns(successful_fulfillment_response)
+    @service.expects(:ssl_post).with do |uri, query, headers|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentOutboundShipment/2010-10-01', uri
+    end.returns(successful_fulfillment_response)
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert response.success?
   end
@@ -276,7 +278,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_get_inventory
-    @service.expects(:ssl_post).returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
+    @service.expects(:ssl_post).with do |uri, _, _|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentInventory/2010-10-01', uri
+    end.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
 
     @service.class.logger.expects(:info).with do |message|
       assert_match /ListInventorySupply/, message unless message.include?('ListInventorySupplyResult')
@@ -293,10 +297,12 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_get_inventory_multipage
     @service.expects(:ssl_post).with() { |uri, query, headers|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentInventory/2010-10-01', uri
       query.include?('ListInventorySupply') && !query.include?('ListInventorySupplyByNextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
 
     @service.expects(:ssl_post).with() { |uri, query, headers|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentInventory/2010-10-01', uri
       assert query.include?('login')
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
@@ -312,15 +318,15 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_get_inventory_multipage_missing_stock
 
-    @service.expects(:ssl_post).with() { |uri, query, headers|
+    @service.expects(:ssl_post).with { |uri, query, headers|
       query.include?('ListInventorySupply') && !query.include?('ListInventorySupplyByNextToken')
     }.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply_by_next_token'))
 
     # force missing stock by returning token'd ssl_post with a 503 error
     http_response = build_mock_response(response_from_503, "", 503)
-    @service.expects(:ssl_post).with() { |uri, query, headers|
+    @service.expects(:ssl_post).with do |uri, query, headers|
       query.include?('ListInventorySupplyByNextToken') && query.include?('NextToken')
-    }.raises(ActiveUtils::ResponseError.new(http_response))
+    end.raises(ActiveUtils::ResponseError.new(http_response))
 
     response = @service.fetch_stock_levels
     assert !response.success?
@@ -332,8 +338,9 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   end
 
   def test_fetch_tracking_numbers
-    @service.expects(:ssl_post).twice.
-      returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
+    @service.expects(:ssl_post).twice.with do |uri, query, headers|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentOutboundShipment/2010-10-01', uri
+    end.returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order')).
       returns(xml_fixture('amazon_mws/fulfillment_get_fulfillment_order_2'))
 
     response = @service.fetch_tracking_numbers(['extern_id_1154539615776', 'extern_id_1154539615777'])

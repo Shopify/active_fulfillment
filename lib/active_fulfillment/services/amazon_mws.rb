@@ -85,21 +85,21 @@ module ActiveFulfillment
     def fulfill(order_id, shipping_address, line_items, options = {})
       requires!(options, :order_date, :shipping_method)
       with_error_handling do
-        data = commit :post, 'CreateFulfillmentOrder', build_fulfillment_request(order_id, shipping_address, line_items, options)
+        data = commit :post, 'FulfillmentOutboundShipment', build_fulfillment_request(order_id, shipping_address, line_items, options)
         parse_fulfillment_response(parse_document(data), 'Successfully submitted the order')
       end
     end
 
     def status
       with_error_handling do
-        data = commit :post, 'GetServiceStatus', build_basic_api_query({ :Action => 'GetServiceStatus' })
+        data = commit :post, 'FulfillmentOutboundShipment', build_basic_api_query({ :Action => 'GetServiceStatus' })
         parse_tracking_response(parse_document(data))
       end
     end
 
     def fetch_current_orders
       with_error_handling do
-        data = commit :post, 'GetServiceStatus', build_get_current_fulfillment_orders_request
+        data = commit :post, 'FulfillmentOutboundShipment', build_get_current_fulfillment_orders_request
         parse_tracking_response(parse_document(data))
       end
     end
@@ -107,12 +107,12 @@ module ActiveFulfillment
     def fetch_stock_levels(options = {})
       options[:skus] = [options.delete(:sku)] if options.include?(:sku)
       response = with_error_handling do
-        data = commit :post, 'ListInventorySupply', build_inventory_list_request(options)
+        data = commit :post, 'FulfillmentInventory', build_inventory_list_request(options)
         parse_inventory_response(parse_document(data))
       end
       while token = response.params['next_token'] do
         next_page = with_error_handling do
-          data = commit :post, 'ListInventorySupplyByNextToken', build_next_inventory_list_request(token)
+          data = commit :post, 'FulfillmentInventory', build_next_inventory_list_request(token)
           parse_inventory_response(parse_document(data))
         end
 
@@ -130,7 +130,7 @@ module ActiveFulfillment
       order_ids.reduce(nil) do |previous, order_id|
         index += 1
         response = with_error_handling do
-          data = commit :post, 'GetFulfillmentOrder', build_tracking_request(order_id, options)
+          data = commit :post, 'FulfillmentOutboundShipment', build_tracking_request(order_id, options)
           parse_tracking_response(parse_document(data))
         end
 
@@ -241,7 +241,6 @@ module ActiveFulfillment
       response[:next_token] = next_token ? next_token.text : nil
 
       response[:response_status] = SUCCESS
-      response
       Response.new(success?(response), message_from(response), response)
     end
 
