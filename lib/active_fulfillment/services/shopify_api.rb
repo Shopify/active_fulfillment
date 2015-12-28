@@ -3,7 +3,10 @@ require 'active_support/core_ext/object/to_query'
 module ActiveFulfillment
   class ShopifyAPIService < Service
 
-    OrderIdCutoffDate = Date.iso8601("2015-03-01")
+    JSON_DATATYPE = 'json'.freeze
+    XML_DATATYPE = 'xml'.freeze
+
+    OrderIdCutoffDate = Date.iso8601("2015-03-01").freeze
 
     RESCUABLE_CONNECTION_ERRORS = [
       Net::ReadTimeout,
@@ -28,7 +31,7 @@ module ActiveFulfillment
       ActiveUtils::ConnectionError,
       ActiveUtils::ResponseError,
       ActiveUtils::InvalidResponseError
-    ]
+    ].freeze
 
     def initialize(options = {})
       @name = options[:name]
@@ -92,32 +95,38 @@ module ActiveFulfillment
       response
     end
 
-    def parse_response(response, root, type, key, value)
-      case @format
-      when 'json'
-        response_data = ActiveSupport::JSON.decode(response)
-        return {} unless response_data.is_a?(Hash)
-        response_data[root.underscore] || response_data
-      when 'xml'
-        response_data = {}
-        document = REXML::Document.new(response)
-        document.elements[root].each do |node|
-          if node.name == type
-            response_data[node.elements[key].text] = node.elements[value].text
-          end
-        end
-        response_data
-      end
+    def parse_json(json_data, root)
+      response_data = ActiveSupport::JSON.decode(json_data)
+      return {} unless response_data.is_a?(Hash)
+      response_data[root.underscore] || response_data
+      rescue ActiveSupport::JSON.parse_error
+        return {}
+    end
 
-    rescue ActiveSupport::JSON.parse_error, REXML::ParseException
+    def parse_xml(xml_data, type, key, value)
+      Parsing.with_xml_document(xml_data) do |document, response|
+        # Extract All elements of type and map them!
+        root_element = document.xpath("//#{type}")
+        root_element.each do |type_item| 
+          key_item = type_item.at_css(key).child.content
+          value_item = type_item.at_css(value).child.content
+          response[key_item] = value_item
+        end
+        response
+      end
+    end
+
+    def parse_response(response, root, type, key, value)
+      return parse_json(response, root) if @format == JSON_DATATYPE
+      return parse_xml(response, type, key, value) if @format == XML_DATATYPE
       {}
     end
 
     def encode_payload(payload, root)
       case @format
-      when 'json'
+      when JSON_DATATYPE
         {root => payload}.to_json
-      when 'xml'
+      when XML_DATATYPE
         payload.to_xml(:root => root)
       end
     end
