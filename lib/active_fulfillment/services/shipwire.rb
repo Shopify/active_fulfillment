@@ -28,19 +28,19 @@ module ActiveFulfillment
 
     INVALID_LOGIN = /(Error with Valid Username\/EmailAddress and Password Required)|(Could not verify Username\/EmailAddress and Password combination)/
 
-    SHIPPING_METHODS = [
-      ['1 Day Service',   '1D'],
-      ['2 Day Service',   '2D'],
-      ['Ground Service',  'GD'],
-      ['Freight Service', 'FT'],
-      ['International', 'INTL']
-    ].freeze
+    SHIPPING_METHODS = {
+      '1 Day Service' => '1D',
+      '2 Day Service' => '2D',
+      'Ground Service' => 'GD',
+      'Freight Service' => 'FT',
+      'International' => 'INTL'
+    }.freeze
 
     class_attribute :affiliate_id
 
     # The first is the label, and the last is the code
     def self.shipping_methods
-      SHIPPING_METHODS.inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     # Pass in the login and password for the shipwire account.

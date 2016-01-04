@@ -56,18 +56,18 @@ module ActiveFulfillment
       }
     }.freeze
 
-    SHIPPING_METHODS = [
-      [ 'Standard Shipping', 'Standard' ],
-      [ 'Expedited Shipping', 'Expedited' ],
-      [ 'Priority Shipping', 'Priority' ]
-    ].freeze
+    SHIPPING_METHODS = {
+      'Standard Shipping' => 'Standard',
+      'Expedited Shipping' => 'Expedited',
+      'Priority Shipping' => 'Priority'
+    }.freeze
 
     # The first is the label, and the last is the code
     # Standard:  3-5 business days
     # Expedited: 2 business days
     # Priority:  1 business day
     def self.shipping_methods
-      SHIPPING_METHODS.inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     def initialize(options = {})

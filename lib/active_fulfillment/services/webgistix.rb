@@ -21,42 +21,42 @@ module ActiveFulfillment
 
     TRACKING_COMPANIES = %w(UPS FedEx USPS).freeze
 
-    SHIPPING_PROVIDERS = [
-        ["UPS Ground Shipping", "Ground"],
-        ["UPS Ground", "Ground"],
-        ["UPS Standard Shipping (Canada Only)", "Standard"],
-        ["UPS Standard Shipping (CA & MX Only)", "Standard"],
-        ["UPS 3-Business Day", "3-Day Select"],
-        ["UPS 2-Business Day", "2nd Day Air"],
-        ["UPS 2-Business Day AM", "2nd Day Air AM"],
-        ["UPS Next Day", "Next Day Air"],
-        ["UPS Next Day Saver", "Next Day Air Saver"],
-        ["UPS Next Day Early AM", "Next Day Air Early AM"],
-        ["UPS Worldwide Express (Next Day)", "Worldwide Express"],
-        ["UPS Worldwide Expedited (2nd Day)", "Worldwide Expedited"],
-        ["UPS Worldwide Express Saver", "Worldwide Express Saver"],
-        ["FedEx Priority Overnight", "FedEx Priority Overnight"],
-        ["FedEx Standard Overnight", "FedEx Standard Overnight"],
-        ["FedEx First Overnight", "FedEx First Overnight"],
-        ["FedEx 2nd Day", "FedEx 2nd Day"],
-        ["FedEx Express Saver", "FedEx Express Saver"],
-        ["FedEx International Priority", "FedEx International Priority"],
-        ["FedEx International Economy", "FedEx International Economy"],
-        ["FedEx International First", "FedEx International First"],
-        ["FedEx Ground", "FedEx Ground"],
-        ["USPS Priority Mail", "Priority Mail"],
-        ["USPS Priority Mail International", "Priority Mail International"],
-        ["USPS Priority Mail Small Flat Rate Box", "Priority Mail Small Flat Rate Box"],
-        ["USPS Priority Mail Medium Flat Rate Box", "Priority Mail Medium Flat Rate Box"],
-        ["USPS Priority Mail Large Flat Rate Box", "Priority Mail Large Flat Rate Box"],
-        ["USPS Priority Mail Flat Rate Envelope", "Priority Mail Flat Rate Envelope"],
-        ["USPS First Class Mail", "First Class"],
-        ["USPS First Class International", "First Class International"],
-        ["USPS Express Mail", "Express"],
-        ["USPS Express Mail International", "Express Mail International"],
-        ["USPS Parcel Post", "Parcel"],
-        ["USPS Media Mail", "Media Mail"]
-    ].freeze
+    SHIPPING_PROVIDERS = {
+        'UPS Ground Shipping' => 'Ground',
+        'UPS Ground' => 'Ground',
+        'UPS Standard Shipping (Canada Only)' => 'Standard',
+        'UPS Standard Shipping (CA & MX Only)' => 'Standard',
+        'UPS 3-Business Day' => '3-Day Select',
+        'UPS 2-Business Day' => '2nd Day Air',
+        'UPS 2-Business Day AM' => '2nd Day Air AM',
+        'UPS Next Day' => 'Next Day Air',
+        'UPS Next Day Saver' => 'Next Day Air Saver',
+        'UPS Next Day Early AM' => 'Next Day Air Early AM',
+        'UPS Worldwide Express (Next Day)' => 'Worldwide Express',
+        'UPS Worldwide Expedited (2nd Day)' => 'Worldwide Expedited',
+        'UPS Worldwide Express Saver' => 'Worldwide Express Saver',
+        'FedEx Priority Overnight' => 'FedEx Priority Overnight',
+        'FedEx Standard Overnight' => 'FedEx Standard Overnight',
+        'FedEx First Overnight' => 'FedEx First Overnight',
+        'FedEx 2nd Day' => 'FedEx 2nd Day',
+        'FedEx Express Saver' => 'FedEx Express Saver',
+        'FedEx International Priority' => 'FedEx International Priority',
+        'FedEx International Economy' => 'FedEx International Economy',
+        'FedEx International First' => 'FedEx International First',
+        'FedEx Ground' => 'FedEx Ground',
+        'USPS Priority Mail' => 'Priority Mail',
+        'USPS Priority Mail International' => 'Priority Mail International',
+        'USPS Priority Mail Small Flat Rate Box' => 'Priority Mail Small Flat Rate Box',
+        'USPS Priority Mail Medium Flat Rate Box' => 'Priority Mail Medium Flat Rate Box',
+        'USPS Priority Mail Large Flat Rate Box' => "Priority Mail Large Flat Rate Box",
+        'USPS Priority Mail Flat Rate Envelope' => 'Priority Mail Flat Rate Envelope',
+        'USPS First Class Mail' => 'First Class',
+        'USPS First Class International' => 'First Class International',
+        'USPS Express Mail' => 'Express',
+        'USPS Express Mail International' => 'Express Mail International',
+        'USPS Parcel Post' => 'Parcel',
+        'USPS Media Mail' => 'Media Mail'
+    }.freeze
 
     # If a request is detected as a duplicate only the original data will be
     # used by Webgistix, and the subsequent responses will have a
@@ -65,7 +65,7 @@ module ActiveFulfillment
 
     # The first is the label, and the last is the code
     def self.shipping_methods
-      SHIPPING_PROVIDERS.inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_PROVIDERS
     end
 
     # Pass in the login and password for the shipwire account.
