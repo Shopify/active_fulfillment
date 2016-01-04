@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/to_query'
 module ActiveFulfillment
   class ShopifyAPIService < Service
 
-    OrderIdCutoffDate = Date.iso8601("2015-03-01")
+    OrderIdCutoffDate = Date.iso8601('2015-03-01').freeze
 
     RESCUABLE_CONNECTION_ERRORS = [
       Net::ReadTimeout,
@@ -28,7 +28,7 @@ module ActiveFulfillment
       ActiveUtils::ConnectionError,
       ActiveUtils::ResponseError,
       ActiveUtils::InvalidResponseError
-    ]
+    ].freeze
 
     def initialize(options = {})
       @name = options[:name]
@@ -94,11 +94,11 @@ module ActiveFulfillment
 
     def parse_response(response, root, type, key, value)
       case @format
-      when 'json'
+      when 'json'.freeze
         response_data = ActiveSupport::JSON.decode(response)
         return {} unless response_data.is_a?(Hash)
         response_data[root.underscore] || response_data
-      when 'xml'
+      when 'xml'.freeze
         response_data = {}
         document = REXML::Document.new(response)
         document.elements[root].each do |node|
@@ -115,9 +115,9 @@ module ActiveFulfillment
 
     def encode_payload(payload, root)
       case @format
-      when 'json'
+      when 'json'.freeze
         {root => payload}.to_json
-      when 'xml'
+      when 'xml'.freeze
         payload.to_xml(:root => root)
       end
     end
