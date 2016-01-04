@@ -4,21 +4,59 @@ module ActiveFulfillment
       :fulfillment => 'https://www.webgistix.com/XML/CreateOrder.asp',
       :inventory   => 'https://www.webgistix.com/XML/GetInventory.asp',
       :tracking    => 'https://www.webgistix.com/XML/GetTracking.asp'
-    }
+    }.freeze
+
     TEST_URLS = SERVICE_URLS.merge({
-      :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'
-    })
+      :fulfillment => 'https://www.webgistix.com/XML/CreateOrderTest.asp'.freeze
+    }).freeze
 
-    SUCCESS, DUPLICATE, FAILURE = 'True', 'Duplicate', 'False'
+    SUCCESS, DUPLICATE, FAILURE = 'True'.freeze, 'Duplicate'.freeze, 'False'.freeze
 
-    SUCCESS_MESSAGE = 'Successfully submitted the order'
-    FAILURE_MESSAGE = 'Failed to submit the order'
-    DUPLICATE_MESSAGE = 'This order has already been successfully submitted'
+    SUCCESS_MESSAGE = 'Successfully submitted the order'.freeze
+    FAILURE_MESSAGE = 'Failed to submit the order'.freeze
+    DUPLICATE_MESSAGE = 'This order has already been successfully submitted'.freeze
 
-    INVALID_LOGIN = 'Invalid Credentials'
-    NOT_SHIPPED = 'Not Shipped'
+    INVALID_LOGIN = 'Invalid Credentials'.freeze
+    NOT_SHIPPED = 'Not Shipped'.freeze
 
-    TRACKING_COMPANIES = %w(UPS FedEx USPS)
+    TRACKING_COMPANIES = %w(UPS FedEx USPS).freeze
+
+    SHIPPING_PROVIDERS = {
+        'UPS Ground Shipping' => 'Ground',
+        'UPS Ground' => 'Ground',
+        'UPS Standard Shipping (Canada Only)' => 'Standard',
+        'UPS Standard Shipping (CA & MX Only)' => 'Standard',
+        'UPS 3-Business Day' => '3-Day Select',
+        'UPS 2-Business Day' => '2nd Day Air',
+        'UPS 2-Business Day AM' => '2nd Day Air AM',
+        'UPS Next Day' => 'Next Day Air',
+        'UPS Next Day Saver' => 'Next Day Air Saver',
+        'UPS Next Day Early AM' => 'Next Day Air Early AM',
+        'UPS Worldwide Express (Next Day)' => 'Worldwide Express',
+        'UPS Worldwide Expedited (2nd Day)' => 'Worldwide Expedited',
+        'UPS Worldwide Express Saver' => 'Worldwide Express Saver',
+        'FedEx Priority Overnight' => 'FedEx Priority Overnight',
+        'FedEx Standard Overnight' => 'FedEx Standard Overnight',
+        'FedEx First Overnight' => 'FedEx First Overnight',
+        'FedEx 2nd Day' => 'FedEx 2nd Day',
+        'FedEx Express Saver' => 'FedEx Express Saver',
+        'FedEx International Priority' => 'FedEx International Priority',
+        'FedEx International Economy' => 'FedEx International Economy',
+        'FedEx International First' => 'FedEx International First',
+        'FedEx Ground' => 'FedEx Ground',
+        'USPS Priority Mail' => 'Priority Mail',
+        'USPS Priority Mail International' => 'Priority Mail International',
+        'USPS Priority Mail Small Flat Rate Box' => 'Priority Mail Small Flat Rate Box',
+        'USPS Priority Mail Medium Flat Rate Box' => 'Priority Mail Medium Flat Rate Box',
+        'USPS Priority Mail Large Flat Rate Box' => "Priority Mail Large Flat Rate Box",
+        'USPS Priority Mail Flat Rate Envelope' => 'Priority Mail Flat Rate Envelope',
+        'USPS First Class Mail' => 'First Class',
+        'USPS First Class International' => 'First Class International',
+        'USPS Express Mail' => 'Express',
+        'USPS Express Mail International' => 'Express Mail International',
+        'USPS Parcel Post' => 'Parcel',
+        'USPS Media Mail' => 'Media Mail'
+    }.freeze
 
     # If a request is detected as a duplicate only the original data will be
     # used by Webgistix, and the subsequent responses will have a
@@ -27,42 +65,7 @@ module ActiveFulfillment
 
     # The first is the label, and the last is the code
     def self.shipping_methods
-      [
-        ["UPS Ground Shipping", "Ground"],
-        ["UPS Ground", "Ground"],
-        ["UPS Standard Shipping (Canada Only)", "Standard"],
-        ["UPS Standard Shipping (CA & MX Only)", "Standard"],
-        ["UPS 3-Business Day", "3-Day Select"],
-        ["UPS 2-Business Day", "2nd Day Air"],
-        ["UPS 2-Business Day AM", "2nd Day Air AM"],
-        ["UPS Next Day", "Next Day Air"],
-        ["UPS Next Day Saver", "Next Day Air Saver"],
-        ["UPS Next Day Early AM", "Next Day Air Early AM"],
-        ["UPS Worldwide Express (Next Day)", "Worldwide Express"],
-        ["UPS Worldwide Expedited (2nd Day)", "Worldwide Expedited"],
-        ["UPS Worldwide Express Saver", "Worldwide Express Saver"],
-        ["FedEx Priority Overnight", "FedEx Priority Overnight"],
-        ["FedEx Standard Overnight", "FedEx Standard Overnight"],
-        ["FedEx First Overnight", "FedEx First Overnight"],
-        ["FedEx 2nd Day", "FedEx 2nd Day"],
-        ["FedEx Express Saver", "FedEx Express Saver"],
-        ["FedEx International Priority", "FedEx International Priority"],
-        ["FedEx International Economy", "FedEx International Economy"],
-        ["FedEx International First", "FedEx International First"],
-        ["FedEx Ground", "FedEx Ground"],
-        ["USPS Priority Mail", "Priority Mail"],
-        ["USPS Priority Mail International", "Priority Mail International"],
-        ["USPS Priority Mail Small Flat Rate Box", "Priority Mail Small Flat Rate Box"],
-        ["USPS Priority Mail Medium Flat Rate Box", "Priority Mail Medium Flat Rate Box"],
-        ["USPS Priority Mail Large Flat Rate Box", "Priority Mail Large Flat Rate Box"],
-        ["USPS Priority Mail Flat Rate Envelope", "Priority Mail Flat Rate Envelope"],
-        ["USPS First Class Mail", "First Class"],
-        ["USPS First Class International", "First Class International"],
-        ["USPS Express Mail", "Express"],
-        ["USPS Express Mail International", "Express Mail International"],
-        ["USPS Parcel Post", "Parcel"],
-        ["USPS Media Mail", "Media Mail"]
-      ].inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_PROVIDERS
     end
 
     # Pass in the login and password for the shipwire account.
@@ -245,8 +248,8 @@ module ActiveFulfillment
 
     def parse_response(action, xml)
       begin
-        document = REXML::Document.new("<response>#{xml}</response>")
-      rescue REXML::ParseException
+        document = Nokogiri::XML("<response>#{xml}</response>")
+      rescue Nokogiri::XML::SyntaxError
         return {:success => FAILURE}
       end
 
@@ -266,7 +269,7 @@ module ActiveFulfillment
       response = parse_errors(document)
 
       # Check if completed
-      if completed = REXML::XPath.first(document, '//Completed')
+      if completed = document.at_xpath('//Completed')
         completed.elements.each do |e|
           response[e.name.underscore.to_sym] = e.text
         end
@@ -283,7 +286,7 @@ module ActiveFulfillment
       response = parse_errors(document)
       response[:stock_levels] = {}
 
-      document.root.each_element('//Item') do |node|
+      document.root.xpath('//Item').each do |node|
         # {ItemID => 'SOME-ID', ItemQty => '101'}
         params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
@@ -299,7 +302,7 @@ module ActiveFulfillment
       response[:tracking_companies] = {}
       response[:tracking_urls] = {}
 
-      document.root.each_element('//Shipment') do |node|
+      document.root.xpath('//Shipment').each do |node|
         # {InvoiceNumber => 'SOME-ID', ShipmentTrackingNumber => 'SOME-TRACKING-NUMBER'}
         params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
@@ -323,7 +326,7 @@ module ActiveFulfillment
     def parse_errors(document)
       response = {}
 
-      REXML::XPath.match(document, "//Errors/Error").to_a.each_with_index do |e, i|
+      document.xpath('//Errors/Error').each_with_index do |e, i|
         response["error_#{i}".to_sym] = e.text
       end
 

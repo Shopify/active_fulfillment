@@ -6,17 +6,17 @@ module ActiveFulfillment
     SERVICE_URLS = { :fulfillment  => 'https://api.shipwire.com/exec/FulfillmentServices.php',
                      :inventory    => 'https://api.shipwire.com/exec/InventoryServices.php',
                      :tracking     => 'https://api.shipwire.com/exec/TrackingServices.php'
-                   }
+                   }.freeze
 
     SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
                     :inventory   => 'http://www.shipwire.com/exec/download/InventoryUpdate.dtd',
                     :tracking    => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd'
-                  }
+                  }.freeze
 
     POST_VARS = { :fulfillment => 'OrderListXML',
                   :inventory   => 'InventoryUpdateXML',
                   :tracking    => 'TrackingUpdateXML'
-                }
+                }.freeze
 
     WAREHOUSES = { 'CHI' => 'Chicago',
                    'LAX' => 'Los Angeles',
@@ -24,20 +24,23 @@ module ActiveFulfillment
                    'VAN' => 'Vancouver',
                    'TOR' => 'Toronto',
                    'UK'  => 'United Kingdom'
-                 }
+                 }.freeze
 
     INVALID_LOGIN = /(Error with Valid Username\/EmailAddress and Password Required)|(Could not verify Username\/EmailAddress and Password combination)/
+
+    SHIPPING_METHODS = {
+      '1 Day Service' => '1D',
+      '2 Day Service' => '2D',
+      'Ground Service' => 'GD',
+      'Freight Service' => 'FT',
+      'International' => 'INTL'
+    }.freeze
 
     class_attribute :affiliate_id
 
     # The first is the label, and the last is the code
     def self.shipping_methods
-      [ ['1 Day Service',   '1D'],
-        ['2 Day Service',   '2D'],
-        ['Ground Service',  'GD'],
-        ['Freight Service', 'FT'],
-        ['International', 'INTL']
-      ].inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     # Pass in the login and password for the shipwire account.
@@ -78,6 +81,7 @@ module ActiveFulfillment
     end
 
     private
+
     def build_fulfillment_request(order_id, shipping_address, line_items, options)
       xml = Builder::XmlMarkup.new :indent => 2
       xml.instruct!
@@ -188,65 +192,90 @@ module ActiveFulfillment
     end
 
     def parse_fulfillment_response(xml)
-      response = {}
+      Parsing.with_xml_document(xml) do |document, response|
+        document.root.try do |root_document|
+          root_document.elements.each do |node|
+            response[node.name.underscore.to_sym] = node.text.strip
+          end
+        end
 
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        response[node.name.underscore.to_sym] = text_content(node)
+        response[:success] = response[:status] == '0'
+        response[:message] = response[:success] ? 'Successfully submitted the order' : message_from(response[:error_message])
+        response
       end
+    end
 
-      response[:success] = response[:status] == '0'
-      response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])
-      response
+    def compute_stock_levels(document)
+      products = document.xpath('//Product')
+      items = {}
+      products.each do |product|
+        qty = product.at_xpath('@quantity').child.content.to_i
+        code = product.at_xpath('@code').child.content
+        if include_pending_stock?
+          pending_qty = product.at_xpath('@pending').child.content.to_i
+          items[code] = qty + pending_qty
+        else
+          items[code] = qty
+        end
+      end
+      items
     end
 
     def parse_inventory_response(xml)
-      response = {}
-      response[:stock_levels] = {}
+      response = { stock_levels: {} }
+      Parsing.with_xml_document(xml, response) do |document|
+        status = document.at_xpath('//Status').child.content
+        total_products = document.at_xpath('//TotalProducts').child.content
+        success = test? ? status == 'Test' : status == '0'
+        message = success ? 'Successfully received the stock levels' : document.at_xpath('//ErrorMessage').child.content
 
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        if node.name == 'Product'
-          to_check = ['quantity']
-          to_check << 'pending' if include_pending_stock?
-
-          amount = to_check.sum { |a| node.attributes[a].to_i }
-          response[:stock_levels][node.attributes['code']] = amount
-        else
-          response[node.name.underscore.to_sym] = text_content(node)
-        end
+        {
+          status: status,
+          total_products: total_products,
+          stock_levels: compute_stock_levels(document),
+          message: message,
+          success: success
+        }
       end
+    end
 
-      response[:success] = test? ? response[:status] == 'Test' : response[:status] == '0'
-      response[:message] = response[:success] ? "Successfully received the stock levels" : message_from(response[:error_message])
+    def tracking_details(xml)
+      response = {
+        tracking_numbers: {},
+        tracking_companies: {},
+        tracking_urls: {}
+      }
 
-      response
+      Parsing.with_xml_document(xml, response) do |document, response|
+        document.root.try do |root_document|
+          root_document.elements.each do |node|
+            if node.name == 'Order'
+              if node.attributes['shipped'].text == "YES"
+                node_tracking = node.at_css("TrackingNumber")
+                unless node_tracking.nil? 
+                  node_id = node.attributes['id'].text.strip
+                  tracking_number = node_tracking.text.strip
+                  response[:tracking_numbers][node_id] = [tracking_number]
+
+                  tracking_company = node_tracking.attributes['carrier'].try { |item| item.text.strip }
+                  response[:tracking_companies][node_id] = [tracking_company] if tracking_company
+
+                  tracking_url = node_tracking.attributes['href'].try { |item| item.text.strip }
+                  response[:tracking_urls][node_id] = [tracking_url] if tracking_url
+                end
+              end
+            else
+              response[node.name.underscore.to_sym] = node.text.strip
+            end
+          end
+        end
+
+        response
+      end
     end
 
     def parse_tracking_response(xml)
-      response = {}
-      response[:tracking_numbers] = {}
-      response[:tracking_companies] = {}
-      response[:tracking_urls] = {}
-
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        if node.name == 'Order'
-          if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
-            tracking_number = node.elements['TrackingNumber'].text.strip
-            response[:tracking_numbers][node.attributes['id']] = [tracking_number]
-
-            tracking_company = node.elements['TrackingNumber'].attributes['carrier']
-            response[:tracking_companies][node.attributes['id']] = [tracking_company.strip] if tracking_company
-
-            tracking_url = node.elements['TrackingNumber'].attributes['href']
-            response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url
-          end
-        else
-          response[node.name.underscore.to_sym] = text_content(node)
-        end
-      end
-
+      response = tracking_details(xml)
       response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
       response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
       response
@@ -255,12 +284,6 @@ module ActiveFulfillment
     def message_from(string)
       return if string.blank?
       string.gsub("\n", '').squeeze(" ")
-    end
-
-    def text_content(xml_node)
-      text = xml_node.text
-      text = xml_node.cdatas.join if text.blank?
-      text
     end
   end
 end

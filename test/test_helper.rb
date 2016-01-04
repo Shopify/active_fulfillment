@@ -1,7 +1,7 @@
 require 'bundler/setup'
 
 require 'active_fulfillment'
-
+require 'rexml/document'
 require 'minitest/autorun'
 require 'mocha/setup'
 require 'timecop'

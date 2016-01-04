@@ -4,9 +4,9 @@ module ActiveFulfillment
   class JamesAndJamesService < Service
 
     SERVICE_URLS = {
-      fulfillment: 'https://%{subdomain}.sixworks.co.uk/api/1/',
-      inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
-    }
+      fulfillment: 'https://%{subdomain}.sixworks.co.uk/api/1/'.freeze,
+      inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'.freeze
+    }.freeze
 
     def initialize(options = {})
       requires!(options, :subdomain, :key)

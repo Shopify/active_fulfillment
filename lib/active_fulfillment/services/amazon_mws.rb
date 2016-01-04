@@ -5,16 +5,17 @@ require 'active_support/core_ext/hash/except'
 
 module ActiveFulfillment
   class AmazonMarketplaceWebService < Service
+    APPLICATION_IDENTIFIER = "active_merchant_mws/0.01 (Language=ruby)".freeze
 
-    APPLICATION_IDENTIFIER = "active_merchant_mws/0.01 (Language=ruby)"
-
-    REGISTRATION_URI = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html")
+    REGISTRATION_URI = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html").freeze
 
     SIGNATURE_VERSION = 2
-    SIGNATURE_METHOD  = "SHA256"
-    VERSION = "2010-10-01"
+    SIGNATURE_METHOD  = "SHA256".freeze
+    VERSION = "2010-10-01".freeze
 
-    SUCCESS, FAILURE, ERROR = 'Accepted', 'Failure', 'Error'
+    SUCCESS, FAILURE, ERROR = 'Accepted'.freeze, 'Failure'.freeze, 'Error'.freeze
+
+    XML_FAILURE_RESPONSE = { :success => FAILURE }.freeze
 
     ENDPOINTS = {
       :ca => 'mws.amazonservices.ca',
@@ -26,7 +27,7 @@ module ActiveFulfillment
       :jp => 'mws.amazonservices.jp',
       :uk => 'mws-eu.amazonservices.ca',
       :us => 'mws.amazonservices.com'
-    }
+    }.freeze
 
     LOOKUPS = {
       :destination_address => {
@@ -53,18 +54,20 @@ module ActiveFulfillment
       :list_inventory => {
         :sku => "SellerSkus.member.%d"
       }
-    }
+    }.freeze
+
+    SHIPPING_METHODS = {
+      'Standard Shipping' => 'Standard',
+      'Expedited Shipping' => 'Expedited',
+      'Priority Shipping' => 'Priority'
+    }.freeze
 
     # The first is the label, and the last is the code
     # Standard:  3-5 business days
     # Expedited: 2 business days
     # Priority:  1 business day
     def self.shipping_methods
-      [
-        [ 'Standard Shipping', 'Standard' ],
-        [ 'Expedited Shipping', 'Expedited' ],
-        [ 'Priority Shipping', 'Priority' ]
-      ].inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     def initialize(options = {})
@@ -86,13 +89,14 @@ module ActiveFulfillment
       requires!(options, :order_date, :shipping_method)
       with_error_handling do
         data = commit :post, 'FulfillmentOutboundShipment', build_fulfillment_request(order_id, shipping_address, line_items, options)
-        parse_fulfillment_response(parse_document(data), 'Successfully submitted the order')
+        parse_fulfillment_response('Successfully submitted the order')
       end
     end
 
     def status
       with_error_handling do
         data = commit :post, 'FulfillmentOutboundShipment', build_basic_api_query({ :Action => 'GetServiceStatus' })
+
         parse_tracking_response(parse_document(data))
       end
     end
@@ -195,27 +199,31 @@ module ActiveFulfillment
 
     def parse_document(xml)
       begin
-        document = REXML::Document.new(xml)
-      rescue REXML::ParseException
-        return { :success => FAILURE }
+        document = Nokogiri::XML(xml)
+      rescue Nokogiri::XML::SyntaxError
+        return XML_FAILURE_RESPONSE
       end
     end
 
+    TRACKING_NUMBER_QUERY = 'FulfillmentShipmentPackage > member > TrackingNumber'.freeze
+    CARRIER_CODE_QUERY = 'FulfillmentShipmentPackage > member > CarrierCode'.freeze
+    ORDER_ID_QUERY = 'FulfillmentOrder > SellerFulfillmentOrderId'.freeze
     def parse_tracking_response(document)
-      response = {}
-      response[:tracking_numbers] = {}
-      response[:tracking_companies] = {}
-      response[:tracking_urls] = {}
+      response = {
+        tracking_numbers: {},
+        tracking_companies: {},
+        tracking_urls: {}
+      }
 
-      tracking_numbers = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/TrackingNumber")
+      tracking_numbers = document.css(TRACKING_NUMBER_QUERY)
       if tracking_numbers.present?
-        order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+        order_id = document.at_css(ORDER_ID_QUERY).text.strip
         response[:tracking_numbers][order_id] = tracking_numbers.map{ |t| t.text.strip }
       end
 
-      tracking_companies = REXML::XPath.match(document, "//FulfillmentShipmentPackage/member/CarrierCode")
+      tracking_companies = document.css(CARRIER_CODE_QUERY)
       if tracking_companies.present?
-        order_id = REXML::XPath.first(document, "//FulfillmentOrder/SellerFulfillmentOrderId").text.strip
+        order_id = document.at_css(ORDER_ID_QUERY).text.strip
         response[:tracking_companies][order_id] = tracking_companies.map{ |t| t.text.strip }
       end
 
@@ -223,45 +231,48 @@ module ActiveFulfillment
       Response.new(success?(response), message_from(response), response)
     end
 
-    def parse_fulfillment_response(document, message)
+    def parse_fulfillment_response(message)
       Response.new(true, message, { :response_status => SUCCESS, :response_comment => message })
     end
 
+    INVENTORY_SUPPLY_MEMBERS_QUERY = 'InventorySupplyList > member'.freeze
+    NEXT_TOKEN_QUERY = 'NextToken'.freeze
     def parse_inventory_response(document)
-      response = {}
-      response[:stock_levels] = {}
+      response = { stock_levels: {} }
 
-      document.each_element('//InventorySupplyList/member') do |node|
+      document.css(INVENTORY_SUPPLY_MEMBERS_QUERY).each do |node|
         params = node.elements.to_a.each_with_object({}) { |elem, hash| hash[elem.name] = elem.text }
 
         response[:stock_levels][params['SellerSKU']] = params['InStockSupplyQuantity'].to_i
       end
 
-      next_token = REXML::XPath.first(document, '//NextToken')
+      next_token = document.at_css(NEXT_TOKEN_QUERY)
       response[:next_token] = next_token ? next_token.text : nil
 
       response[:response_status] = SUCCESS
       Response.new(success?(response), message_from(response), response)
     end
 
+    ERROR_QUERY = 'Error'.freeze
+    CODE_QUERY = 'Code'.freeze
+    MESSAGE_QUERY = 'Message'.freeze
     def parse_error(http_response)
-      response = {}
-      response[:http_code] = http_response.code
-      response[:http_message] = http_response.message
+      response = {
+        http_code: http_response.code,
+        http_message: http_response.message
+      }
 
-      document = REXML::Document.new(http_response.body)
-
-      node = REXML::XPath.first(document, '//Error')
-      error_code = REXML::XPath.first(node, '//Code')
-      error_message = REXML::XPath.first(node, '//Message')
-
+      document = Nokogiri::XML(http_response.body)
+      node = document.at_css(ERROR_QUERY)
+      error_code = node.at_css(CODE_QUERY)
+      error_message = node.at_css(MESSAGE_QUERY)
       response[:status] = FAILURE
       response[:faultcode] = error_code ? error_code.text : ""
       response[:faultstring] = error_message ? error_message.text : ""
       response[:response_message] = error_message ? error_message.text : ""
       response[:response_comment] = "#{response[:faultcode]}: #{response[:faultstring]}"
       response
-    rescue REXML::ParseException => e
+    rescue Nokogiri::XML::SyntaxError => e
     rescue NoMethodError => e
       response[:http_body] = http_response.body
       response[:response_status] = FAILURE
