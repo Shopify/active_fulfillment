@@ -22,7 +22,7 @@ Please use clean, concise code that follows Ruby community standards. For exampl
 
 - Add unit tests, and remote tests to make sure we won't introduce regressions to your code later on.
 - Make sure CI passes for all Ruby versions and dependency versions we support.
-- XML handling: use `REXML` for parsing XML, and `builder` to generate it.
+- XML handling: use `Nokogiri` for parsing XML, and `builder` to generate it.
 - JSON: use the JSON module that is included in Rubys standard ibrary
 - HTTP: use `ActiveUtils`'s `PostsData`.
 - Do not add new gem dependencies.
@@ -43,6 +43,7 @@ Please use clean, concise code that follows Ruby community standards. For exampl
 - John Tajima
 - Jonathan Rudenberg
 - Kevin Hughes
+- Mathieu Rhéaume
 - Ryan Romanchuk
 - Simon Eskildsen
 - Tobias Lütke
