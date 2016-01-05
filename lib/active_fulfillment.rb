@@ -37,6 +37,7 @@ require 'builder'
 require 'cgi'
 require 'net/https'
 require 'rexml/document'
+require 'nokogiri'
 require 'active_utils'
 
 require 'active_fulfillment/version'

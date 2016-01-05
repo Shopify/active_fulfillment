@@ -245,8 +245,8 @@ module ActiveFulfillment
 
     def parse_response(action, xml)
       begin
-        document = REXML::Document.new("<response>#{xml}</response>")
-      rescue REXML::ParseException
+        document = Nokogiri::XML("<response>#{xml}</response>")
+      rescue Nokogiri::XML::SyntaxError
         return {:success => FAILURE}
       end
 
@@ -266,7 +266,7 @@ module ActiveFulfillment
       response = parse_errors(document)
 
       # Check if completed
-      if completed = REXML::XPath.first(document, '//Completed')
+      if completed = document.at_xpath('//Completed'.freeze)
         completed.elements.each do |e|
           response[e.name.underscore.to_sym] = e.text
         end
@@ -283,11 +283,11 @@ module ActiveFulfillment
       response = parse_errors(document)
       response[:stock_levels] = {}
 
-      document.root.each_element('//Item') do |node|
+      document.root.xpath('//Item'.freeze).each do |node|
         # {ItemID => 'SOME-ID', ItemQty => '101'}
         params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
-        response[:stock_levels][params['ItemID']] = params['ItemQty'].to_i
+        response[:stock_levels][params['ItemID'.freeze]] = params['ItemQty'.freeze].to_i
       end
 
       response
@@ -295,25 +295,23 @@ module ActiveFulfillment
 
     def parse_tracking_response(document)
       response = parse_errors(document)
-      response[:tracking_numbers] = {}
-      response[:tracking_companies] = {}
-      response[:tracking_urls] = {}
+      response = response.merge(tracking_numbers: {}, tracking_companies: {}, tracking_urls: {})
 
-      document.root.each_element('//Shipment') do |node|
+      document.root.xpath('//Shipment'.freeze).each do |node|
         # {InvoiceNumber => 'SOME-ID', ShipmentTrackingNumber => 'SOME-TRACKING-NUMBER'}
         params = node.elements.to_a.each_with_object({}) {|elem, hash| hash[elem.name] = elem.text}
 
-        tracking = params['ShipmentTrackingNumber']
+        tracking = params['ShipmentTrackingNumber'.freeze]
 
         unless tracking == NOT_SHIPPED
-          response[:tracking_numbers][params['InvoiceNumber']] ||= []
-          response[:tracking_numbers][params['InvoiceNumber']] << tracking
+          response[:tracking_numbers][params['InvoiceNumber'.freeze]] ||= []
+          response[:tracking_numbers][params['InvoiceNumber'.freeze]] << tracking
         end
 
-        company = params['Method'].split[0] if params['Method']
+        company = params['Method'.freeze].split[0] if params['Method'.freeze]
         if TRACKING_COMPANIES.include? company
-          response[:tracking_companies][params['InvoiceNumber']] ||= []
-          response[:tracking_companies][params['InvoiceNumber']] << company
+          response[:tracking_companies][params['InvoiceNumber'.freeze]] ||= []
+          response[:tracking_companies][params['InvoiceNumber'.freeze]] << company
         end
       end
 
@@ -323,7 +321,7 @@ module ActiveFulfillment
     def parse_errors(document)
       response = {}
 
-      REXML::XPath.match(document, "//Errors/Error").to_a.each_with_index do |e, i|
+      document.xpath('//Errors/Error'.freeze).each_with_index do |e, i|
         response["error_#{i}".to_sym] = e.text
       end
 
