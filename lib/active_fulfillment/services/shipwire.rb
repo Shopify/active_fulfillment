@@ -6,17 +6,17 @@ module ActiveFulfillment
     SERVICE_URLS = { :fulfillment  => 'https://api.shipwire.com/exec/FulfillmentServices.php',
                      :inventory    => 'https://api.shipwire.com/exec/InventoryServices.php',
                      :tracking     => 'https://api.shipwire.com/exec/TrackingServices.php'
-                   }
+                   }.freeze
 
     SCHEMA_URLS = { :fulfillment => 'http://www.shipwire.com/exec/download/OrderList.dtd',
                     :inventory   => 'http://www.shipwire.com/exec/download/InventoryUpdate.dtd',
                     :tracking    => 'http://www.shipwire.com/exec/download/TrackingUpdate.dtd'
-                  }
+                  }.freeze
 
     POST_VARS = { :fulfillment => 'OrderListXML',
                   :inventory   => 'InventoryUpdateXML',
                   :tracking    => 'TrackingUpdateXML'
-                }
+                }.freeze
 
     WAREHOUSES = { 'CHI' => 'Chicago',
                    'LAX' => 'Los Angeles',
@@ -24,7 +24,15 @@ module ActiveFulfillment
                    'VAN' => 'Vancouver',
                    'TOR' => 'Toronto',
                    'UK'  => 'United Kingdom'
-                 }
+                 }.freeze
+
+    SHIPPING_METHODS = {
+      '1 Day Service' => '1D',
+      '2 Day Service' => '2D',
+      'Ground Service' => 'GD',
+      'Freight Service' => 'FT',
+      'International' => 'INTL'
+    }.freeze
 
     INVALID_LOGIN = /(Error with Valid Username\/EmailAddress and Password Required)|(Could not verify Username\/EmailAddress and Password combination)/
 
@@ -32,12 +40,7 @@ module ActiveFulfillment
 
     # The first is the label, and the last is the code
     def self.shipping_methods
-      [ ['1 Day Service',   '1D'],
-        ['2 Day Service',   '2D'],
-        ['Ground Service',  'GD'],
-        ['Freight Service', 'FT'],
-        ['International', 'INTL']
-      ].inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     # Pass in the login and password for the shipwire account.

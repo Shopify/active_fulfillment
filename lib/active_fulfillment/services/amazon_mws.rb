@@ -6,15 +6,15 @@ require 'active_support/core_ext/hash/except'
 module ActiveFulfillment
   class AmazonMarketplaceWebService < Service
 
-    APPLICATION_IDENTIFIER = "active_merchant_mws/0.01 (Language=ruby)"
+    APPLICATION_IDENTIFIER = 'active_merchant_mws/0.01 (Language=ruby)'.freeze
 
-    REGISTRATION_URI = URI.parse("https://sellercentral.amazon.com/gp/mws/registration/register.html")
+    REGISTRATION_URI = URI.parse('https://sellercentral.amazon.com/gp/mws/registration/register.html').freeze
 
     SIGNATURE_VERSION = 2
-    SIGNATURE_METHOD  = "SHA256"
-    VERSION = "2010-10-01"
+    SIGNATURE_METHOD  = 'SHA256'.freeze
+    VERSION = '2010-10-01'.freeze
 
-    SUCCESS, FAILURE, ERROR = 'Accepted', 'Failure', 'Error'
+    SUCCESS, FAILURE, ERROR = 'Accepted'.freeze, 'Failure'.freeze, 'Error'.freeze
 
     ENDPOINTS = {
       :ca => 'mws.amazonservices.ca',
@@ -26,7 +26,7 @@ module ActiveFulfillment
       :jp => 'mws.amazonservices.jp',
       :uk => 'mws-eu.amazonservices.ca',
       :us => 'mws.amazonservices.com'
-    }
+    }.freeze
 
     LOOKUPS = {
       :destination_address => {
@@ -53,18 +53,20 @@ module ActiveFulfillment
       :list_inventory => {
         :sku => "SellerSkus.member.%d"
       }
-    }
+    }.freeze
+
+    SHIPPING_METHODS = {
+      'Standard Shipping' => 'Standard',
+      'Expedited Shipping' => 'Expedited',
+      'Priority Shipping' => 'Priority'
+    }.freeze
 
     # The first is the label, and the last is the code
     # Standard:  3-5 business days
     # Expedited: 2 business days
     # Priority:  1 business day
     def self.shipping_methods
-      [
-        [ 'Standard Shipping', 'Standard' ],
-        [ 'Expedited Shipping', 'Expedited' ],
-        [ 'Priority Shipping', 'Priority' ]
-      ].inject({}){|h, (k,v)| h[k] = v; h}
+      SHIPPING_METHODS
     end
 
     def initialize(options = {})

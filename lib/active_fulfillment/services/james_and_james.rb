@@ -6,7 +6,7 @@ module ActiveFulfillment
     SERVICE_URLS = {
       fulfillment: 'https://%{subdomain}.sixworks.co.uk/api/1/',
       inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
-    }
+    }.freeze
 
     def initialize(options = {})
       requires!(options, :subdomain, :key)
