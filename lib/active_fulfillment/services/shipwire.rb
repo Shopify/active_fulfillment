@@ -191,79 +191,91 @@ module ActiveFulfillment
     end
 
     def parse_fulfillment_response(xml)
-      response = {}
+      Parsing.with_xml_document(xml) do |document, response|
+        document.root.try do |root_document|
+          root_document.elements.each do |node|
+            response[node.name.underscore.to_sym] = node.text.strip
+          end
+        end
 
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        response[node.name.underscore.to_sym] = text_content(node)
+        response[:success] = response[:status] == '0'.freeze
+        response[:message] = response[:success] ? 'Successfully submitted the order'.freeze : message_from(response[:error_message])
+        response
       end
+    end
 
-      response[:success] = response[:status] == '0'
-      response[:message] = response[:success] ? "Successfully submitted the order" : message_from(response[:error_message])
-      response
+    def compute_stock_levels(document)
+      items = {}
+      products = document.xpath('//Product'.freeze)
+      products.each do |product|
+        qty = product.at_xpath('@quantity'.freeze).child.content.to_i
+        code = product.at_xpath('@code'.freeze).child.content
+        pending_qty = include_pending_stock? ? product.at_xpath('@pending'.freeze).child.content.to_i : 0
+        items[code] = qty + pending_qty
+      end
+      items
     end
 
     def parse_inventory_response(xml)
-      response = {}
-      response[:stock_levels] = {}
+      response = { stock_levels: {} }
+      Parsing.with_xml_document(xml, response) do |document|
+        status = document.at_xpath('//Status'.freeze).child.content
+        total_products = document.at_xpath('//TotalProducts'.freeze).child.content
+        success = test? ? status == 'Test'.freeze : status == '0'.freeze
+        message = success ? 'Successfully received the stock levels'.freeze : document.at_xpath('//ErrorMessage'.freeze).child.content
 
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        if node.name == 'Product'
-          to_check = ['quantity']
-          to_check << 'pending' if include_pending_stock?
-
-          amount = to_check.sum { |a| node.attributes[a].to_i }
-          response[:stock_levels][node.attributes['code']] = amount
-        else
-          response[node.name.underscore.to_sym] = text_content(node)
-        end
+        {
+          status: status,
+          total_products: total_products,
+          stock_levels: compute_stock_levels(document),
+          message: message,
+          success: success
+        }
       end
+    end
 
-      response[:success] = test? ? response[:status] == 'Test' : response[:status] == '0'
-      response[:message] = response[:success] ? "Successfully received the stock levels" : message_from(response[:error_message])
-
-      response
+    def shipped_order?(node)
+      node.name == 'Order'.freeze && node.attributes['shipped'.freeze].text == 'YES'.freeze
     end
 
     def parse_tracking_response(xml)
-      response = {}
-      response[:tracking_numbers] = {}
-      response[:tracking_companies] = {}
-      response[:tracking_urls] = {}
+      response = {
+        tracking_numbers: {},
+        tracking_companies: {},
+        tracking_urls: {}
+      }
 
-      document = REXML::Document.new(xml)
-      document.root.elements.each do |node|
-        if node.name == 'Order'
-          if node.attributes["shipped"] == "YES" && node.elements['TrackingNumber']
-            tracking_number = node.elements['TrackingNumber'].text.strip
-            response[:tracking_numbers][node.attributes['id']] = [tracking_number]
+      Parsing.with_xml_document(xml, response) do |document, response|
+        document.root.try do |root_document|
+          root_document.elements.each do |node|
+            if shipped_order?(node)
+              node_tracking = node.at_css('TrackingNumber'.freeze)
+              unless node_tracking.nil?
+                node_id = node.attributes['id'.freeze].text.strip
+                tracking_number = node_tracking.text.strip
+                response[:tracking_numbers][node_id] = [tracking_number]
 
-            tracking_company = node.elements['TrackingNumber'].attributes['carrier']
-            response[:tracking_companies][node.attributes['id']] = [tracking_company.strip] if tracking_company
+                tracking_company = node_tracking.attributes['carrier'.freeze].try { |item| item.text.strip }
+                response[:tracking_companies][node_id] = [tracking_company] if tracking_company
 
-            tracking_url = node.elements['TrackingNumber'].attributes['href']
-            response[:tracking_urls][node.attributes['id']] = [tracking_url.strip] if tracking_url
+                tracking_url = node_tracking.attributes['href'.freeze].try { |item| item.text.strip }
+                response[:tracking_urls][node_id] = [tracking_url] if tracking_url
+              end
+            else
+              response[node.name.underscore.to_sym] = node.text.strip
+            end
           end
-        else
-          response[node.name.underscore.to_sym] = text_content(node)
         end
       end
 
-      response[:success] = test? ? (response[:status] == '0' || response[:status] == 'Test') : response[:status] == '0'
-      response[:message] = response[:success] ? "Successfully received the tracking numbers" : message_from(response[:error_message])
+      response[:success] = test? ? (response[:status] == '0'.freeze || response[:status] == 'Test'.freeze) : response[:status] == '0'.freeze
+      response[:message] = response[:success] ? 'Successfully received the tracking numbers'.freeze : message_from(response[:error_message])
       response
     end
 
     def message_from(string)
       return if string.blank?
-      string.gsub("\n", '').squeeze(" ")
-    end
-
-    def text_content(xml_node)
-      text = xml_node.text
-      text = xml_node.cdatas.join if text.blank?
-      text
+      string.gsub("\n", ''.freeze).squeeze(' '.freeze)
     end
   end
 end
