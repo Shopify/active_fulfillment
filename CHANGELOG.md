@@ -1,7 +1,13 @@
 # ActiveFulfillment changelog
 
-## Unreleased
+### Version 3.0.1 (January 2015)
 
+- Use Nokogiri for all xml handling.
+- Ruby 2.3.0 support.
+- Refactor Amazon MWS calls/parsing.
+- Freeze constants and hashes.
+
+### Version 2.1.8
 - Update dependencies
 - Remove old Amazon fulfillment service (use amazon_aws instead)
 - Add contributing guidelines
