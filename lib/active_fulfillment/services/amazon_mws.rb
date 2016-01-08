@@ -168,7 +168,7 @@ module ActiveFulfillment
       query = build_full_query(verb, uri, params)
       headers = build_headers(query)
       log_query = query.dup
-      [@options[:login], @options[:app_id], @mws_auth_token].each { |key| log_query.gsub!(key, '[filtered]') if key.present? }
+      [@options[:login], @options[:app_id], @mws_auth_token].each { |key| log_query.gsub!(key.to_s, '[filtered]') if key.present? }
 
       logger.info "[#{self.class}][#{action}] query=#{log_query}"
       data = ssl_post(uri.to_s, query, headers)
