@@ -3,12 +3,14 @@ require 'test_helper'
 class ShipwireTest < Minitest::Test
   include ActiveFulfillment::Test::Fixtures
 
+  PASSWORD = 'test_password'
+
   def setup
     ActiveFulfillment::Base.mode = :test
 
     @shipwire = ActiveFulfillment::ShipwireService.new(
                   :login => 'cody@example.com',
-                  :password => 'test'
+                  :password => PASSWORD
                 )
 
     @options = {
@@ -32,7 +34,7 @@ class ShipwireTest < Minitest::Test
 
   def test_missing_login
     assert_raises(ArgumentError) do
-      ActiveFulfillment::ShipwireService.new(:password => 'test')
+      ActiveFulfillment::ShipwireService.new(:password => PASSWORD)
     end
   end
 
@@ -44,14 +46,14 @@ class ShipwireTest < Minitest::Test
 
   def test_missing_credentials
     assert_raises(ArgumentError) do
-      ActiveFulfillment::ShipwireService.new(:password => 'test')
+      ActiveFulfillment::ShipwireService.new(:password => PASSWORD)
     end
   end
 
   def test_credentials_present
     assert ActiveFulfillment::ShipwireService.new(
       :login    => 'cody',
-      :password => 'test'
+      :password => PASSWORD
     )
   end
 
@@ -69,6 +71,17 @@ class ShipwireTest < Minitest::Test
     assert_equal 926, response.stock_levels['BlackDog']
     assert_equal -1, response.stock_levels['MoustacheCat']
     assert_equal 677, response.stock_levels['KingMonkey']
+  end
+
+  def test_stock_levels_logs_request_and_response
+    @shipwire.class.logger.expects(:info).with do |message|
+      assert_match /InventoryUpdate/, message unless message.include?('InventoryUpdateResponse')
+      refute message.include?(PASSWORD)
+      true
+    end.twice
+
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
+    response = @shipwire.fetch_stock_levels
   end
 
   def test_stock_levels_include_pending_when_set
