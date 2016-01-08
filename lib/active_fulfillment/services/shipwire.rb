@@ -172,7 +172,7 @@ module ActiveFulfillment
 
     def commit(action, request)
       log_query = request.dup
-      [@options[:password], affiliate_id].each { |key| log_query.gsub!(/#{key}/, '[filtered]') if key.present? }
+      [@options[:password], affiliate_id].each { |key| log_query.gsub!(key, '[filtered]') if key.present? }
       logger.info "[#{self.class}][#{SERVICE_URLS[action]}][#{POST_VARS[action]}] query=#{log_query}"
       data = ssl_post(SERVICE_URLS[action], "#{POST_VARS[action]}=#{CGI.escape(request)}")
       logger.info "[#{self.class}][result] #{data}"
