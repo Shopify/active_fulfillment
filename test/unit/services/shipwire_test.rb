@@ -84,6 +84,17 @@ class ShipwireTest < Minitest::Test
     response = @shipwire.fetch_stock_levels
   end
 
+  def test_logging_with_specific_passwords
+    @shipwire = ActiveFulfillment::ShipwireService.new(login: 'cody@example.com', password: 345)
+    @shipwire.class.logger.expects(:info).with do |message|
+      refute message.include?('345')
+      true
+    end.twice
+
+    @shipwire.stubs(:ssl_post).returns(xml_fixture('shipwire/inventory_get_response'))
+    response = @shipwire.fetch_stock_levels
+  end
+
   def test_stock_levels_include_pending_when_set
     @shipwire = ActiveFulfillment::ShipwireService.new(
                   :login => 'cody@example.com',
