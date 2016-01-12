@@ -224,8 +224,8 @@ module ActiveFulfillment
       response = { stock_levels: {} }
       Parsing.with_xml_document(xml, response) do |document|
         status = document.at_xpath('//Status'.freeze).child.content
-        total_products = document.at_xpath('//TotalProducts'.freeze).child.content
         success = test? ? status == 'Test'.freeze : status == '0'.freeze
+        total_products = success ? document.at_xpath('//TotalProducts'.freeze).child.content : 0
         message = success ? 'Successfully received the stock levels'.freeze : document.at_xpath('//ErrorMessage'.freeze).child.content
 
         {

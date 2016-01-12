@@ -73,6 +73,14 @@ class ShipwireTest < Minitest::Test
     assert_equal 677, response.stock_levels['KingMonkey']
   end
 
+  def test_stock_levels_parses_invalid_credentials
+    @shipwire.expects(:ssl_post).returns(xml_fixture('shipwire/invalid_login_inventory_update_response'))
+
+    response = @shipwire.fetch_stock_levels
+    refute response.success?
+    assert_equal 'Error with Valid Username/EmailAddress and Password Required. There is an error in XML document.', response.message
+  end
+
   def test_stock_levels_logs_request_and_response
     @shipwire.class.logger.expects(:info).with do |message|
       assert_match /InventoryUpdate/, message unless message.include?('InventoryUpdateResponse')
