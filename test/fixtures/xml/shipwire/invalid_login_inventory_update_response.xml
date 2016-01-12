@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE InventoryUpdateResponse SYSTEM "http://www.shipwire.com/exec/download/InventoryUpdateResponse.dtd">
+<InventoryUpdateResponse>
+    <Status>Error</Status>
+    <ErrorMessage>Error with Valid Username/EmailAddress and Password Required. There is an error in XML document.</ErrorMessage>
+    <ProcessingTime units="ms" host="w2.lww.shipwire.com">63</ProcessingTime>
+</InventoryUpdateResponse>
