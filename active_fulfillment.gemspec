@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
   s.version = ActiveFulfillment::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.license = "MIT"
   s.authors = ["Cody Fauser", "James MacAulay"]
   s.email = %q{cody@shopify.com}
 
