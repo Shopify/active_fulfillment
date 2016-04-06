@@ -51,7 +51,7 @@ module ActiveFulfillment
     end
 
     def fetch_tracking_data(order_numbers, options = {})
-      options.merge!({:order_ids => order_numbers, :order_names => order_numbers})
+      options.merge!({:order_names => order_numbers})
       response = send_app_request('fetch_tracking_numbers'.freeze, options.delete(:headers), options)
       if response
         tracking_numbers = parse_response(response, 'TrackingNumbers'.freeze, 'Order'.freeze, 'ID'.freeze, 'Tracking'.freeze) { |o| o }
