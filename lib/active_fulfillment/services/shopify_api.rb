@@ -71,7 +71,8 @@ module ActiveFulfillment
     def send_app_request(action, headers, data)
       uri = request_uri(action, data)
 
-      logger.info "[#{@name.upcase} APP] Post #{uri}"
+      log :info, "GET action=#{action}"
+      log :debug, "GET url=#{uri}"
 
       response = nil
       realtime = Benchmark.realtime do
@@ -80,13 +81,11 @@ module ActiveFulfillment
             response = ssl_get(uri, headers)
           end
         rescue *(RESCUABLE_CONNECTION_ERRORS) => e
-          logger.warn "[#{self}] Error while contacting fulfillment service error =\"#{e.message}\""
+          log :warn, "Error contacting fulfillment service exception=\"#{e.class}\" message=\"#{e.message}\""
         end
       end
 
-      line = "[#{@name.upcase} APP] Response from #{uri} --> "
-      line << "#{response} #{"%.4fs" % realtime}"
-      logger.info line
+      log :info, "GET response action=#{action} in #{"%.4fs" % realtime} #{response}"
 
       response
     end
@@ -95,10 +94,9 @@ module ActiveFulfillment
       response_data = ActiveSupport::JSON.decode(json_data)
       return {} unless response_data.is_a?(Hash)
       response_data[root.underscore] || response_data
-      rescue ActiveSupport::JSON.parse_error
-        {}
+    rescue ActiveSupport::JSON.parse_error
+      {}
     end
-
 
     def parse_xml(xml_data, type, key, value)
       Parsing.with_xml_document(xml_data) do |document, response|
@@ -126,6 +124,10 @@ module ActiveFulfillment
       when 'xml'.freeze
         payload.to_xml(:root => root)
       end
+    end
+
+    def log(level, message)
+      logger.public_send(level, "[ActiveFulfillment::ShopifyAPIService][#{@name.upcase} app] #{message}")
     end
   end
 end
