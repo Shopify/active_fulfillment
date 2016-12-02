@@ -15,4 +15,5 @@ namespace :test do
   end
 end
 
-task :default => 'test:units'
+task default: 'test:units'
+task test: 'test:units'

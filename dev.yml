@@ -1,0 +1,20 @@
+name: active-fulfillment
+
+up:
+  - ruby: 2.3.1
+  - bundler
+
+commands:
+  test:
+    syntax:
+      optional: file args...
+    desc: 'run all tests or a specific test file'
+    run: |
+      if [[ $# -eq 0 ]]; then
+        bundle exec rake test
+      else
+        bundle exec ruby -Itest "$@"
+      fi
+
+packages:
+  - git@github.com:Shopify/dev-shopify.git
