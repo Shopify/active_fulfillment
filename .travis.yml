@@ -7,15 +7,15 @@ rvm:
 - 2.0
 - 2.1
 - 2.2.2
-- 2.3.0
+- 2.3.1
 
 gemfile:
 - Gemfile
-- Gemfile.activesupport32
-- Gemfile.activesupport40
-- Gemfile.activesupport41
-- Gemfile.activesupport42
-- Gemfile.activesupport5
+- gemfiles/activesupport32.gemfile
+- gemfiles/activesupport40.gemfile
+- gemfiles/activesupport41.gemfile
+- gemfiles/activesupport42.gemfile
+- gemfiles/activesupport50.gemfile
 
 matrix:
   exclude:
@@ -24,6 +24,6 @@ matrix:
     - rvm: 2.1
       gemfile: Gemfile
     - rvm: 2.0
-      gemfile: Gemfile.activesupport5
+      gemfile: gemfiles/activesupport50.gemfile
     - rvm: 2.1
-      gemfile: Gemfile.activesupport5
+      gemfile: gemfiles/activesupport50.gemfile
