@@ -94,8 +94,8 @@ module ActiveFulfillment
       response_data = ActiveSupport::JSON.decode(json_data)
       return {} unless response_data.is_a?(Hash)
       response_data[root.underscore] || response_data
-      rescue ActiveSupport::JSON.parse_error
-        {}
+    rescue ActiveSupport::JSON.parse_error
+      {}
     end
 
     def parse_xml(xml_data, type, key, value)
