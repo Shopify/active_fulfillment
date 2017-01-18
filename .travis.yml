@@ -8,6 +8,7 @@ rvm:
 - 2.1
 - 2.2.2
 - 2.3.1
+- 2.4.0
 
 gemfile:
 - Gemfile
@@ -27,3 +28,11 @@ matrix:
       gemfile: gemfiles/activesupport50.gemfile
     - rvm: 2.1
       gemfile: gemfiles/activesupport50.gemfile
+    - rvm: 2.4.0
+      gemfile: gemfiles/activesupport32.gemfile
+    - rvm: 2.4.0
+      gemfile: gemfiles/activesupport40.gemfile
+    - rvm: 2.4.0
+      gemfile: gemfiles/activesupport41.gemfile
+    - rvm: 2.4.0
+      gemfile: gemfiles/activesupport42.gemfile
