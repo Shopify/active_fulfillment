@@ -1,5 +1,4 @@
-#--
-# Copyright (c) 2009 Jaded Pixel
+# Copyright (c) 2017 Shopify Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -19,7 +18,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#++
 
 require 'active_support'
 require 'active_support/core_ext/class/attribute'
