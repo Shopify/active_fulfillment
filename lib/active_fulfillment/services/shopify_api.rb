@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/to_query'
+require 'resolv'
 
 module ActiveFulfillment
   class ShopifyAPIService < Service
