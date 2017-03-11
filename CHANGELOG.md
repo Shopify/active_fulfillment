@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.1.0 (March 2017)
+- Update dependencies
+
 ### Version 3.0.1 (January 2015)
 
 - Use Nokogiri for all xml handling.
