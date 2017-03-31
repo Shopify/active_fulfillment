@@ -21,8 +21,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', '>= 3.2.9', '< 5.1.0')
   s.add_dependency('builder', '>= 2.0.0')
-  s.add_dependency('active_utils', '~> 3.3')
-  s.add_dependency('nokogiri', '~> 1.6.8')
+  s.add_dependency('active_utils', '~> 3.3.1')
+  s.add_dependency('nokogiri', '>= 1.6.8')
 
   s.add_development_dependency('rake')
   s.add_development_dependency('mocha', '~> 1.1')
