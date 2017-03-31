@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.1.1 (March 2017)
+- Bump Nokogiri dependency >= 1.6.8.
+
 ### Version 3.1.0 (March 2017)
 - Update dependencies
 
