@@ -74,6 +74,7 @@ module ActiveFulfillment
       requires!(options, :login, :password)
       @seller_id = options[:seller_id]
       @mws_auth_token = options[:mws_auth_token]
+      @maximum_response_log_size = options[:maximum_response_log_size] || 0
       super
     end
 
@@ -172,7 +173,8 @@ module ActiveFulfillment
 
       logger.info "[#{self.class}][#{action}] query=#{log_query}"
       data = ssl_post(uri.to_s, query, headers)
-      logger.info "[#{self.class}][#{action}] response=#{data}"
+      log_data = truncate_long_response(data)
+      logger.info "[#{self.class}][#{action}] response=#{log_data}"
       data
     end
 
@@ -436,6 +438,14 @@ module ActiveFulfillment
     def sleep_for_throttle_options(throttle_options, index)
       return unless interval = throttle_options.try(:[], :interval)
       sleep(throttle_options[:sleep_time]) if (index % interval).zero?
+    end
+
+    def truncate_long_response(data)
+      return data unless @maximum_response_log_size > 0
+      return data unless @maximum_response_log_size < data.length
+
+      truncated = data.slice(0, @maximum_response_log_size)
+      "#{truncated}[...TRUNCATED...]"
     end
 
     def secure_compare(a, b)
