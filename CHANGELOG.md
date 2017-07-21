@@ -1,9 +1,19 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.1
+
+- Allow truncating the Amazon response log.
+
+### Version 3.2.0
+
+- Add support for ActiveSupport 5.1
+
 ### Version 3.1.1 (March 2017)
+
 - Bump Nokogiri dependency >= 1.6.8.
 
 ### Version 3.1.0 (March 2017)
+
 - Update dependencies
 
 ### Version 3.0.1 (January 2015)

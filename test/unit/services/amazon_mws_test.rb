@@ -295,6 +295,27 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal 199, response.stock_levels['GN-00-02A']
   end
 
+  def test_truncated_logging
+    service = ActiveFulfillment::AmazonMarketplaceWebService.new(
+      :login => 'login',
+      :password => 'password',
+      :maximum_response_log_size => 9
+    )
+    service.expects(:ssl_post).with do |uri, _, _|
+      assert_equal 'https://mws.amazonservices.com/FulfillmentInventory/2010-10-01', uri
+    end.returns(xml_fixture('amazon_mws/inventory_list_inventory_supply'))
+
+    messages = []
+    service.class.logger.expects(:info).with { |message| messages << message }.twice
+
+    service.fetch_stock_levels
+
+    assert_equal(
+      "[ActiveFulfillment::AmazonMarketplaceWebService][FulfillmentInventory] response=<?xml ver[...TRUNCATED...]",
+      messages[1]
+    )
+  end
+
   def test_get_inventory_multipage
     @service.expects(:ssl_post).with() { |uri, query, headers|
       assert_equal 'https://mws.amazonservices.com/FulfillmentInventory/2010-10-01', uri
