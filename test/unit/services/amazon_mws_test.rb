@@ -337,6 +337,17 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal 5259, response.stock_levels['GN-01-02A']
   end
 
+  def test_get_inventory_for_specific_skus_requests_correct_skus
+    requested_skus = ['GN-00-01A', 'GN-00-02A', 'GN-01-01A', 'GN-01-02A']
+    @service.expects(:commit).with(any_parameters) do |_method, _amazon_action, xml|
+      assert_equal xml['SellerSkus.member.1'], requested_skus[0]
+      assert_equal xml['SellerSkus.member.2'], requested_skus[1]
+      assert_equal xml['SellerSkus.member.3'], requested_skus[2]
+      assert_equal xml['SellerSkus.member.4'], requested_skus[3]
+    end
+    @service.fetch_stock_levels(skus: requested_skus)
+  end
+
   def test_get_inventory_multipage_missing_stock
 
     @service.expects(:ssl_post).with { |uri, query, headers|
