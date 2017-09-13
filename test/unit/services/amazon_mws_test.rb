@@ -505,7 +505,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response)).times(retries + 1)
 
     response = @service.fetch_stock_levels(max_retries: retries)
-    assert !response.success?
+    refute_predicate response, :success?
   end
 
   private
