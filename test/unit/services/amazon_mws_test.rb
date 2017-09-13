@@ -499,6 +499,15 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert !constructed_address[nil]
   end
 
+  def test_retry_on_error
+    retries = 5
+    http_response = build_mock_response(response_from_503, "", 503)
+    @service.expects(:ssl_post).raises(ActiveUtils::ResponseError.new(http_response)).times(retries + 1)
+
+    response = @service.fetch_stock_levels(max_retries: retries)
+    assert !response.success?
+  end
+
   private
   def build_mock_response(response, message, code = "200")
     http_response = stub(:code => code, :message => message)

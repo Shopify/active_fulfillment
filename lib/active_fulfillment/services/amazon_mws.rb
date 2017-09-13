@@ -117,7 +117,7 @@ module ActiveFulfillment
         parse_inventory_response(parse_document(data))
       end
       while token = response.params['next_token'] do
-        next_page = with_error_handling do
+        next_page = with_error_handling(max_retries) do
           data = commit :post, 'FulfillmentInventory', build_next_inventory_list_request(token)
           parse_inventory_response(parse_document(data))
         end
@@ -436,7 +436,7 @@ module ActiveFulfillment
       begin
         yield
       rescue ActiveUtils::ResponseError => e
-        if e.response == 503 && retries < max_retries
+        if e.response.code == 503 && retries < max_retries
           retries += 1
           retry
         else
