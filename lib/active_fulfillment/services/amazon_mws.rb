@@ -110,7 +110,9 @@ module ActiveFulfillment
 
     def fetch_stock_levels(options = {})
       options[:skus] = [options.delete(:sku)] if options.include?(:sku)
-      response = with_error_handling do
+      max_retries = options[:max_retries] || 0
+
+      response = with_error_handling(max_retries) do
         data = commit :post, 'FulfillmentInventory', build_inventory_list_request(options)
         parse_inventory_response(parse_document(data))
       end
@@ -429,10 +431,18 @@ module ActiveFulfillment
 
     private
 
-    def with_error_handling
-      yield
-    rescue ActiveUtils::ResponseError => e
-      handle_error(e)
+    def with_error_handling(max_retries = 0)
+      retries = 0
+      begin
+        yield
+      rescue ActiveUtils::ResponseError => e
+        if e.response == 503 && retries < max_retries
+          retries += 1
+          retry
+        else
+          handle_error(e)
+        end
+      end
     end
 
     def sleep_for_throttle_options(throttle_options, index)
