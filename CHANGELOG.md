@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.2
+- Add an option to retry Amazon requests upon getting a 503.
+
 ### Version 3.2.1
 
 - Allow truncating the Amazon response log.
