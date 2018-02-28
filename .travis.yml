@@ -22,6 +22,7 @@ gemfile:
 - gemfiles/activesupport42_nokogiri_17.gemfile
 - gemfiles/activesupport50.gemfile
 - gemfiles/activesupport51.gemfile
+- gemfiles/activesupport52.gemfile
 
 matrix:
   exclude:
@@ -41,10 +42,14 @@ matrix:
       gemfile: gemfiles/activesupport50.gemfile
     - rvm: 2.0
       gemfile: gemfiles/activesupport51.gemfile
+    - rvm: 2.0
+      gemfile: gemfiles/activesupport52.gemfile
     - rvm: 2.1
       gemfile: gemfiles/activesupport50.gemfile
     - rvm: 2.1
       gemfile: gemfiles/activesupport51.gemfile
+    - rvm: 2.1
+      gemfile: gemfiles/activesupport52.gemfile
     - rvm: 2.4.0
       gemfile: gemfiles/activesupport32.gemfile
     - rvm: 2.4.0
