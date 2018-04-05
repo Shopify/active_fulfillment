@@ -26,6 +26,7 @@ require 'active_support/core_ext/time/calculations'
 require 'active_support/core_ext/date/calculations'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/string'
 begin
   require 'active_support/core_ext/time/acts_like'
 rescue LoadError
