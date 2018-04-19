@@ -19,7 +19,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Framework and tools for dealing with shipping, tracking and order fulfillment services.}
 
-  s.add_dependency('activesupport', '>= 3.2.9', '< 6.0')
+  s.required_ruby_version = '~> 2.2'
+  s.add_dependency('activesupport', '>= 4.2.0', '< 6.0')
   s.add_dependency('builder', '>= 2.0.0')
   s.add_dependency('active_utils', '~> 3.3.1')
   s.add_dependency('nokogiri', '>= 1.6.8')
