@@ -6,6 +6,8 @@ module ActiveFulfillment
 
     OrderIdCutoffDate = Date.iso8601('2015-03-01').freeze
 
+    MAX_LOGGED_RESPONSE_LENGTH = 70
+
     RESCUABLE_CONNECTION_ERRORS = [
       Net::ReadTimeout,
       Net::OpenTimeout,
@@ -86,9 +88,18 @@ module ActiveFulfillment
         end
       end
 
-      log :info, "GET response action=#{action} in #{"%.4fs" % realtime} #{response}"
-
+      log_response(action, realtime, response)
       response
+    end
+
+    def log_response(action, realtime, response)
+      truncated = response.to_s.truncate(
+        MAX_LOGGED_RESPONSE_LENGTH,
+        omission: '[response truncated]'
+      )
+
+      log :info, "GET response action=#{action} in " \
+        "#{format('%.4fs', realtime)} #{truncated}"
     end
 
     def parse_json(json_data, root)

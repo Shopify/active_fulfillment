@@ -107,7 +107,45 @@ class ShopifyAPITest < Minitest::Test
     refute @service.fetch_stock_levels.success?
   end
 
+  def test_fetch_tracking_data_logs_the_response
+    response = 'some response'
+    @service.expects(:ssl_get).returns(response)
+
+    expected = ".* GET response action=fetch_tracking_numbers in .* #{response}"
+
+    assert_log(:info, expected) do
+      @service.fetch_tracking_data([1, 2])
+    end
+  end
+
+  def test_fetch_tracking_data_logs_the_truncated_response
+    response = 'some response. ' * 144
+    @service.expects(:ssl_get).returns(response)
+
+    expected = '.* GET response action=fetch_tracking_numbers in .* ' \
+      'some response. some response. some response. some ' \
+      '\[response truncated\]'
+
+    assert_log(:info, expected) do
+      @service.fetch_tracking_data([1, 2])
+    end
+  end
+
   private
+
+  def assert_log(level, expected)
+    r = Regexp.new(expected)
+
+    matches = false
+    @service.class.logger.expects(level).with do |message|
+      matches ||= r.match(message).present?
+      true
+    end.at_least_once
+
+    yield
+  ensure
+    assert matches, "Log didn't match #{r}"
+  end
 
   def mock_app_request(action, input, output)
     ActiveFulfillment::ShopifyAPIService.any_instance.expects(:send_app_request).with(action, nil, input).returns(output)
