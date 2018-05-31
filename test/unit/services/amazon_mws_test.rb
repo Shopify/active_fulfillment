@@ -508,6 +508,12 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     refute_predicate response, :success?
   end
 
+  def test_read_timeout_longer_than_default
+    default_service = ActiveFulfillment::Service.new
+
+    assert_operator default_service.read_timeout, :<, @service.read_timeout
+  end
+
   private
   def build_mock_response(response, message, code = "200")
     http_response = stub(:code => code, :message => message)

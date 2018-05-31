@@ -62,6 +62,8 @@ module ActiveFulfillment
       'Priority Shipping' => 'Priority'
     }.freeze
 
+    READ_TIMEOUT = 20
+
     # The first is the label, and the last is the code
     # Standard:  3-5 business days
     # Expedited: 2 business days
@@ -75,6 +77,7 @@ module ActiveFulfillment
       @seller_id = options[:seller_id]
       @mws_auth_token = options[:mws_auth_token]
       @maximum_response_log_size = options[:maximum_response_log_size] || 0
+      @read_timeout = READ_TIMEOUT
       super
     end
 
