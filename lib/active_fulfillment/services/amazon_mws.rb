@@ -18,15 +18,37 @@ module ActiveFulfillment
     XML_FAILURE_RESPONSE = { :success => FAILURE }.freeze
 
     ENDPOINTS = {
-      :ca => 'mws.amazonservices.ca',
+      :au => 'mws.amazonservices.com.au',
+      :br => 'mws.amazonservices.com',
+      :ca => 'mws.amazonservices.com',
       :cn => 'mws.amazonservices.com.cn',
-      :de => 'mws-eu.amazonservices.ca',
-      :es => 'mws-eu.amazonservices.ca',
-      :fr => 'mws-eu.amazonservices.ca',
-      :it => 'mws-eu.amazonservices.ca',
+      :de => 'mws-eu.amazonservices.com',
+      :es => 'mws-eu.amazonservices.com',
+      :fr => 'mws-eu.amazonservices.com',
+      :gb => 'mws-eu.amazonservices.com',
+      :in => 'mws.amazonservices.in',
+      :it => 'mws-eu.amazonservices.com',
       :jp => 'mws.amazonservices.jp',
-      :uk => 'mws-eu.amazonservices.ca',
-      :us => 'mws.amazonservices.com'
+      :mx => 'mws.amazonservices.com',
+      :uk => 'mws-eu.amazonservices.com',
+      :us => 'mws.amazonservices.com',
+    }.freeze
+
+    MARKETPLACE_IDS = {
+      :au => 'A39IBJ37TRP1C6',
+      :br => 'A2Q3Y263D00KWC',
+      :ca => 'A2EUQ1WTGCTBG2',
+      :cn => 'AAHKV2X7AFYLW',
+      :de => 'A1PA6795UKMFR9',
+      :es => 'A1RKKUPIHCS9HS',
+      :fr => 'A13V1IB3VIYZZH',
+      :gb => 'A1F83G8C2ARO7P',
+      :in => 'A21TJRUUN4KGV',
+      :it => 'APJ6JRA9NG5V4',
+      :jp => 'A1VC38T7YXB528',
+      :mx => 'A1AM78C64UM0Y8',
+      :uk => 'A1F83G8C2ARO7P',
+      :us => 'ATVPDKIKX0DER',
     }.freeze
 
     LOOKUPS = {
@@ -84,6 +106,10 @@ module ActiveFulfillment
 
     def endpoint
       ENDPOINTS[@options[:endpoint] || :us]
+    end
+
+    def marketplace_id
+      MARKETPLACE_IDS[@options[:endpoint] || :us]
     end
 
     def fulfill(order_id, shipping_address, line_items, options = {})
@@ -339,7 +365,8 @@ module ActiveFulfillment
         :SellerFulfillmentOrderId => order_id.to_s,
         :DisplayableOrderId => order_id.to_s,
         :DisplayableOrderDateTime => options[:order_date].utc.iso8601,
-        :ShippingSpeedCategory => options[:shipping_method]
+        :ShippingSpeedCategory => options[:shipping_method],
+        :MarketplaceId => marketplace_id,
       }
       params[:DisplayableOrderComment] = options[:comment] if options[:comment]
 

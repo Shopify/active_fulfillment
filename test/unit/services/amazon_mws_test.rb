@@ -78,6 +78,11 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
     assert_equal ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS[:jp], service.endpoint
   end
 
+  def test_endpoint_and_marketplace_ids_have_the_same_keys
+    assert_equal ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS.keys,
+      ActiveFulfillment::AmazonMarketplaceWebService::MARKETPLACE_IDS.keys
+  end
+
   def test_build_basic_api_query
     options = {
       "Action" => "SubmitFeed",
@@ -247,6 +252,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
   def test_successful_fulfillment
     @service.expects(:ssl_post).with do |uri, query, headers|
       assert_equal 'https://mws.amazonservices.com/FulfillmentOutboundShipment/2010-10-01', uri
+      assert_equal 'ATVPDKIKX0DER', CGI.parse(query)['MarketplaceId'].first
     end.returns(successful_fulfillment_response)
     response = @service.fulfill('12345678', @address, @line_items, @options)
     assert response.success?
