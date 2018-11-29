@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Framework and tools for dealing with shipping, tracking and order fulfillment services.}
 
   s.required_ruby_version = '~> 2.2'
-  s.add_dependency('activesupport', '>= 4.2.0', '< 6.0')
+  s.add_dependency('activesupport', '>= 4.2.0')
   s.add_dependency('builder', '>= 2.0.0')
   s.add_dependency('active_utils', '~> 3.3.1')
   s.add_dependency('nokogiri', '>= 1.6.8')
