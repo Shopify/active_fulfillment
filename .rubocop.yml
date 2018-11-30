@@ -3,3 +3,7 @@ inherit_from:
 
 AllCops:
   TargetRubyVersion: 2.2
+
+Style/MethodCallWithArgsParentheses:
+  Exclude:
+    - 'gemfiles/*'
