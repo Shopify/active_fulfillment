@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.6 (November 30, 2018)
+- Remove the upperbound constraint on ActiveSupport
+
 ### Version 3.2.2
 - Add an option to retry Amazon requests upon getting a 503.
 
