@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.7 (November 30, 2018)
+- Fixing Amazon endpoint used for the CA and MX marketplaces
+
 ### Version 3.2.6 (November 30, 2018)
 - Remove the upperbound constraint on ActiveSupport
 
