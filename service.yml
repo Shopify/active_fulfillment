@@ -1,0 +1,6 @@
+# https://services.shopify.io/services/active_fulfillment/rubygems
+org_line:
+owners:
+- Shopify/store-logistics-fulfillment
+rubygems:
+  classification: tier4
