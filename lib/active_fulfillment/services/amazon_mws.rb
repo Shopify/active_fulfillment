@@ -20,7 +20,7 @@ module ActiveFulfillment
     ENDPOINTS = {
       :au => 'mws.amazonservices.com.au',
       :br => 'mws.amazonservices.com',
-      :ca => 'mws.amazonservices.com',
+      :ca => 'mws.amazonservices.ca',
       :cn => 'mws.amazonservices.com.cn',
       :de => 'mws-eu.amazonservices.com',
       :es => 'mws-eu.amazonservices.com',
@@ -29,7 +29,7 @@ module ActiveFulfillment
       :in => 'mws.amazonservices.in',
       :it => 'mws-eu.amazonservices.com',
       :jp => 'mws.amazonservices.jp',
-      :mx => 'mws.amazonservices.com',
+      :mx => 'mws.amazonservices.com.mx',
       :uk => 'mws-eu.amazonservices.com',
       :us => 'mws.amazonservices.com',
     }.freeze
