@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.8 (December 20, 2019)
+- Sending MarketplaceId for all Amazon requests
+
 ### Version 3.2.7 (November 30, 2018)
 - Fixing Amazon endpoint used for the CA and MX marketplaces
 

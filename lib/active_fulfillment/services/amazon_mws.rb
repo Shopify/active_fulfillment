@@ -356,6 +356,7 @@ module ActiveFulfillment
       opts["SignatureVersion"] = SIGNATURE_VERSION unless opts["SignatureVersion"]
       opts["SellerId"] = @seller_id unless opts["SellerId"] || !@seller_id
       opts["MWSAuthToken"] = @mws_auth_token unless opts["MWSAuthToken"] || !@mws_auth_token
+      opts["MarketplaceId"] = marketplace_id
       opts
     end
 
@@ -366,7 +367,6 @@ module ActiveFulfillment
         :DisplayableOrderId => order_id.to_s,
         :DisplayableOrderDateTime => options[:order_date].utc.iso8601,
         :ShippingSpeedCategory => options[:shipping_method],
-        :MarketplaceId => marketplace_id,
       }
       params[:DisplayableOrderComment] = options[:comment] if options[:comment]
 

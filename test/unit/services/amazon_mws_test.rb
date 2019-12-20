@@ -89,13 +89,14 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       "FeedType" => "_POST_INVENTORY_AVAILABILITY_DATA_",
       "Merchant" => "SuperMerchant123"
     }
-    expected_keys = ["AWSAccessKeyId", "Action", "FeedType", "Merchant", "SignatureMethod", "SignatureVersion", "Timestamp", "Version"]
+    expected_keys = ["AWSAccessKeyId", "Action", "FeedType", "Merchant", "SignatureMethod", "SignatureVersion", "Timestamp", "Version", "MarketplaceId"]
     opts = @service.build_basic_api_query(options)
     assert_equal expected_keys.sort, opts.keys.map(&:to_s).sort
     assert_equal "login", opts["AWSAccessKeyId"]
     assert_equal ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_VERSION, opts["SignatureVersion"]
     assert_equal "Hmac#{ActiveFulfillment::AmazonMarketplaceWebService::SIGNATURE_METHOD}", opts["SignatureMethod"]
     assert_equal ActiveFulfillment::AmazonMarketplaceWebService::VERSION, opts["Version"]
+    assert_equal "ATVPDKIKX0DER", opts["MarketplaceId"]
   end
 
   def test_build_inventory_list_request
@@ -113,7 +114,7 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
 
   def test_create_signature
     service = ActiveFulfillment::AmazonMarketplaceWebService.new(:login => "0PExampleR2", :password => "sekrets")
-    expected_signature = "39XxH6iKLysjjDmWZSkyr2z8iSxfECHBYE1Pd0Qqpwo%3D"
+    expected_signature = "Zde8skcLEYlpbj27jSdTVGZ%2FWNcs4gDLXMdcQ8cvOrY%3D"
     options = {
       "AWSAccessKeyId" => "0PExampleR2",
       "Action" => "SubmitFeed",
@@ -123,7 +124,8 @@ class AmazonMarketplaceWebServiceTest < Minitest::Test
       "SignatureMethod" => "HmacSHA256",
       "SignatureVersion" => "2",
       "Timestamp" => "2009-08-20T01:10:27.607Z",
-      "Version" => "2009-01-01"
+      "Version" => "2009-01-01",
+      "MarketplaceId" => "ATVPDKIKX0DER"
     }
 
     uri = URI.parse("https://#{ActiveFulfillment::AmazonMarketplaceWebService::ENDPOINTS[:us]}")
