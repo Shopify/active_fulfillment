@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.9 (January 30, 2020)
+- Fix an issue with trailing slash on callback urls
+
 ### Version 3.2.8 (December 20, 2019)
 - Sending MarketplaceId for all Amazon requests
 

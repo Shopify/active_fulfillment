@@ -68,7 +68,7 @@ module ActiveFulfillment
     private
 
     def request_uri(action, data)
-      URI.parse "#{@callback_url}/#{action}.#{@format}?#{data.to_query}"
+      url = URI.join(@callback_url, "#{action}.#{@format}?#{data.to_query}")
     end
 
     def send_app_request(action, headers, data)
