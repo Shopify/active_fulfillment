@@ -1,5 +1,8 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.11 (September 11, 2020)
+- Fix callback url to handle trailing segment and trailing slash
+
 ### Version 3.2.10 (September 1, 2020)
 - Relax ruby version requirement to allow installation on Ruby 3.0
 
