@@ -35,6 +35,19 @@ class ShopifyAPITest < Minitest::Test
     end
   end
 
+  def test_request_uri_is_correct_when_callback_url_has_additional_element
+    Timecop.freeze do
+      service = build_service(callback_url: 'https://dotcom-prod.bluemercuryio.com/v1/dotcom')
+      timestamp = Time.now.utc.to_i
+      uri = service.send(:request_uri, 'fetch_stock', {sku: '123', timestamp: timestamp, shop: 'www.snowwowdevil.ca'})
+      assert_equal "https://dotcom-prod.bluemercuryio.com/v1/dotcom/fetch_stock.json?shop=www.snowwowdevil.ca&sku=123&timestamp=#{timestamp}", uri.to_s
+
+      service = build_service(callback_url: 'http://supershopifyapptwin.com/shopify/')
+      uri = service.send(:request_uri, 'fetch_stock', {sku: '123', timestamp: timestamp, shop: 'www.snowwowdevil.ca'})
+      assert_equal "http://supershopifyapptwin.com/shopify/fetch_stock.json?shop=www.snowwowdevil.ca&sku=123&timestamp=#{timestamp}", uri.to_s
+    end
+  end
+
   def test_response_from_failed_stock_request
     mock_app_request('fetch_stock', anything, nil)
     response = @service.fetch_stock_levels()
