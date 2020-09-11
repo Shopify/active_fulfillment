@@ -42,7 +42,7 @@ class ShopifyAPITest < Minitest::Test
       uri = service.send(:request_uri, 'fetch_stock', {sku: '123', timestamp: timestamp, shop: 'www.snowwowdevil.ca'})
       assert_equal "https://dotcom-prod.bluemercuryio.com/v1/dotcom/fetch_stock.json?shop=www.snowwowdevil.ca&sku=123&timestamp=#{timestamp}", uri.to_s
 
-      service = build_service(callback_url: 'http://supershopifyapptwin.com/shopify')
+      service = build_service(callback_url: 'http://supershopifyapptwin.com/shopify/')
       uri = service.send(:request_uri, 'fetch_stock', {sku: '123', timestamp: timestamp, shop: 'www.snowwowdevil.ca'})
       assert_equal "http://supershopifyapptwin.com/shopify/fetch_stock.json?shop=www.snowwowdevil.ca&sku=123&timestamp=#{timestamp}", uri.to_s
     end
