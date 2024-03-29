@@ -1,5 +1,10 @@
 # ActiveFulfillment changelog
 
+### Version 3.2.12 (April 1, 2024)
+- Change active_utils from pecimistic to optimistic version constraint
+- Remove CLA from probot and use new GitHub action
+- Clean up service.yml manifest
+
 ### Version 3.2.11 (September 11, 2020)
 - Fix callback url to handle trailing segment and trailing slash
 
