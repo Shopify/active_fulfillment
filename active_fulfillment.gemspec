@@ -21,14 +21,14 @@ Gem::Specification.new do |s|
 
   s.metadata['allowed_push_host'] = 'https://rubygems.org'
 
-  s.required_ruby_version = '>= 2.2'
+  s.required_ruby_version = '>= 3.1'
   s.add_dependency('activesupport', '>= 4.2.0')
   s.add_dependency('builder', '>= 2.0.0')
   s.add_dependency('active_utils', '>= 3.3.1')
   s.add_dependency('nokogiri', '>= 1.6.8')
 
   s.add_development_dependency('rake')
-  s.add_development_dependency('mocha', '~> 1.1')
+  s.add_development_dependency('mocha')
   s.add_development_dependency('minitest', '>= 4.7')
   s.add_development_dependency('timecop')
   s.add_development_dependency('pry')
