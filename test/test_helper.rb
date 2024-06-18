@@ -3,7 +3,7 @@ require 'bundler/setup'
 require 'active_fulfillment'
 
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 require 'timecop'
 require 'pry'
 
